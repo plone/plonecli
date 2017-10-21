@@ -22,7 +22,6 @@ A Plone CLI for creating Plone packages
 
 
 * Free software: BSD license
-* Documentation: https://plonecli.readthedocs.io.
 
 
 Developer Guide
