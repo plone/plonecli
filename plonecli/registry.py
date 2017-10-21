@@ -18,10 +18,13 @@ def read_setup_cfg(root_folder):
     config = ConfigParser()
     path = root_folder + '/setup.cfg'
     config.read(path)
-    if not config.sections():
-        return
-    setup_cfg.version = config.get('tool:bobtemplates.plone', 'template')
-    return setup_cfg
+    try:
+        config.sections()
+    except ConfigParser.NoSectionError:
+        pass
+    else:
+        setup_cfg.template = config.get('tool:bobtemplates.plone', 'template')
+        return setup_cfg
 
 
 class TemplateRegistry(object):
