@@ -11,19 +11,25 @@ def cli():
 
 
 @cli.command()
+@click.argument('template')
+@click.argument('name')
 @click.option('-v', '--verbose', is_flag=True)
-def create(verbose):
+def create(template, name, verbose):
     """Create a new Plone package."""
     click.echo('create called')
+    click.echo('template: {0}'.format(template))
+    click.echo('package name: {0}'.format(name))
     if verbose:
         click.echo('with verbose param')
 
 
 @cli.command()
+@click.argument('subtemplate')
 @click.option('-v', '--verbose', is_flag=True)
-def add(verbose):
+def add(subtemplate, verbose):
     """Add a sub template to your existing package."""
     click.echo('add called')
+    click.echo('sub template: {0}'.format(subtemplate))
     if verbose:
         click.echo('with verbose param')
 
@@ -41,17 +47,21 @@ def install_requirements():
 
 
 @cli.command('build')
-def run_buildout():
+@click.option('-v', '--verbose', count=True)
+def run_buildout(verbose):
     """Run the package buildout."""
     click.echo('build called')
+    if verbose:
+        click.echo('with verbose param')
 
 
 @cli.command('install')
+@click.option('-v', '--verbose', count=True)
 @click.pass_context
-def install_package(ctx):
+def install_package(ctx, verbose):
     """Install the package."""
-    ctx.forward(create_virtualenv)
-    ctx.forward(install_requirements)
+    ctx.invoke(create_virtualenv)
+    ctx.invoke(install_requirements)
     ctx.forward(run_buildout)
 
 
