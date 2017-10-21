@@ -31,7 +31,7 @@ Features
 creating a Plone addon
 ......................
 
-..code-block: sh
+..code-block:: sh
 
     $ pip install plonecli
     $ plonecli -l
@@ -47,7 +47,7 @@ creating a Plone addon
 adding features to your Plone addon
 ...................................
 
-..code-block: sh
+..code-block:: sh
 
     $ cd collective.todo
     $ plonecli -l
