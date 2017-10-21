@@ -25,13 +25,40 @@ A Plone CLI for creating Plone packages
 * Documentation: https://plonecli.readthedocs.io.
 
 
-Features
---------
+Developer Guide
+===============
 
-creating a Plone addon
-......................
+Setup Developer Environment
+---------------------------
 
-.. code-block:: sh
+.. code-block:: console
+
+    $ git clone https://github.com/plone/plonecli/
+    $ cd plonecli
+    $ virtualenv .
+    $ source bin/activate
+    $ pip install -r requirements_dev.txt
+    $ python setup.py develop
+    $ plonecli --help
+
+
+Running Tests
+-------------
+
+You can run the tests using the following command:
+
+.. code-block:: console
+
+    $ tox
+
+
+Vision
+======
+
+Creating A Plone Add-on
+-----------------------
+
+.. code-block:: console
 
     $ pip install plonecli
     $ plonecli -l
@@ -44,10 +71,11 @@ creating a Plone addon
 
     $ plonecli create addon collective.todo
 
-adding features to your Plone addon
-...................................
 
-.. code-block:: sh
+Adding Features To Your Plone Add-on
+------------------------------------
+
+.. code-block:: console
 
     $ cd collective.todo
     $ plonecli -l
@@ -59,14 +87,3 @@ adding features to your Plone addon
     $ plonecli add content_type
     $ plonecli add vocabulary
     $ plonecli add theme
-
-
-
-Credits
----------
-
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
-
