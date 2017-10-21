@@ -28,7 +28,39 @@ A Plone CLI for creating Plone packages
 Features
 --------
 
-* TODO
+creating a Plone addon
+......................
+
+..code-block: sh
+
+    $ pip install plonecli
+    $ plonecli -l
+    templates:
+     - addon
+      - content_type
+      - theme
+      - vocabulary
+     - buildout
+
+    $ plonecli create addon collective.todo
+
+adding features to your Plone addon
+...................................
+
+..code-block: sh
+
+    $ cd collective.todo
+    $ plonecli -l
+    templates:
+     - content_type
+     - theme
+     - vocabulary
+
+    $ plonecli add content_type
+    $ plonecli add vocabulary
+    $ plonecli add theme
+
+
 
 Credits
 ---------
