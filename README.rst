@@ -25,8 +25,32 @@ A Plone CLI for creating Plone packages
 * Documentation: https://plonecli.readthedocs.io.
 
 
-Features
---------
+Developer guide
+===============
+
+Setup developer environment
+---------------------------
+
+::
+
+    $ git clone  https://github.com/plone/plonecli/
+    $ cd plonecli
+    $ virtualenv .
+    $ source bin/activate
+    $ pip install -r requirements_dev.txt
+    $ plonecli --help
+
+
+Running tests
+-------------
+
+Easy as::
+
+    $ tox
+
+
+Vision
+======
 
 creating a Plone addon
 ......................
