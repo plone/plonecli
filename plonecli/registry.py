@@ -40,7 +40,7 @@ class TemplateRegistry(object):
             if tmpl_info.depend_on:
                 continue
             self.templates[entry_point_name] = {
-                'template_name': entry_point_name,
+                'template_name': tmpl_info.plonecli_alias or entry_point_name,
                 'subtemplates': {},
             }
 
@@ -52,14 +52,15 @@ class TemplateRegistry(object):
                     tmpl_info.depend_on))
                 continue
             self.templates[tmpl_info.depend_on][
-                'subtemplates'][entry_point_name] = entry_point_name
+                'subtemplates'][entry_point_name] = tmpl_info.plonecli_alias \
+                or entry_point_name
 
     def list_templates(self):
         templates_str = 'Templates:\n'
         for tmpl in self.templates.values():
             templates_str += " - {0}\n".format(tmpl['template_name'])
             subtemplates = tmpl.get('subtemplates', [])
-            for subtmpl_name in subtemplates:
+            for subtmpl_name in subtemplates.values():
                 templates_str += "  - {0}\n".format(subtmpl_name)
         return templates_str
 
@@ -72,7 +73,14 @@ class TemplateRegistry(object):
                 print("no subtemplates found for {0}!".format(
                     setup_cfg.template))
                 return []
-            return template['subtemplates']
+            return template['subtemplates'].values()
+        return [tmpl['template_name'] for tmpl in self.templates.values()]
 
-        # read template name
-        # lookup templates or subtemplates if setup.cfg was found
+    def resolve_template_name(self, plonecli_alias):
+        """ resolve template name from plonecli alias
+        """
+        template_name = None
+        for entry_point, tmpl_info in self.template_infos.items():
+            if tmpl_info.plonecli_alias == plonecli_alias:
+                template_name = tmpl_info.template
+        return template_name
