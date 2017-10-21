@@ -4,13 +4,13 @@
 import click
 
 
-@click.group()
-def bobtemplates():
-    """Support for bobtemplates.plone."""
+@click.group(chain=True)
+def cli():
+    """Plone Command Line Interface (CLI)."""
     pass
 
 
-@bobtemplates.command()
+@cli.command()
 @click.option('-v', '--verbose', is_flag=True)
 def create(verbose):
     """Create a new Plone package."""
@@ -19,7 +19,7 @@ def create(verbose):
         click.echo('with verbose param')
 
 
-@bobtemplates.command()
+@cli.command()
 @click.option('-v', '--verbose', is_flag=True)
 def add(verbose):
     """Add a sub template to your existing package."""
@@ -28,31 +28,25 @@ def add(verbose):
         click.echo('with verbose param')
 
 
-@click.group()
-def package():
-    """Package maintaining group."""
-    pass
-
-
-@package.command('virtualenv')
+@cli.command('virtualenv')
 def create_virtualenv():
     """Create or update the local virtual environment."""
     click.echo('virtualenv called')
 
 
-@package.command('requirements')
+@cli.command('requirements')
 def install_requirements():
     """Install the local package requirements."""
     click.echo('requirements called')
 
 
-@package.command('build')
+@cli.command('build')
 def run_buildout():
     """Run the package buildout."""
     click.echo('build called')
 
 
-@package.command('install')
+@cli.command('install')
 @click.pass_context
 def install_package(ctx):
     """Install the package."""
@@ -61,7 +55,7 @@ def install_package(ctx):
     ctx.forward(run_buildout)
 
 
-main = click.CommandCollection(sources=[bobtemplates, package])
+main = cli
 
 
 if __name__ == "__main__":
