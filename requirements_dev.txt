@@ -1,5 +1,6 @@
 tox
 pytest
+zest.releaser[recommended]
 
 # Development dependencies
 -e git+https://github.com/plone/bobtemplates.plone.git@MrTango_cli#egg=bobtemplates.plone
