@@ -24,6 +24,16 @@ A Plone CLI for creating Plone packages
 * Free software: BSD license
 
 
+Bash auto completion
+--------------------
+
+To enable auto completion we added the plonecli.sh script, put this into your bashrc:
+
+.. code-block:: console
+
+    $ . /path/to/plonecli/plonecli.sh
+
+
 Developer Guide
 ===============
 
