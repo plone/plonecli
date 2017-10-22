@@ -10,8 +10,21 @@ def cli():
     pass
 
 
+def get_templates(ctx, args, incomplete):
+    """Return a list of available mr.bob templates."""
+    return sorted([
+        'buildout',
+        'theme_package',
+        'addon',
+    ])
+
+
 @cli.command()
-@click.argument('template')
+@click.argument(
+    'template',
+    type=click.STRING,
+    autocompletion=get_templates,
+)
 @click.argument('name')
 @click.option('-v', '--verbose', is_flag=True)
 def create(template, name, verbose):
@@ -23,8 +36,21 @@ def create(template, name, verbose):
         click.echo('with verbose param')
 
 
+def get_subtemplates(ctx, args, incomplete):
+    """Return a list of available mr.bob sub-templates."""
+    return sorted([
+        'sub_template',
+        'vocabulary',
+        'theme',
+    ])
+
+
 @cli.command()
-@click.argument('subtemplate')
+@click.argument(
+    'subtemplate',
+    type=click.STRING,
+    autocompletion=get_subtemplates,
+)
 @click.option('-v', '--verbose', is_flag=True)
 def add(subtemplate, verbose):
     """Add a sub template to your existing package."""
