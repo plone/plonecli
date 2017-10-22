@@ -2,6 +2,9 @@
 """Console script for plonecli."""
 
 import click
+import subprocess
+
+from plonecli.registry import TemplateRegistry
 
 
 @click.group(chain=True)
@@ -16,22 +19,35 @@ def cli():
 @click.option('-v', '--verbose', is_flag=True)
 def create(template, name, verbose):
     """Create a new Plone package."""
-    click.echo('create called')
-    click.echo('template: {0}'.format(template))
-    click.echo('package name: {0}'.format(name))
+    reg = TemplateRegistry()
+    template = reg.resolve_template_name(template)
     if verbose:
-        click.echo('with verbose param')
+        click.echo('RUN: mrbob {0} -O {1}'.format(template, name))
+    subprocess.call(
+        [
+            'mrbob',
+            template,
+            '-O',
+            name,
+        ],
+    )
 
 
 @cli.command()
-@click.argument('subtemplate')
+@click.argument('template')
 @click.option('-v', '--verbose', is_flag=True)
-def add(subtemplate, verbose):
+def add(template, verbose):
     """Add a sub template to your existing package."""
-    click.echo('add called')
-    click.echo('sub template: {0}'.format(subtemplate))
+    reg = TemplateRegistry()
+    template = reg.resolve_template_name(template)
     if verbose:
-        click.echo('with verbose param')
+        click.echo('RUN: mrbob {0}'.format(template))
+    subprocess.call(
+        [
+            'mrbob',
+            template,
+        ],
+    )
 
 
 @cli.command('virtualenv')

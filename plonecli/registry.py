@@ -1,6 +1,5 @@
 import pkg_resources
-
-from .utils import get_package_root_folder
+import os
 
 try:
     from ConfigParser import ConfigParser
@@ -25,6 +24,23 @@ def read_setup_cfg(root_folder):
     else:
         setup_cfg.template = config.get('tool:bobtemplates.plone', 'template')
         return setup_cfg
+
+
+def get_package_root_folder():
+    file_name = 'setup.py'
+    root_folder = None
+    cur_dir = os.getcwd()
+    while True:
+        files = os.listdir(cur_dir)
+        parent_dir = os.path.dirname(cur_dir)
+        if file_name in files:
+            root_folder = cur_dir
+            break
+        else:
+            if cur_dir == parent_dir:
+                break
+            cur_dir = parent_dir
+    return root_folder
 
 
 class TemplateRegistry(object):
