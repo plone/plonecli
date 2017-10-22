@@ -17,13 +17,12 @@ def read_setup_cfg(root_folder):
     config = ConfigParser()
     path = root_folder + '/setup.cfg'
     config.read(path)
-    try:
-        config.sections()
-    except ConfigParser.NoSectionError:
-        pass
-    else:
-        setup_cfg.template = config.get('tool:bobtemplates.plone', 'template')
+    if not config.has_section('tool:bobtemplates.plone'):
         return setup_cfg
+    if not config.has_option('tool:bobtemplates.plone', 'template'):
+        return setup_cfg
+    setup_cfg.template = config.get('tool:bobtemplates.plone', 'template')
+    return setup_cfg
 
 
 def get_package_root_folder():
@@ -46,6 +45,8 @@ def get_package_root_folder():
 class TemplateRegistry(object):
 
     def __init__(self):
+        self.root_folder = get_package_root_folder()
+        self.setup_cfg = read_setup_cfg(self.root_folder)
         self.templates = {}
         self.template_infos = {}
         for entry_point in pkg_resources.iter_entry_points('mrbob_templates'):
@@ -81,13 +82,11 @@ class TemplateRegistry(object):
         return templates_str
 
     def get_templates(self):
-        root_folder = get_package_root_folder()
-        if root_folder:
-            setup_cfg = read_setup_cfg(root_folder)
-            template = self.templates.get(setup_cfg.template)
+        if self.root_folder:
+            template = self.templates.get(self.setup_cfg.template)
             if not template:
                 print("no subtemplates found for {0}!".format(
-                    setup_cfg.template))
+                    self.setup_cfg.template))
                 return []
             return template['subtemplates'].values()
         return [tmpl['template_name'] for tmpl in self.templates.values()]

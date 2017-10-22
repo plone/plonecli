@@ -39,7 +39,7 @@ setup(
     packages=find_packages(include=['plonecli']),
     entry_points={
         'console_scripts': [
-            'plonecli=plonecli.cli:main'
+            'plonecli=plonecli.cli:cli'
         ]
     },
     include_package_data=True,
