@@ -4,12 +4,11 @@
 """Tests for `plonecli` package."""
 import os
 
-from plonecli.registry import TemplateRegistry
+from plonecli.registry import template_registry as reg
 
 
 def test_list_templates(tmpdir):
     os.chdir(tmpdir.strpath)
-    reg = TemplateRegistry()
     template_str = reg.list_templates()
     assert '- buildout' in template_str
     assert '- addon' in template_str
@@ -33,7 +32,6 @@ template=plone_addon
     with open(os.path.join(target_dir + '/setup.py'), 'w') as f:
         f.write("#")
     os.chdir(target_dir)
-    reg = TemplateRegistry()
     templates = reg.get_templates()
     assert 'content_type' in templates
     assert 'theme' in templates
@@ -44,7 +42,6 @@ def test_get_templates(tmpdir):
     """ test get_templates outside of a package
     """
     os.chdir(tmpdir.strpath)
-    reg = TemplateRegistry()
     templates = reg.get_templates()
     assert 'addon' in templates
     assert 'theme_package' in templates
@@ -55,6 +52,5 @@ def test_resolve_template_name(tmpdir):
     """ test resolving template names from plonecli alias
     """
     plonecli_alias = 'addon'
-    reg = TemplateRegistry()
     template_name = reg.resolve_template_name(plonecli_alias)
     assert 'bobtemplates.plone:addon' == template_name

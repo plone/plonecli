@@ -14,19 +14,21 @@ class SetupCfg(object):
 
 def read_setup_cfg(root_folder):
     setup_cfg = SetupCfg()
+    if not root_folder:
+        return
     config = ConfigParser()
     path = root_folder + '/setup.cfg'
     config.read(path)
     if not config.has_section('tool:bobtemplates.plone'):
-        return setup_cfg
+        return
     if not config.has_option('tool:bobtemplates.plone', 'template'):
-        return setup_cfg
+        return
     setup_cfg.template = config.get('tool:bobtemplates.plone', 'template')
     return setup_cfg
 
 
 def get_package_root_folder():
-    file_name = 'setup.py'
+    file_name = 'setup.cfg'
     root_folder = None
     cur_dir = os.getcwd()
     while True:
@@ -99,3 +101,6 @@ class TemplateRegistry(object):
             if tmpl_info.plonecli_alias == plonecli_alias:
                 template_name = tmpl_info.template
         return template_name
+
+
+template_registry = TemplateRegistry()

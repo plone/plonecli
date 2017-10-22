@@ -5,34 +5,34 @@ import click
 import subprocess
 import os
 
-from plonecli.registry import TemplateRegistry
+from plonecli.registry import template_registry as reg
 
 
-class TemplateCLI(click.Group):
-
-    def list_commands(self, context):
-        templates = ['addon', 'buildout']
-        return templates
+def get_templates(ctx, args, incomplete):
+    """ return a list of available bobtemplates """
+    templates = reg.get_templates()
+    return templates
 
 
 @click.group(chain=True)
 @click.pass_context
 def cli(context):
-    """Plone Command Line Interface (CLI)."""
+    """Plone Command Line Interface (CLI)"""
     context.obj = {}
-    reg = TemplateRegistry()
-    context.obj['reg'] = reg
     context.obj['target_dir'] = reg.root_folder
 
 
 @cli.command()
-@click.argument('template')
+@click.argument(
+    'template',
+    type=click.STRING,
+    autocompletion=get_templates,
+)
 @click.argument('name')
 @click.option('-v', '--verbose', is_flag=True)
 @click.pass_context
 def create(context, template, name, verbose):
-    """Create a new Plone package."""
-    reg = TemplateRegistry()
+    """Create a new Plone package"""
     template = reg.resolve_template_name(template)
     cur_dir = os.getcwd()
     context.obj['target_dir'] = '{0}/{1}'.format(cur_dir, name)
@@ -49,12 +49,15 @@ def create(context, template, name, verbose):
 
 
 @cli.command()
-@click.argument('template')
+@click.argument(
+    'template',
+    type=click.STRING,
+    autocompletion=get_templates,
+)
 @click.option('-v', '--verbose', is_flag=True)
 @click.pass_context
 def add(context, template, verbose):
-    """Add a sub template to your existing package."""
-    reg = TemplateRegistry()
+    """Add features to your existing package"""
     template = reg.resolve_template_name(template)
     if verbose:
         click.echo('RUN: mrbob {0}'.format(template))
@@ -71,7 +74,7 @@ def add(context, template, verbose):
 @click.option('-c', '--clean', is_flag=True)
 @click.pass_context
 def create_virtualenv(context, verbose, clean):
-    """Create or update the local virtual environment."""
+    """Create/Update a local virtual environment"""
     params = [
         'virtualenv',
         '.',
@@ -90,7 +93,7 @@ def create_virtualenv(context, verbose, clean):
 @click.option('-v', '--verbose', is_flag=True)
 @click.pass_context
 def install_requirements(context, verbose):
-    """Install the local package requirements."""
+    """Install the local package requirements"""
     if verbose:
         click.echo('RUN: pip install -r requirements.txt --upgrades')
     subprocess.call(
@@ -110,7 +113,7 @@ def install_requirements(context, verbose):
 @click.option('-c', '--clean', count=True)
 @click.pass_context
 def run_buildout(context, verbose, clean):
-    """Run the package buildout."""
+    """Run the package buildout"""
     params = [
         './bin/buildout',
     ]
@@ -165,7 +168,7 @@ def run_debug(context, verbose):
 @click.option('-c', '--clean', count=True)
 @click.pass_context
 def build(context, verbose, clean):
-    """Install the package."""
+    """Bootstrap and build the package"""
     if clean:
         context.invoke(create_virtualenv, clean=True)
     else:
