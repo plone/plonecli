@@ -16,12 +16,15 @@ def get_templates(ctx, args, incomplete):
     return templates
 
 
-@click.group(chain=True)
+@click.group(chain=True, invoke_without_command=True)
+@click.option('-l', '--list-templates', 'list_templates', is_flag=True)
 @click.pass_context
-def cli(context):
+def cli(context, list_templates):
     """Plone Command Line Interface (CLI)"""
     context.obj = {}
     context.obj['target_dir'] = reg.root_folder
+    if list_templates:
+        click.echo(reg.list_templates())
 
 
 @cli.command()

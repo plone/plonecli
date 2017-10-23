@@ -78,7 +78,7 @@ class TemplateRegistry(object):
                 or entry_point_name
 
     def list_templates(self):
-        templates_str = 'Templates:\n'
+        templates_str = 'Available mr.bob templates:\n'
         for tmpl in self.templates.values():
             templates_str += " - {0}\n".format(tmpl['template_name'])
             subtemplates = tmpl.get('subtemplates', [])
