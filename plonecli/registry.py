@@ -3,8 +3,12 @@ import os
 
 try:
     from ConfigParser import ConfigParser
+    from ConfigParser import NoOptionError
+    from ConfigParser import NoSectionError
 except ImportError:
     from configparser import ConfigParser
+    from configparser import NoOptionError
+    from configparser import NoSectionError
 
 
 class SetupCfg(object):
@@ -19,11 +23,10 @@ def read_setup_cfg(root_folder):
     config = ConfigParser()
     path = root_folder + '/setup.cfg'
     config.read(path)
-    if not config.has_section('tool:bobtemplates.plone'):
-        return
-    if not config.has_option('tool:bobtemplates.plone', 'template'):
-        return
-    setup_cfg.template = config.get('tool:bobtemplates.plone', 'template')
+    try:
+        setup_cfg.template = config.get('tool:bobtemplates.plone', 'template')
+    except (NoSectionError, NoOptionError):
+        setup_cfg.template = None
     return setup_cfg
 
 
