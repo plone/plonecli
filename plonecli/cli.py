@@ -103,8 +103,7 @@ def create_virtualenv(context, verbose, clean):
     ]
     if clean:
         params.append('--clear')
-    if verbose:
-        click.echo('RUN: {0}'.format(' '.join(params)))
+    click.echo('RUN: {0}'.format(' '.join(params)))
     subprocess.call(
         params,
         cwd=context.obj['target_dir'],
@@ -116,18 +115,19 @@ def create_virtualenv(context, verbose, clean):
 @click.pass_context
 def install_requirements(context, verbose):
     """Install the local package requirements"""
+
     if context.obj.get('target_dir', None) is None:
         raise NotInPackageError(context.command.name)
-    if verbose:
-        click.echo('RUN: pip install -r requirements.txt --upgrades')
+    params = [
+        './bin/pip',
+        'install',
+        '-r',
+        'requirements.txt',
+        '--upgrade',
+    ]
+    click.echo('RUN: {0}'.format(' '.join(params)))
     subprocess.call(
-        [
-            './bin/pip',
-            'install',
-            '-r',
-            'requirements.txt',
-            '--upgrade',
-        ],
+        params,
         cwd=context.obj['target_dir'],
     )
 
@@ -145,8 +145,7 @@ def run_buildout(context, verbose, clean):
     ]
     if clean:
         params.append('-n')
-    if verbose:
-        click.echo('RUN: {0}'.format(' '.join(params)))
+    click.echo('RUN: {0}'.format(' '.join(params)))
     subprocess.call(
         params,
         cwd=context.obj['target_dir'],
@@ -160,16 +159,16 @@ def run_serve(context, verbose):
     """Run the Plone client in foreground mode"""
     if context.obj.get('target_dir', None) is None:
         raise NotInPackageError(context.command.name)
-    if verbose:
-        click.echo('RUN: ./bin/instance fg')
+    params = [
+        './bin/instance',
+        'fg',
+    ]
+    click.echo('RUN: {0}'.format(' '.join(params)))
     click.echo(
         '\nINFO: Open this in a Web Browser: http://localhost:8080')
     click.echo('INFO: You can stop it by pressing CTRL + c\n')
     subprocess.call(
-        [
-            './bin/instance',
-            'fg',
-        ],
+        params,
         cwd=context.obj['target_dir'],
     )
 
@@ -181,14 +180,14 @@ def run_debug(context, verbose):
     """Run the Plone client in debug mode"""
     if context.obj.get('target_dir', None) is None:
         raise NotInPackageError(context.command.name)
-    if verbose:
-        click.echo('RUN: ./bin/instance debug')
+    params = [
+        './bin/instance',
+        'debug',
+    ]
+    click.echo('RUN: {0}'.format(' '.join(params)))
     click.echo('INFO: You can stop it by pressing STRG + c')
     subprocess.call(
-        [
-            './bin/instance',
-            'debug',
-        ],
+        params,
         cwd=context.obj['target_dir'],
     )
 
@@ -199,12 +198,13 @@ def run_debug(context, verbose):
 @click.pass_context
 def build(context, verbose, clean):
     """Bootstrap and build the package"""
-    if context.obj.get('target_dir', None) is None:
+    target_dir = context.obj.get('target_dir', None)
+    if target_dir is None:
         raise NotInPackageError(context.command.name)
     if clean:
         context.invoke(create_virtualenv, clean=True)
     else:
-        context.invoke(create_virtualenv, clean=True)
+        context.invoke(create_virtualenv)
     context.invoke(install_requirements)
     context.forward(run_buildout)
 
