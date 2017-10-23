@@ -9,7 +9,7 @@ from plonecli.registry import template_registry as reg
 
 
 def get_templates(ctx, args, incomplete):
-    """ return a list of available bobtemplates """
+    """Return a list of available mr.bob templates."""
     templates = reg.get_templates()
     return templates
 
@@ -57,7 +57,7 @@ def create(context, template, name, verbose):
 @click.option('-v', '--verbose', is_flag=True)
 @click.pass_context
 def add(context, template, verbose):
-    """Add features to your existing package"""
+    """Add features to your existing Plone package"""
     template = reg.resolve_template_name(template)
     if verbose:
         click.echo('RUN: mrbob {0}'.format(template))
@@ -74,7 +74,7 @@ def add(context, template, verbose):
 @click.option('-c', '--clean', is_flag=True)
 @click.pass_context
 def create_virtualenv(context, verbose, clean):
-    """Create/Update a local virtual environment"""
+    """Create/update the local virtual environment for the Plone package"""
     params = [
         'virtualenv',
         '.',
@@ -131,7 +131,7 @@ def run_buildout(context, verbose, clean):
 @click.option('-v', '--verbose', count=True)
 @click.pass_context
 def run_serve(context, verbose):
-    """Run the ./bin/instance fg"""
+    """Run the Plone client in foreground mode"""
     if verbose:
         click.echo('RUN: ./bin/instance fg')
     click.echo(
@@ -150,7 +150,7 @@ def run_serve(context, verbose):
 @click.option('-v', '--verbose', count=True)
 @click.pass_context
 def run_debug(context, verbose):
-    """Run the ./bin/instance debug"""
+    """Run the Plone client in debug mode"""
     if verbose:
         click.echo('RUN: ./bin/instance debug')
     click.echo('INFO: You can stop it by pressing STRG + c')
