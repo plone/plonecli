@@ -66,3 +66,6 @@ target/
 .python-version
 /plonecli.sublime-project
 /plonecli.sublime-workspace
+/tmp
+/local
+/src/*
