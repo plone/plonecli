@@ -27,65 +27,66 @@ def cli(context, list_templates):
         click.echo(reg.list_templates())
 
 
-@cli.command()
-@click.argument(
-    'template',
-    type=click.STRING,
-    autocompletion=get_templates,
-)
-@click.argument('name')
-@click.option('-v', '--verbose', is_flag=True)
-@click.pass_context
-def create(context, template, name, verbose):
-    """Create a new Plone package"""
-    bobtemplate = reg.resolve_template_name(template)
-    if bobtemplate is None:
-        raise NoSuchValue(
-            context.command.name,
-            template,
-            possibilities=reg.get_templates(),
-        )
-    cur_dir = os.getcwd()
-    context.obj['target_dir'] = '{0}/{1}'.format(cur_dir, name)
-    if verbose:
-        click.echo('RUN: mrbob {0} -O {1}'.format(bobtemplate, name))
-    subprocess.call(
-        [
-            'mrbob',
-            bobtemplate,
-            '-O',
-            name,
-        ],
+if not reg.root_folder:
+    @cli.command()
+    @click.argument(
+        'template',
+        type=click.STRING,
+        autocompletion=get_templates,
     )
-
-
-@cli.command()
-@click.argument(
-    'template',
-    type=click.STRING,
-    autocompletion=get_templates,
-)
-@click.option('-v', '--verbose', is_flag=True)
-@click.pass_context
-def add(context, template, verbose):
-    """Add features to your existing Plone package"""
-    if context.obj.get('target_dir', None) is None:
-        raise NotInPackageError(context.command.name)
-    bobtemplate = reg.resolve_template_name(template)
-    if bobtemplate is None:
-        raise NoSuchValue(
-            context.command.name,
-            template,
-            possibilities=reg.get_templates(),
+    @click.argument('name')
+    @click.option('-v', '--verbose', is_flag=True)
+    @click.pass_context
+    def create(context, template, name, verbose):
+        """Create a new Plone package"""
+        bobtemplate = reg.resolve_template_name(template)
+        if bobtemplate is None:
+            raise NoSuchValue(
+                context.command.name,
+                template,
+                possibilities=reg.get_templates(),
+            )
+        cur_dir = os.getcwd()
+        context.obj['target_dir'] = '{0}/{1}'.format(cur_dir, name)
+        if verbose:
+            click.echo('RUN: mrbob {0} -O {1}'.format(bobtemplate, name))
+        subprocess.call(
+            [
+                'mrbob',
+                bobtemplate,
+                '-O',
+                name,
+            ],
         )
-    if verbose:
-        click.echo('RUN: mrbob {0}'.format(bobtemplate))
-    subprocess.call(
-        [
-            'mrbob',
-            bobtemplate,
-        ],
+
+if reg.root_folder:
+    @cli.command()
+    @click.argument(
+        'template',
+        type=click.STRING,
+        autocompletion=get_templates,
     )
+    @click.option('-v', '--verbose', is_flag=True)
+    @click.pass_context
+    def add(context, template, verbose):
+        """Add features to your existing Plone package"""
+        if context.obj.get('target_dir', None) is None:
+            raise NotInPackageError(context.command.name)
+        bobtemplate = reg.resolve_template_name(template)
+        if bobtemplate is None:
+            raise NoSuchValue(
+                context.command.name,
+                template,
+                possibilities=reg.get_templates(),
+            )
+        if verbose:
+            click.echo('RUN: mrbob {0}'.format(bobtemplate))
+        subprocess.call(
+            [
+                'mrbob',
+                bobtemplate,
+            ],
+        )
 
 
 @cli.command('virtualenv')
