@@ -6,6 +6,7 @@ import subprocess
 import os
 
 from plonecli.exceptions import NotInPackageError
+from plonecli.exceptions import NoSuchValue
 from plonecli.registry import template_registry as reg
 
 
@@ -34,15 +35,21 @@ def cli(context):
 @click.pass_context
 def create(context, template, name, verbose):
     """Create a new Plone package"""
-    template = reg.resolve_template_name(template)
+    bobtemplate = reg.resolve_template_name(template)
+    if bobtemplate is None:
+        raise NoSuchValue(
+            context.command.name,
+            template,
+            possibilities=reg.get_templates(),
+        )
     cur_dir = os.getcwd()
     context.obj['target_dir'] = '{0}/{1}'.format(cur_dir, name)
     if verbose:
-        click.echo('RUN: mrbob {0} -O {1}'.format(template, name))
+        click.echo('RUN: mrbob {0} -O {1}'.format(bobtemplate, name))
     subprocess.call(
         [
             'mrbob',
-            template,
+            bobtemplate,
             '-O',
             name,
         ],
@@ -61,13 +68,19 @@ def add(context, template, verbose):
     """Add features to your existing Plone package"""
     if context.obj.get('target_dir', None) is None:
         raise NotInPackageError(context.command.name)
-    template = reg.resolve_template_name(template)
+    bobtemplate = reg.resolve_template_name(template)
+    if bobtemplate is None:
+        raise NoSuchValue(
+            context.command.name,
+            template,
+            possibilities=reg.get_templates(),
+        )
     if verbose:
-        click.echo('RUN: mrbob {0}'.format(template))
+        click.echo('RUN: mrbob {0}'.format(bobtemplate))
     subprocess.call(
         [
             'mrbob',
-            template,
+            bobtemplate,
         ],
     )
 
