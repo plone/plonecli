@@ -5,6 +5,7 @@ import click
 import subprocess
 import os
 
+from plonecli.exceptions import NotInPackageError
 from plonecli.registry import template_registry as reg
 
 
@@ -58,6 +59,8 @@ def create(context, template, name, verbose):
 @click.pass_context
 def add(context, template, verbose):
     """Add features to your existing Plone package"""
+    if context.obj.get('target_dir', None) is None:
+        raise NotInPackageError(context.command.name)
     template = reg.resolve_template_name(template)
     if verbose:
         click.echo('RUN: mrbob {0}'.format(template))
@@ -75,6 +78,8 @@ def add(context, template, verbose):
 @click.pass_context
 def create_virtualenv(context, verbose, clean):
     """Create/update the local virtual environment for the Plone package"""
+    if context.obj.get('target_dir', None) is None:
+        raise NotInPackageError(context.command.name)
     params = [
         'virtualenv',
         '.',
@@ -94,6 +99,8 @@ def create_virtualenv(context, verbose, clean):
 @click.pass_context
 def install_requirements(context, verbose):
     """Install the local package requirements"""
+    if context.obj.get('target_dir', None) is None:
+        raise NotInPackageError(context.command.name)
     if verbose:
         click.echo('RUN: pip install -r requirements.txt --upgrades')
     subprocess.call(
@@ -114,6 +121,8 @@ def install_requirements(context, verbose):
 @click.pass_context
 def run_buildout(context, verbose, clean):
     """Run the package buildout"""
+    if context.obj.get('target_dir', None) is None:
+        raise NotInPackageError(context.command.name)
     params = [
         './bin/buildout',
     ]
@@ -132,6 +141,8 @@ def run_buildout(context, verbose, clean):
 @click.pass_context
 def run_serve(context, verbose):
     """Run the Plone client in foreground mode"""
+    if context.obj.get('target_dir', None) is None:
+        raise NotInPackageError(context.command.name)
     if verbose:
         click.echo('RUN: ./bin/instance fg')
     click.echo(
@@ -151,6 +162,8 @@ def run_serve(context, verbose):
 @click.pass_context
 def run_debug(context, verbose):
     """Run the Plone client in debug mode"""
+    if context.obj.get('target_dir', None) is None:
+        raise NotInPackageError(context.command.name)
     if verbose:
         click.echo('RUN: ./bin/instance debug')
     click.echo('INFO: You can stop it by pressing STRG + c')
@@ -169,6 +182,8 @@ def run_debug(context, verbose):
 @click.pass_context
 def build(context, verbose, clean):
     """Bootstrap and build the package"""
+    if context.obj.get('target_dir', None) is None:
+        raise NotInPackageError(context.command.name)
     if clean:
         context.invoke(create_virtualenv, clean=True)
     else:
