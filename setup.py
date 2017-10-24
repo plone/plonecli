@@ -15,6 +15,7 @@ requirements = [
     'Click>=6.0',
     'bobtemplates.plone',
     'mr.bob',
+    'zest.releaser',
     # TODO: put package requirements here
 ]
 

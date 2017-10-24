@@ -1,7 +1,8 @@
 History
 =======
 
-0.1.0 (unreleased)
+0.1.0a1 (2017-10-24)
 ------------------
 
-- Nothing changed yet.
+- initital version with list templates support and bobtemplates.plone integration
+  [MrTango, tmassman, Gomez]
