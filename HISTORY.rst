@@ -1,10 +1,13 @@
 History
 =======
 
-0.1.0a3 (unreleased)
+
+
+0.1.0a3 (2017-10-24)
 --------------------
 
-- Nothing changed yet.
+- Update README to use easy_install instead of pip for now
+  [MrTango]
 
 
 0.1.0a2 (2017-10-24)
