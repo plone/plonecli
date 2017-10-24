@@ -28,9 +28,9 @@ Installation
 
 .. code-block:: console
 
-    $ pip install plonecli
+    $ easy_install plonecli
 
-NOTE: for now we are using a github version of the click package. As son as the next version (>6.7) is out, we will use the normal pypi versions.
+NOTE: for now we are using a github version of the click package. As son as the next version (>6.7) is out, we will use the normal pypi versions. This does not work with pip so well, but you can use easy_install for the moment.
 
 Usage
 =====
