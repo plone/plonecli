@@ -31,7 +31,7 @@ test_requirements = [
 
 setup(
     name='plonecli',
-    version='0.1.0a1',
+    version='0.1.0a2.dev0',
     description="A Plone CLI for creating Plone packages",
     long_description=readme + '\n\n' + history,
     author="Maik Derstappen",
