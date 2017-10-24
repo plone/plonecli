@@ -30,6 +30,7 @@ Installation
 
     $ pip install plonecli
 
+NOTE: for now we are using a github version of the click package. As son as the next version (>6.7) is out, we will use the normal pypi versions.
 
 Usage
 =====

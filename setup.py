@@ -12,7 +12,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'Click>=6.0',
+    'Click>=6.8a99',
     'bobtemplates.plone',
     'mr.bob',
     'zest.releaser',
@@ -45,6 +45,7 @@ setup(
     },
     include_package_data=True,
     install_requires=requirements,
+    dependency_links=['https://github.com/MrTango/click/tarball/plonecli_010#egg=click-6.8a99'],  # NOQA E501
     license="BSD license",
     zip_safe=False,
     keywords='plonecli',
