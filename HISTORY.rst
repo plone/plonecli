@@ -1,10 +1,11 @@
 History
 =======
 
-0.1.0a2 (unreleased)
+0.1.0a2 (2017-10-24)
 --------------------
 
-- Nothing changed yet.
+- fix setup.py to use the github version of click, until click >6.7 is released
+  [MrTango]
 
 
 0.1.0a1 (2017-10-24)
