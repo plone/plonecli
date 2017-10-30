@@ -1,13 +1,30 @@
 # Config file for automatic testing at travis-ci.org
 # This file will be regenerated if you run travis_pypi_setup.py
 
+
 language: python
 python:
-  - 3.5
   - 2.7
+  - 3.5
+  - 3.6
+
+# py27, py35, py36, flake8
+
+
+matrix:
+    include:
+        - python: "2.7"
+          env: TOXENV=py27,flake8
+        - python: "3.5"
+          env: TOXENV=py35,flake8
+        - python: "3.6"
+          env: TOXENV=py36,flake8
+cache:
+  pip: true
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -U tox-travis
+install:
+    travis_retry pip install -U tox-travis coveralls coverage
 
 # command to run tests, e.g. python setup.py test
 script: tox
