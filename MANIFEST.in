@@ -6,6 +6,7 @@ include README.rst
 include *.py
 include *.sh
 include *.txt
+include plonecli_autocomplete.sh
 include Makefile
 include tox.ini
 

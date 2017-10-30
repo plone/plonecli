@@ -13,7 +13,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'Click>=6.8a99',
-    'bobtemplates.plone',
+    'bobtemplates.plone>=3.0.0a3',
     'mr.bob',
     'zest.releaser',
     # TODO: put package requirements here
@@ -49,6 +49,7 @@ setup(
     license="BSD license",
     zip_safe=False,
     keywords='plonecli',
+    scripts=['plonecli_autocomplete.sh'],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

@@ -9,15 +9,6 @@ Plone CLI
 .. image:: https://img.shields.io/travis/MrTango/plonecli.svg
         :target: https://travis-ci.org/MrTango/plonecli
 
-.. image:: https://readthedocs.org/projects/plonecli/badge/?version=latest
-        :target: https://plonecli.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
-
-.. image:: https://pyup.io/repos/github/MrTango/plonecli/shield.svg
-     :target: https://pyup.io/repos/github/MrTango/plonecli/
-     :alt: Updates
-
-
 A Plone CLI for creating Plone packages
 
 
@@ -133,11 +124,11 @@ You can combine the steps above like this:
 Bash auto completion
 --------------------
 
-To enable auto completion plonecli provides the plonecli.sh script, put this into your bashrc:
+To enable auto completion plonecli provides the plonecli_autocomplete.sh script, put this into your bashrc:
 
 .. code-block:: console
 
-    $ . /path/to/plonecli/plonecli.sh
+    $ . /path/to/your/virtualenv/bin/plonecli_autocomplete.sh
 
 
 Developer Guide
