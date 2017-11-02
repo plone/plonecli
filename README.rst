@@ -6,8 +6,8 @@ Plone CLI
 .. image:: https://img.shields.io/pypi/v/plonecli.svg
         :target: https://pypi.python.org/pypi/plonecli
 
-.. image:: https://img.shields.io/travis/MrTango/plonecli.svg
-        :target: https://travis-ci.org/MrTango/plonecli
+.. image:: https://img.shields.io/travis/plone/plonecli.svg
+        :target: https://travis-ci.org/plone/plonecli
 
 A Plone CLI for creating Plone packages
 
