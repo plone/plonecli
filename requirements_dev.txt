@@ -1,8 +1,3 @@
 tox
 pytest
 zest.releaser[recommended]
-
-# Development dependencies
-git+https://github.com/plone/bobtemplates.plone.git@MrTango_cli#egg=bobtemplates.plone
-git+https://github.com/MrTango/mr.bob.git#egg=mr.bob
-git+https://github.com/pallets/click.git#egg=click
