@@ -99,9 +99,9 @@ This will run:
     $ ./bin/pip install -r requirements.txt --upgrade
     $ ./bin/buildout
 
-in you target directory.
+in your target directory.
 You can always run the 3 steps explicit by using ``virtualenv``,``requirements``, ``buildout`` instead of build.
-If you want to reset you build use the ``--clean`` option on build. This will clear your virtualenv before installing the requirements and also running buildout with ``-n`` to get the newest versions.
+If you want to reset your build use the ``--clean`` option on build. This will clear your virtualenv before installing the requirements and also running buildout with ``-n`` to get the newest versions.
 
 
 Run your application
