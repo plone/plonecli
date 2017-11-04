@@ -2,6 +2,7 @@
 Plone CLI
 =========
 
+.. image:: docs/plone_cli_logo.svg
 
 .. image:: https://img.shields.io/pypi/v/plonecli.svg
         :target: https://pypi.python.org/pypi/plonecli
