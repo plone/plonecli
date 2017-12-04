@@ -6,7 +6,9 @@ History
 0.1.0a5 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Add requirements.txt referencing the special Click version.
+  This makes a ``pip`` installation possible.
+  [jensens]
 
 
 0.1.0a4 (2017-10-30)

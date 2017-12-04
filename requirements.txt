@@ -1,2 +1,2 @@
 git+https://github.com/MrTango/click.git@master
-.[test,dev]
+plonecli
