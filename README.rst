@@ -20,9 +20,13 @@ Installation
 
 .. code-block:: console
 
-    $ easy_install plonecli
+  $ pip install -r https://raw.githubusercontent.com/plone/plonecli/master/requirements.txt
 
-NOTE: for now we are using a github version of the click package. As son as the next version (>6.7) is out, we will use the normal pypi versions. This does not work with pip so well, but you can use easy_install for the moment.
+
+NOTE:
+For now we are using a github version of the click package.
+As son as the next version (>6.7) is out, we will use the normal pypi versions.
+The above `requirements.txt` references the git fork used.
 
 Usage
 =====
