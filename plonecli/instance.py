@@ -614,11 +614,8 @@ def main(args=None):
     options.realize(args, doc=__doc__)
 
     # Change the program to avoid warning messages
-    startup = os.path.dirname(zopectl.__file__)
-
-    script = os.path.join(startup, 'run.py')
     options.program = [
-        options.python, script, '-C', options.configfile]
+        options.python, '-m', 'Zope2.Startup.run', '-C', options.configfile]
 
     # We use our own ZopeCmd set, that is derived from the original one.
     c = AdjustedZopeCmd(options)
