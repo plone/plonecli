@@ -416,7 +416,7 @@ class AdjustedZopeCmd(zopectl.ZopeCmd):
         # Also, don't forget that 'python'
         # may have spaces and needs to be quoted.
         cmdline = (
-            '"%s" "%s" %s -c "from Zope2 import configure; '
+            '"%s" %s %s -c "from Zope2 import configure; '
             'configure(r\'%s\'); '
             'import Zope2; app=Zope2.app(); ' % (
                 python, pyflags,
