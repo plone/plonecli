@@ -12,9 +12,6 @@ Plone CLI
 
 A Plone CLI for creating Plone packages
 
-
-* Free software: BSD license
-
 Installation
 ============
 
@@ -24,14 +21,20 @@ Installation
 
 
 NOTE:
-For now we are using a github version of the click package.
+For now we are using a GitHub version of the click package.
 As son as the next version (>6.7) is out, we will use the normal pypi versions.
+
 The above `requirements.txt` references the git fork used.
+
+Documentation
+=============
+
+Full documentation for end users can be found in the "docs" folder.
 
 Usage
 =====
 
-Available commands
+Available Commands
 ------------------
 
 .. code-block:: console
@@ -89,7 +92,7 @@ Adding Features To Your Plone Add-on
     $ plonecli add theme
 
 
-Build your package
+Build Your Package
 ------------------
 
 .. code-block:: console
@@ -105,18 +108,20 @@ This will run:
     $ ./bin/buildout
 
 in your target directory.
+
 You can always run the 3 steps explicit by using ``virtualenv``,``requirements``, ``buildout`` instead of build.
-If you want to reset your build use the ``--clean`` option on build. This will clear your virtualenv before installing the requirements and also running buildout with ``-n`` to get the newest versions.
+If you want to reset your build use the ``--clean`` option on build.
+This will clear your virtualenv before installing the requirements and also running buildout with ``-n`` to get the newest versions.
 
 
-Run your application
+Run Your Application
 --------------------
 
 .. code-block:: console
 
     $ plonecli serve
 
-Combining commands
+Combining Commands
 ------------------
 
 You can combine the steps above like this:
@@ -126,7 +131,7 @@ You can combine the steps above like this:
     $ plonecli create addon src/collective.todo build serve
 
 
-Bash auto completion
+Bash Auto Completion
 --------------------
 
 To enable auto completion plonecli provides the plonecli_autocomplete.sh script, put this into your bashrc:
@@ -174,7 +179,7 @@ or a single test:
 
     $ py.test test/ -k test_get_package_root
 
-Register your bobtemplates package for plonecli
+Register Your Bobtemplates Package For Plonecli
 -----------------------------------------------
 
 All mr.bob templates can be registered for plonecli by adding an entry_point to your setup.py.
@@ -233,3 +238,13 @@ For every template you add a line to the entry_points and define a method in the
     1. for a standalone template, the depend_on property is None
     2. for a sub template, the depend_on contains the name of the parent standalone template.
 
+Contribute
+==========
+
+- Issue Tracker: https://github.com/plone/plonecli/issues
+- Source Code: https://github.com/plone/plonecli
+
+License
+=======
+
+This project is licensed under the BSD license.

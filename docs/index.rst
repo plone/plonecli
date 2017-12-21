@@ -1,4 +1,5 @@
-Welcome to Plone CLI's documentation!
+======================================
+Welcome To Plone CLI's Documentation !
 ======================================
 
 Contents:
@@ -13,10 +14,3 @@ Contents:
    contributing
    authors
    history
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
