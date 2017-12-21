@@ -5,8 +5,8 @@ Installation
 ============
 
 
-Stable release
---------------
+Stable Release
+==============
 
 To install Plone CLI, run this command in your terminal:
 
@@ -14,19 +14,15 @@ To install Plone CLI, run this command in your terminal:
 
     $ pip install plonecli
 
-This is the preferred method to install Plone CLI, as it will always install the most recent stable release. 
+This is the preferred method to install Plone CLI, as it will always install the most recent stable release.
 
-If you don't have `pip`_ installed, this `Python installation guide`_ can guide
-you through the process.
+If you don't have `pip <https://pip.pypa.io>`_ installed, this `Python installation guide <http://docs.python-guide.org/en/latest/starting/installation/>`_
+can guide you through the process.
 
-.. _pip: https://pip.pypa.io
-.. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
+From Sources
+============
 
-
-From sources
-------------
-
-The sources for Plone CLI can be downloaded from the `Github repo`_.
+The sources for Plone CLI can be downloaded from the `GitHub repo <https://github.com/MrTango/plonecli>`_.
 
 You can either clone the public repository:
 
@@ -34,7 +30,7 @@ You can either clone the public repository:
 
     $ git clone git://github.com/MrTango/plonecli
 
-Or download the `tarball`_:
+Or download the `tarball <https://github.com/MrTango/plonecli/tarball/master>`_:
 
 .. code-block:: console
 
@@ -45,7 +41,3 @@ Once you have a copy of the source, you can install it with:
 .. code-block:: console
 
     $ python setup.py install
-
-
-.. _Github repo: https://github.com/MrTango/plonecli
-.. _tarball: https://github.com/MrTango/plonecli/tarball/master
