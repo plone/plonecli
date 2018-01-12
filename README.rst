@@ -22,7 +22,7 @@ Installation
 
 NOTE:
 For now we are using a GitHub version of the click package.
-As son as the next version (>6.7) is out, we will use the normal pypi versions.
+As soon as the next version (>6.7) is out, we will use the normal pypi versions.
 
 The above `requirements.txt` references the git fork used.
 
@@ -200,7 +200,7 @@ Here are the entry_points of the bobtemplates.plone package:
     },
 
 The entry_point name is used as the global template name for mr.bob.
-You also need to provide the bobregistration.py file with the related methods, which should named after the entry_point name:
+You also need to provide the bobregistration.py file with the related methods, which should be named after the entry_point name:
 
 .. code-block:: python
 
