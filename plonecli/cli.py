@@ -16,7 +16,11 @@ def get_templates(ctx, args, incomplete):
     return templates
 
 
-@click.group(chain=True, context_settings={'help_option_names': ['-h', '--help']}, invoke_without_command=True)
+@click.group(
+    chain=True,
+    context_settings={'help_option_names': ['-h', '--help']},
+    invoke_without_command=True
+)
 @click.option('-l', '--list-templates', 'list_templates', is_flag=True)
 @click.pass_context
 def cli(context, list_templates):
