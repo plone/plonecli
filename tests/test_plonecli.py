@@ -36,3 +36,7 @@ def test_command_line_interface():
     help_result = runner.invoke(cli.cli, ['--help'])
     assert help_result.exit_code == 0
     assert 'Usage: cli' in help_result.output
+
+    help_result = runner.invoke(cli.cli, ['-h'])
+    assert help_result.exit_code == 0
+    assert 'Usage: cli' in help_result.output
