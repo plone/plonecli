@@ -13,20 +13,17 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'Click>=6.8a99',
-    'bobtemplates.plone>=3.0.0a3',
+    'bobtemplates.plone>=3.0.0b2',
     'mr.bob',
     'zest.releaser',
-    # TODO: put package requirements here
 ]
 
 setup_requirements = [
     'pytest-runner',
-    # TODO(MrTango): put setup requirements (distutils extensions, etc.) here
 ]
 
 test_requirements = [
     'pytest',
-    # TODO: put package test requirements here
 ]
 
 setup(

@@ -69,3 +69,4 @@ target/
 /tmp
 /local
 /src/*
+/.vscode/settings.json

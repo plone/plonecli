@@ -9,7 +9,9 @@ Plone CLI
 .. image:: https://img.shields.io/travis/plone/plonecli.svg
         :target: https://travis-ci.org/plone/plonecli
 
-A Plone CLI for creating Plone packages
+**A Plone CLI for creating Plone packages**
+
+*The Plone CLI is meant for developing Plone packages, we will not add functions to install or run Plone in production. For this we should build another package, let's say *plonectl* which will provide installing and deployment functions.*
 
 
 * Free software: BSD license
@@ -17,11 +19,13 @@ A Plone CLI for creating Plone packages
 Installation
 ============
 
+We install plonecli in the global user site-packages, so that we can use it in multible projects.
+
 .. code-block:: console
 
-    $ easy_install plonecli
+    $ easy_install --user plonecli
 
-NOTE: for now we are using a github version of the click package. As son as the next version (>6.7) is out, we will use the normal pypi versions. This does not work with pip so well, but you can use easy_install for the moment.
+NOTE: *For now we are using a github version of the click package. As soon as the next version (>6.7) is out, we will use the normal pypi versions. This does not work with pip so well, but you can use easy_install for the moment.*
 
 Usage
 =====
@@ -124,7 +128,7 @@ You can combine the steps above like this:
 Bash auto completion
 --------------------
 
-To enable auto completion plonecli provides the plonecli_autocomplete.sh script, put this into your bashrc:
+To enable auto completion plonecli provides the plonecli_autocomplete.sh script, put the following bash command into your bashrc:
 
 .. code-block:: console
 

@@ -11,42 +11,42 @@ except ImportError:
     from configparser import NoSectionError
 
 
-class SetupCfg(object):
+class BobConfig(object):
     def __init__(self):
         self.template = None
 
 
-def read_setup_cfg(root_folder):
-    setup_cfg = SetupCfg()
+def read_bob_config(root_folder):
+    bob_config = BobConfig()
     if not root_folder:
-        return setup_cfg
+        return bob_config
     config = ConfigParser()
-    path = root_folder + '/setup.cfg'
+    path = root_folder + '/bobtemplate.cfg'
     config.read(path)
     try:
-        setup_cfg.template = config.get('tool:bobtemplates.plone', 'template')
+        bob_config.template = config.get('main', 'template')
     except (NoSectionError, NoOptionError):
-        return setup_cfg
-    return setup_cfg
+        return bob_config
+    return bob_config
 
 
 def get_package_root():
     """Find package root folder.
 
-    It traverses from the cur_dir up until a setup.cfg was found which
+    It traverses from the cur_dir up until a bobtemplate.cfg was found which
     contains a 'tool:bobtemplates.plone' section with a 'template' option.
 
     :returns: root_folder or None
     """
-    file_name = 'setup.cfg'
+    file_name = 'bobtemplate.cfg'
     root_folder = None
     cur_dir = os.getcwd()
     while True:
         files = os.listdir(cur_dir)
         parent_dir = os.path.dirname(cur_dir)
         if file_name in files:
-            setup_cfg = read_setup_cfg(cur_dir)
-            if not setup_cfg.template:
+            bob_config = read_bob_config(cur_dir)
+            if not bob_config.template:
                 cur_dir = parent_dir
                 continue
             root_folder = cur_dir
@@ -62,7 +62,7 @@ class TemplateRegistry(object):
 
     def __init__(self):
         self.root_folder = get_package_root()
-        self.setup_cfg = read_setup_cfg(self.root_folder)
+        self.bob_config = read_bob_config(self.root_folder)
         self.templates = {}
         self.template_infos = {}
         for entry_point in pkg_resources.iter_entry_points('mrbob_templates'):
@@ -100,10 +100,10 @@ class TemplateRegistry(object):
     def get_templates(self):
         if not self.root_folder:
             return [tmpl['template_name'] for tmpl in self.templates.values()]
-        template = self.templates.get(self.setup_cfg.template)
+        template = self.templates.get(self.bob_config.template)
         if not template:
             print("no subtemplates found for {0}!".format(
-                self.setup_cfg.template))
+                self.bob_config.template))
             return []
         return template['subtemplates'].values()
 
