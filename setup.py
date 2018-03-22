@@ -20,7 +20,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'Click>=6.8a99',
-        'bobtemplates.plone>=3.0.0b2',
+        'bobtemplates.plone>=3.0.0b3',
         'mr.bob',
         'setuptools',
         'zest.releaser',
