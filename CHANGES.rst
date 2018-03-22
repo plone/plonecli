@@ -9,6 +9,8 @@ History
 - Add requirements.txt referencing the special Click version.
   This makes a ``pip`` installation possible.
   [jensens]
+- Refactored registry to use the new bobtemplate.cfg
+  [MrTango]
 
 
 0.1.0a4 (2017-10-30)
