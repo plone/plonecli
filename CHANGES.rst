@@ -3,7 +3,7 @@ History
 
 
 
-0.1.0a5 (unreleased)
+0.1.1b1 (2018-03-22)
 --------------------
 
 - Add requirements.txt referencing the special Click version.
