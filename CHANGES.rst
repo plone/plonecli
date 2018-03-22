@@ -6,7 +6,7 @@ History
 0.1.1b2 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Fix dist on pypi
 
 
 0.1.1b1 (2018-03-22)

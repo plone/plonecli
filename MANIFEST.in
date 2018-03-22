@@ -7,9 +7,11 @@ include setup.cfg
 include *.py
 include *.sh
 include *.txt
+include *.rst
 include plonecli_autocomplete.sh
 include Makefile
 include tox.ini
+recursive-include docs *.svg
 
 recursive-include tests *
 recursive-include plonecli *
