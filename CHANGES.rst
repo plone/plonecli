@@ -3,7 +3,7 @@ History
 
 
 
-0.1.1b2 (unreleased)
+0.1.1b2 (2018-03-22)
 --------------------
 
 - Fix dist on pypi
