@@ -3,6 +3,7 @@ include CONTRIBUTING.rst
 include CHANGES.rst
 include LICENSE
 include README.rst
+include setup.cfg
 include *.py
 include *.sh
 include *.txt
@@ -11,6 +12,7 @@ include Makefile
 include tox.ini
 
 recursive-include tests *
+recursive-include plonecli *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 
