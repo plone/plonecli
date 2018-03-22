@@ -30,20 +30,21 @@ def test_get_package_root(tmpdir):
 check=True
 
 """
-    with open(os.path.join(target_dir + '/setup.cfg'), 'w') as f:
+    with open(os.path.join(target_dir + '/bobtemplate.cfg'), 'w') as f:
         f.write(template)
 
     package_root = get_package_root()
     assert package_root is None
 
-    # test with correct setup.cfg:
+    # test with correct bobtemplate.cfg:
     template = """[check-manifest]
 check=True
 
-[tool:bobtemplates.plone]
+[main]
 template=plone_addon
+version=5.1-latest
 """
-    with open(os.path.join(target_dir + '/setup.cfg'), 'w') as f:
+    with open(os.path.join(target_dir + '/bobtemplate.cfg'), 'w') as f:
         f.write(template)
 
     package_root = get_package_root()
@@ -56,12 +57,13 @@ def test_get_subtemplates(tmpdir):
     template = """[check-manifest]
 check=True
 
-[tool:bobtemplates.plone]
+[main]
 template=plone_addon
+version=5.1-latest
 """
     target_dir = tmpdir.strpath + '/collective.foo'
     os.mkdir(target_dir)
-    with open(os.path.join(target_dir + '/setup.cfg'), 'w') as f:
+    with open(os.path.join(target_dir + '/bobtemplate.cfg'), 'w') as f:
         f.write(template)
     os.chdir(target_dir)
     reg = TemplateRegistry()

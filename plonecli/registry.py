@@ -34,7 +34,7 @@ def get_package_root():
     """Find package root folder.
 
     It traverses from the cur_dir up until a bobtemplate.cfg was found which
-    contains a 'tool:bobtemplates.plone' section with a 'template' option.
+    contains a 'main' section with a 'template' option.
 
     :returns: root_folder or None
     """
