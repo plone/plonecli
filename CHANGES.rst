@@ -1,12 +1,10 @@
 History
 =======
 
-
-
 0.1.1b3 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Fix broken release
 
 
 0.1.1b2 (2018-03-22)

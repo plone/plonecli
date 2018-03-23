@@ -70,3 +70,5 @@ target/
 /local
 /src/*
 /.vscode/settings.json
+/.pytest_cache
+/tmpdist

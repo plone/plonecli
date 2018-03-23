@@ -11,7 +11,7 @@ test_requirements = [
 
 setup(
     # metadata see setup.cfg
-    packages=find_packages('plonecli'),
+    packages=find_packages(include=['plonecli']),
     entry_points={
         'console_scripts': [
             'plonecli=plonecli.cli:cli'
