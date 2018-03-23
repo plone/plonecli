@@ -1,7 +1,7 @@
 History
 =======
 
-0.1.1b3 (unreleased)
+0.1.1b3 (2018-03-23)
 --------------------
 
 - Fix broken release
