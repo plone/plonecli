@@ -21,13 +21,7 @@ We install plonecli in the global user site-packages, so that we can use it in m
 
 .. code-block:: console
 
-    $ easy_install --user plonecli
-
-or use pip -r from githup:
-
-.. code-block:: console
-
-    $ pip install -r https://raw.githubusercontent.com/plone/plonecli/master/requirements.txt
+    $ pip install -r https://raw.githubusercontent.com/plone/plonecli/master/requirements.txt --user
 
 
 NOTE:
