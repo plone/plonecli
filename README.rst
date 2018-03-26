@@ -19,14 +19,21 @@ Installation
 
 We install plonecli in the global user site-packages, so that we can use it in multible projects.
 
+Versions newer than 0.1.1b4 are installable like any other package with pip:
+
+.. code-block:: console
+
+    $ pip install plonecli --user
+
+for older versions:
+
 .. code-block:: console
 
     $ pip install -r https://raw.githubusercontent.com/plone/plonecli/master/requirements.txt --user
 
-
 NOTE:
-For now we are using a GitHub version of the click package.
-As soon as the next version (>6.7) is out, we will use the normal pypi versions.
+For now we are using a forked version of the click library called plonecli-click.
+As soon as the next version  of click (>6.7) is out, we will use the normal pypi versions.
 
 The above `requirements.txt` references the git fork used.
 
@@ -34,7 +41,6 @@ Documentation
 =============
 
 Full documentation for end users can be found in the "docs" folder.
->>>>>>> 3340128d08cf9c49f74826f23344ed42fda2c08a
 
 Usage
 =====

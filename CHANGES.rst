@@ -1,7 +1,7 @@
 History
 =======
 
-0.1.1b4 (unreleased)
+0.1.1b4 (2018-03-26)
 --------------------
 
 - Use a forked version of click library (plonecli-click) as dependency for now
