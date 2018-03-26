@@ -4,7 +4,8 @@ History
 0.1.1b4 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Use a forked version of click library (plonecli-click) as dependency for now
+  [MrTango]
 
 
 0.1.1b3 (2018-03-23)
