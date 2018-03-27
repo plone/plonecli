@@ -36,7 +36,7 @@ if not reg.root_folder:
     @click.argument(
         'template',
         type=click.STRING,
-        # autocompletion=get_templates,
+        autocompletion=get_templates,
     )
     @click.argument('name')
     @click.option('-v', '--verbose', is_flag=True)
