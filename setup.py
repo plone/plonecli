@@ -21,7 +21,7 @@ setup(
     install_requires=[
         # 'Click>=6.8a99',
         'plonecli-click',
-        'bobtemplates.plone>=3.0.0b4',
+        'bobtemplates.plone>=3.0.0b5',
         'mr.bob',
         'setuptools',
         'zest.releaser',

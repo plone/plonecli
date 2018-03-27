@@ -4,7 +4,8 @@ History
 0.1.1b5 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- use bobtemplates.plone>=3.0.0b5
+  [MrTango]
 
 
 0.1.1b4 (2018-03-26)
