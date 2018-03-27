@@ -4,7 +4,8 @@ History
 0.1.1b6 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- fix autocomletion for top level commands
+  [MrTango]
 
 
 0.1.1b5 (2018-03-27)
