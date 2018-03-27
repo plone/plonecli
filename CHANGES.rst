@@ -1,7 +1,7 @@
 History
 =======
 
-0.1.1b6 (unreleased)
+0.1.1b6 (2018-03-28)
 --------------------
 
 - fix autocomletion for top level commands
