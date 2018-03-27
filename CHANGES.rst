@@ -1,7 +1,7 @@
 History
 =======
 
-0.1.1b5 (unreleased)
+0.1.1b5 (2018-03-27)
 --------------------
 
 - use bobtemplates.plone>=3.0.0b5
