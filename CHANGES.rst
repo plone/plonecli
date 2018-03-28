@@ -1,8 +1,8 @@
 History
 =======
 
-0.1.1 (unreleased)
---------------------
+0.1.1 (2018-03-28)
+------------------
 
 - Improve command line output with colors and remove verbose option
   [MrTango]
