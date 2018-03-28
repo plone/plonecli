@@ -19,12 +19,13 @@ setup(
     },
     include_package_data=True,
     install_requires=[
+        'setuptools',
+        'virtualenv',
         # 'Click>=6.8a99',
         'plonecli-click',
-        'bobtemplates.plone>=3.0.0b5',
         'mr.bob',
-        'setuptools',
         'zest.releaser',
+        'bobtemplates.plone>=3.0.0b5',
     ],
     extras_require={
         'test': test_requirements,

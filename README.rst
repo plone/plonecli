@@ -24,23 +24,55 @@ Versions newer than 0.1.1b4 are installable like any other package with pip:
 .. code-block:: console
 
     $ pip install plonecli --user
-
-for older versions:
-
-.. code-block:: console
-
-    $ pip install -r https://raw.githubusercontent.com/plone/plonecli/master/requirements.txt --user
+    $ plonecli -l
 
 NOTE:
 For now we are using a forked version of the click library called plonecli-click.
-As soon as the next version  of click (>6.7) is out, we will use the normal pypi versions.
+As soon as the next version  of click (>6.7) is out, we will use the normal pypi versions of click.
 
-The above `requirements.txt` references the git fork used.
+If would like to use plonecli with pipenv, you can do it as follow:
+
+.. code-block:: console
+
+    $ mkdir cli
+    $ cd cli
+    $ pipenv install plonecli
+    $ pipenv shell
+    $ plonecli -l
+
+
+Bash Auto Completion
+--------------------
+
+To enable auto completion plonecli provides the plonecli_autocomplete.sh script, put the following bash command into your bashrc:
+
+If you installed plonecli in user global packages:
+
+.. code-block:: console
+
+    $ . ~/.local/bin/plonecli_autocomplete.sh
+
+
+If you installed plonecli in a virtualenv it's:
+
+.. code-block:: console
+
+    $ . /path/to/your/virtualenv/bin/plonecli_autocomplete.sh
+
+
+If you used pipenv to install plonecli, you have to find out the path to the virtualenv before:
+
+.. code-block:: console
+
+    $ pipenv --virtualenv
+    /home/maik/.local/share/virtualenvs/pe-WnXOnVWH
+    . /home/maik/.local/share/virtualenvs/pe-WnXOnVWH/bin/plonecli_autocomplete.sh
+
 
 Documentation
 =============
 
-Full documentation for end users can be found in the "docs" folder.
+Full documentation for end users can be found in the "docs" folder, this will be available in the Plone docs at some point.
 
 Usage
 =====
@@ -140,16 +172,6 @@ You can combine the steps above like this:
 .. code-block:: console
 
     $ plonecli create addon src/collective.todo build serve
-
-
-Bash Auto Completion
---------------------
-
-To enable auto completion plonecli provides the plonecli_autocomplete.sh script, put the following bash command into your bashrc:
-
-.. code-block:: console
-
-    $ . /path/to/your/virtualenv/bin/plonecli_autocomplete.sh
 
 
 Developer Guide

@@ -10,6 +10,12 @@ from plonecli.exceptions import NoSuchValue
 from plonecli.registry import template_registry as reg
 
 
+def echo(msg, fg='green', reverse=False):
+    click.echo(
+        click.style(msg, fg=fg, reverse=reverse,)
+    )
+
+
 def get_templates(ctx, args, incomplete):
     """Return a list of available mr.bob templates."""
     templates = reg.get_templates()
@@ -39,9 +45,8 @@ if not reg.root_folder:
         autocompletion=get_templates,
     )
     @click.argument('name')
-    @click.option('-v', '--verbose', is_flag=True)
     @click.pass_context
-    def create(context, template, name, verbose):
+    def create(context, template, name):
         """Create a new Plone package"""
         bobtemplate = reg.resolve_template_name(template)
         if bobtemplate is None:
@@ -52,8 +57,11 @@ if not reg.root_folder:
             )
         cur_dir = os.getcwd()
         context.obj['target_dir'] = '{0}/{1}'.format(cur_dir, name)
-        if verbose:
-            click.echo('RUN: mrbob {0} -O {1}'.format(bobtemplate, name))
+        echo(
+            '\nRUN: mrbob {0} -O {1}'.format(bobtemplate, name),
+            fg='green',
+            reverse=True,
+        )
         subprocess.call(
             [
                 'mrbob',
@@ -70,9 +78,8 @@ if reg.root_folder:
         type=click.STRING,
         autocompletion=get_templates,
     )
-    @click.option('-v', '--verbose', is_flag=True)
     @click.pass_context
-    def add(context, template, verbose):
+    def add(context, template):
         """Add features to your existing Plone package"""
         if context.obj.get('target_dir', None) is None:
             raise NotInPackageError(context.command.name)
@@ -83,8 +90,11 @@ if reg.root_folder:
                 template,
                 possibilities=reg.get_templates(),
             )
-        if verbose:
-            click.echo('RUN: mrbob {0}'.format(bobtemplate))
+        echo(
+            '\nRUN: mrbob {0}'.format(bobtemplate),
+            fg='green',
+            reverse=True,
+        )
         subprocess.call(
             [
                 'mrbob',
@@ -94,10 +104,9 @@ if reg.root_folder:
 
 
 @cli.command('virtualenv')
-@click.option('-v', '--verbose', is_flag=True)
 @click.option('-c', '--clean', is_flag=True)
 @click.pass_context
-def create_virtualenv(context, verbose, clean):
+def create_virtualenv(context, clean):
     """Create/update the local virtual environment for the Plone package"""
     if context.obj.get('target_dir', None) is None:
         raise NotInPackageError(context.command.name)
@@ -107,7 +116,11 @@ def create_virtualenv(context, verbose, clean):
     ]
     if clean:
         params.append('--clear')
-    click.echo('RUN: {0}'.format(' '.join(params)))
+    echo(
+        '\nRUN: {0}'.format(' '.join(params)),
+        fg='green',
+        reverse=True,
+    )
     subprocess.call(
         params,
         cwd=context.obj['target_dir'],
@@ -115,9 +128,8 @@ def create_virtualenv(context, verbose, clean):
 
 
 @cli.command('requirements')
-@click.option('-v', '--verbose', is_flag=True)
 @click.pass_context
-def install_requirements(context, verbose):
+def install_requirements(context):
     """Install the local package requirements"""
 
     if context.obj.get('target_dir', None) is None:
@@ -129,7 +141,11 @@ def install_requirements(context, verbose):
         'requirements.txt',
         '--upgrade',
     ]
-    click.echo('RUN: {0}'.format(' '.join(params)))
+    echo(
+        '\nRUN: {0}'.format(' '.join(params)),
+        fg='green',
+        reverse=True,
+    )
     subprocess.call(
         params,
         cwd=context.obj['target_dir'],
@@ -137,10 +153,9 @@ def install_requirements(context, verbose):
 
 
 @cli.command('buildout')
-@click.option('-v', '--verbose', count=True)
 @click.option('-c', '--clean', count=True)
 @click.pass_context
-def run_buildout(context, verbose, clean):
+def run_buildout(context, clean):
     """Run the package buildout"""
     if context.obj.get('target_dir', None) is None:
         raise NotInPackageError(context.command.name)
@@ -149,7 +164,11 @@ def run_buildout(context, verbose, clean):
     ]
     if clean:
         params.append('-n')
-    click.echo('RUN: {0}'.format(' '.join(params)))
+    echo(
+        '\nRUN: {0}'.format(' '.join(params)),
+        fg='green',
+        reverse=True,
+    )
     subprocess.call(
         params,
         cwd=context.obj['target_dir'],
@@ -157,9 +176,8 @@ def run_buildout(context, verbose, clean):
 
 
 @cli.command('serve')
-@click.option('-v', '--verbose', count=True)
 @click.pass_context
-def run_serve(context, verbose):
+def run_serve(context):
     """Run the Plone client in foreground mode"""
     if context.obj.get('target_dir', None) is None:
         raise NotInPackageError(context.command.name)
@@ -167,10 +185,15 @@ def run_serve(context, verbose):
         './bin/instance',
         'fg',
     ]
-    click.echo('RUN: {0}'.format(' '.join(params)))
-    click.echo(
-        '\nINFO: Open this in a Web Browser: http://localhost:8080')
-    click.echo('INFO: You can stop it by pressing CTRL + c\n')
+    echo(
+        '\nRUN: {0}'.format(' '.join(params)),
+        fg='green',
+        reverse=True,
+    )
+    echo(
+        '\nINFO: Open this in a Web Browser: http://localhost:8080',
+    )
+    echo('INFO: You can stop it by pressing CTRL + c\n')
     subprocess.call(
         params,
         cwd=context.obj['target_dir'],
@@ -178,9 +201,8 @@ def run_serve(context, verbose):
 
 
 @cli.command('debug')
-@click.option('-v', '--verbose', count=True)
 @click.pass_context
-def run_debug(context, verbose):
+def run_debug(context):
     """Run the Plone client in debug mode"""
     if context.obj.get('target_dir', None) is None:
         raise NotInPackageError(context.command.name)
@@ -188,8 +210,12 @@ def run_debug(context, verbose):
         './bin/instance',
         'debug',
     ]
-    click.echo('RUN: {0}'.format(' '.join(params)))
-    click.echo('INFO: You can stop it by pressing STRG + c')
+    echo(
+        '\nRUN: {0}'.format(' '.join(params)),
+        fg='green',
+        reverse=True,
+    )
+    echo('INFO: You can stop it by pressing CTRL + c\n')
     subprocess.call(
         params,
         cwd=context.obj['target_dir'],
@@ -197,10 +223,9 @@ def run_debug(context, verbose):
 
 
 @cli.command()
-@click.option('-v', '--verbose', count=True)
 @click.option('-c', '--clean', count=True)
 @click.pass_context
-def build(context, verbose, clean):
+def build(context, clean):
     """Bootstrap and build the package"""
     target_dir = context.obj.get('target_dir', None)
     if target_dir is None:

@@ -4,7 +4,11 @@ History
 0.1.1b7 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Improve command line output with colors and remove verbose option
+  [MrTango]
+
+- Add virtualenv as requirement and improve README
+  [MrTango]
 
 
 0.1.1b6 (2018-03-28)
