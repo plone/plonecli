@@ -1,7 +1,7 @@
 History
 =======
 
-0.1.1b7 (unreleased)
+0.1.1 (unreleased)
 --------------------
 
 - Improve command line output with colors and remove verbose option
