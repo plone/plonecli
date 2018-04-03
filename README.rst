@@ -2,7 +2,7 @@
 Plone CLI
 =========
 
-.. image:: docs/plone_cli_logo.svg
+.. image:: https://github.com/plone/plonecli/blob/master/docs/plone_cli_logo.svg
 
 .. image:: https://img.shields.io/pypi/v/plonecli.svg
         :target: https://pypi.python.org/pypi/plonecli
@@ -13,6 +13,7 @@ Plone CLI
 **A Plone CLI for creating Plone packages**
 
 *The Plone CLI is meant for developing Plone packages, we will not add functions to install or run Plone in production. For this we should build another package, let's say *plonectl* which will provide installing and deployment functions.*
+
 
 Installation
 ============
@@ -26,9 +27,16 @@ Versions newer than 0.1.1b4 are installable like any other package with pip:
     $ pip install plonecli --user
     $ plonecli -l
 
+To upgrade plonecli just do:
+
+.. code-block:: console
+
+    $ pip install -U plonecli --user
+
+
 NOTE:
 For now we are using a forked version of the click library called plonecli-click.
-As soon as the next version  of click (>6.7) is out, we will use the normal pypi versions of click.
+As soon as the next version of click (>6.7) is out, we will use the normal pypi versions of click.
 
 If would like to use plonecli with pipenv, you can do it as follow:
 
@@ -73,6 +81,7 @@ Documentation
 =============
 
 Full documentation for end users can be found in the "docs" folder, this will be available in the Plone docs at some point.
+
 
 Usage
 =====
@@ -164,6 +173,21 @@ Run Your Application
 
     $ plonecli serve
 
+
+Run Tests for Application
+-------------------------
+
+.. code-block:: console
+
+    $ plonecli test
+
+or including Robot tests:
+
+.. code-block:: console
+
+    $ plonecli test --all
+
+
 Combining Commands
 ------------------
 
@@ -171,7 +195,7 @@ You can combine the steps above like this:
 
 .. code-block:: console
 
-    $ plonecli create addon src/collective.todo build serve
+    $ plonecli create addon src/collective.todo build test --all serve
 
 
 Developer Guide
@@ -211,6 +235,7 @@ or a single test:
 .. code-block:: console
 
     $ py.test test/ -k test_get_package_root
+
 
 Register Your Bobtemplates Package For Plonecli
 -----------------------------------------------
@@ -269,13 +294,15 @@ For every template you add a line to the entry_points and define a method in the
 - ``plonecli_alias`` - defines the name under which the template will be used inside plonecli
 - ``depend_on``:
     1. for a standalone template, the depend_on property is None
-    2. for a sub template, the depend_on contains the name of the parent standalone template.
+    2. for a sub template, the depend_on contains the name of the parent standalone template, usualy `addon`.
+
 
 Contribute
 ==========
 
 - Issue Tracker: https://github.com/plone/plonecli/issues
 - Source Code: https://github.com/plone/plonecli
+
 
 License
 =======

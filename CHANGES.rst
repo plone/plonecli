@@ -1,10 +1,11 @@
 History
 =======
 
-0.1.2 (unreleased)
+0.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add test command to allow running test from plonecli
+  [MrTango]
 
 
 0.1.1 (2018-03-28)

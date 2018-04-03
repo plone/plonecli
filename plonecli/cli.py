@@ -200,6 +200,29 @@ def run_serve(context):
     )
 
 
+@cli.command('test')
+@click.option('-a', '--all', 'all', is_flag=True)
+@click.pass_context
+def run_test(context, all):
+    """Run the tests in your package"""
+    if context.obj.get('target_dir', None) is None:
+        raise NotInPackageError(context.command.name)
+    params = [
+        './bin/test',
+    ]
+    if all:
+        params.append('--all')
+    echo(
+        '\nRUN: {0}'.format(' '.join(params)),
+        fg='green',
+        reverse=True,
+    )
+    subprocess.call(
+        params,
+        cwd=context.obj['target_dir'],
+    )
+
+
 @cli.command('debug')
 @click.pass_context
 def run_debug(context):
