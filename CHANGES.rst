@@ -1,7 +1,7 @@
 History
 =======
 
-0.2.0 (unreleased)
+0.2.0 (2018-04-03)
 ------------------
 
 - Add test command to allow running test from plonecli
