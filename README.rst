@@ -12,7 +12,7 @@ Plone CLI
 
 **A Plone CLI for creating Plone packages**
 
-*The Plone CLI is meant for developing Plone packages, we will not add functions to install or run Plone in production. For this we should build another package, let's say *plonectl* which will provide installing and deployment functions.*
+*The Plone CLI is meant for developing Plone packages, we will not add functions to install or run Plone in production. For this we should build another package, let's say *plonectl* which will provide installing and deployment functions. It also support's GIT by default, to keep track of changes one is doing with the templates.*
 
 
 Installation
@@ -82,6 +82,7 @@ Documentation
 
 Full documentation for end users can be found in the "docs" folder, this will be available in the Plone docs at some point.
 
+*Note:* you can set default answers for mr.bob questions, see `bobtemplates.plone README <https://github.com/plone/bobtemplates.plone/#configuration>`_.
 
 Usage
 =====
