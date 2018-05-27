@@ -40,3 +40,11 @@ def test_command_line_interface():
     help_result = runner.invoke(cli.cli, ['-h'])
     assert help_result.exit_code == 0
     assert 'Usage: cli' in help_result.output
+
+    version_result = runner.invoke(cli.cli, ['-V'])
+    assert version_result.exit_code == 0
+    assert 'Available packages:' in version_result.output
+
+    version_result = runner.invoke(cli.cli, ['--versions'])
+    assert version_result.exit_code == 0
+    assert 'Available packages:' in version_result.output
