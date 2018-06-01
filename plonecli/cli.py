@@ -5,6 +5,7 @@ import click
 import subprocess
 import os
 
+from pkg_resources import WorkingSet
 from plonecli.exceptions import NotInPackageError
 from plonecli.exceptions import NoSuchValue
 from plonecli.registry import template_registry as reg
@@ -28,13 +29,26 @@ def get_templates(ctx, args, incomplete):
     invoke_without_command=True
 )
 @click.option('-l', '--list-templates', 'list_templates', is_flag=True)
+@click.option('-V', '--versions', 'versions', is_flag=True)
 @click.pass_context
-def cli(context, list_templates):
+def cli(context, list_templates, versions):
     """Plone Command Line Interface (CLI)"""
     context.obj = {}
     context.obj['target_dir'] = reg.root_folder
     if list_templates:
         click.echo(reg.list_templates())
+    if versions:
+        ws = WorkingSet()
+        bobtemplates_dist = ws.by_key['bobtemplates.plone']
+        bobtemplates_version = bobtemplates_dist.version
+        plonecli_version = ws.by_key['plonecli'].version
+        version_str = """Available packages:\n
+        plonecli : {0}\n
+        bobtemplates.plone: {1}\n""".format(
+                plonecli_version,
+                bobtemplates_version,
+                )
+        click.echo(version_str)
 
 
 if not reg.root_folder:
