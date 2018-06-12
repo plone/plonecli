@@ -4,6 +4,9 @@ History
 0.2.1 (unreleased)
 ------------------
 
+- Add plonecli config command to configure mrbob global settings
+  [kakshay21]
+
 - Add versions command
   [kakshay21]
 
