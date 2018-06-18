@@ -15,7 +15,7 @@ except ImportError:
 home = os.path.expanduser('~')
 
 
-def generate_answers_ini(path, template):
+def generate_mrbob_ini(path, template):
     with open(os.path.join(path, '.mrbob'), 'w') as f:
         f.write(template)
 
@@ -27,7 +27,8 @@ def check_git_init(configurator, answer):
         )
 
 
-def check_mrbob_config(value):
+def check_variable_value(value):
+    """Checks mrbob config of given variable from ~/.mrbob file """
     config = ConfigParser()
     path = home + '/.mrbob'
     config.read(path)
@@ -38,35 +39,35 @@ def check_mrbob_config(value):
 
 def pre_username(configurator, question):
     """Get username from mrbob config file."""
-    default = check_mrbob_config('author.name')
+    default = check_variable_value('author.name')
     if default and question:
         question.default = default
 
 
 def pre_email(configurator, question):
     """Get author email from mrbob config file."""
-    default = check_mrbob_config('author.email')
+    default = check_variable_value('author.email')
     if default and question:
         question.default = default
 
 
 def pre_github_username(configurator, question):
     """Get Github username from mrbob config file."""
-    default = check_mrbob_config('author.github.user')
+    default = check_variable_value('author.github.user')
     if default and question:
         question.default = default
 
 
 def pre_plone_version(configurator, question):
     """Get plone version from mrbob config file."""
-    default = check_mrbob_config('plone.version')
+    default = check_variable_value('plone.version')
     if default and question:
         question.default = default
 
 
 def pre_package_git_init(configurator, question):
     """Get git init setting from mrbob config file."""
-    default = check_mrbob_config('package.git.init')
+    default = check_variable_value('package.git.init')
     if default == 'True':
         default = 'y'
     elif default == 'False':
@@ -77,7 +78,7 @@ def pre_package_git_init(configurator, question):
 
 def pre_package_git_autocommit(configurator, question):
     """Get git autocommit setting from mrbob config file."""
-    default = check_mrbob_config('package.git.autocommit')
+    default = check_variable_value('package.git.autocommit')
     if default == 'True':
         default = 'y'
     elif default == 'False':
@@ -88,7 +89,7 @@ def pre_package_git_autocommit(configurator, question):
 
 def pre_package_git_disable(configurator, question):
     """Get git setting from mrbob config file."""
-    default = check_mrbob_config('package.git.disabled')
+    default = check_variable_value('package.git.disabled')
     if default == 'True':
         default = 'y'
     elif default == 'False':
@@ -117,4 +118,4 @@ package.git.disabled={6}
         configurator.variables['configure_mrbob.package.git.autocommit'],
         configurator.variables['configure_mrbob.package.git.disabled'],
     )
-    generate_answers_ini(home, template)
+    generate_mrbob_ini(home, template)
