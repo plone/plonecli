@@ -4,6 +4,9 @@ History
 0.2.1 (unreleased)
 ------------------
 
+- Add latest commands in README.md
+  [kakshay21]
+
 - Add versions command
   [kakshay21]
 

@@ -99,15 +99,18 @@ Available Commands
 
     Options:
       -l, --list-templates
-      --help                Show this message and exit.
+      -V, --versions
+      -h, --help            Show this message and exit.
 
     Commands:
       build         Bootstrap and build the package
       buildout      Run the package buildout
+      config        Configure mr.bob global settings
       create        Create a new Plone package
       debug         Run the Plone client in debug mode
       requirements  Install the local package requirements
       serve         Run the Plone client in foreground mode
+      test          Run the tests in your package
       virtualenv    Create/update the local virtual environment...
 
 
