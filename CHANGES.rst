@@ -4,7 +4,7 @@ History
 0.2.1 (unreleased)
 ------------------
 
-- Add latest commands in README.md
+- Add commands like -h, -V, test and config in README.rst
   [kakshay21]
 
 - Add versions command
