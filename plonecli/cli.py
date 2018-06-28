@@ -275,5 +275,21 @@ def build(context, clean):
     context.forward(run_buildout)
 
 
+@cli.command()
+def config():
+    """Configure mr.bob global settings"""
+    echo(
+        '\nRUN: mrbob plonecli:configure_mrbob',
+        fg='green',
+        reverse=True,
+    )
+    subprocess.call(
+        [
+            'mrbob',
+            'plonecli:configure_mrbob',
+        ],
+    )
+
+
 if __name__ == "__main__":
     cli()

@@ -7,6 +7,9 @@ History
 - Add commands like -h, -V, test and config in README.rst
   [kakshay21]
 
+- Add plonecli config command to configure mrbob global settings
+  [kakshay21]
+
 - Add versions command
   [kakshay21]
 
