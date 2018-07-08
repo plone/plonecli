@@ -4,6 +4,9 @@ History
 0.2.1 (unreleased)
 ------------------
 
+- Add commands like -h, -V, test and config in README.rst
+  [kakshay21]
+
 - Add plonecli config command to configure mrbob global settings
   [kakshay21]
 
