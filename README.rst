@@ -1,14 +1,20 @@
+.. image:: https://secure.travis-ci.org/plone/plonecli.png?branch=master
+    :target: http://travis-ci.org/plone/plonecli
+
+.. image:: https://coveralls.io/repos/github/plone/plonecli/badge.svg?branch=master
+    :target: https://coveralls.io/github/plone/plonecli?branch=master
+    :alt: Coveralls
+
+.. image:: https://img.shields.io/pypi/v/plonecli.svg
+    :target: https://pypi.python.org/pypi/plonecli/
+    :alt: Latest Version
+
 =========
 Plone CLI
 =========
 
 .. image:: https://github.com/plone/plonecli/blob/master/docs/plone_cli_logo.svg
 
-.. image:: https://img.shields.io/pypi/v/plonecli.svg
-        :target: https://pypi.python.org/pypi/plonecli
-
-.. image:: https://img.shields.io/travis/plone/plonecli.svg
-        :target: https://travis-ci.org/plone/plonecli
 
 **A Plone CLI for creating Plone packages**
 
