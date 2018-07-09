@@ -1,7 +1,7 @@
 History
 =======
 
-0.2.1 (unreleased)
+0.2.1 (2018-07-09)
 ------------------
 
 - Add plonecli config command to configure mrbob's global user settings
