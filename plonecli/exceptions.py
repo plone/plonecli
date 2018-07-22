@@ -26,3 +26,15 @@ class NoSuchValue(NoSuchOption):
         NoSuchOption.__init__(self, option_name, message, possibilities, ctx)
         self.option_name = option_name
         self.possibilities = possibilities
+
+
+class NoSuchPath(NoSuchOption):
+    """Raised if path or package name is not provided."""
+
+    message = 'No such path/package: "{0}".'
+
+    def __init__(self, option_name, value, possibilities=None, ctx=None):
+        message = self.message.format(value)
+        NoSuchOption.__init__(self, option_name, message, possibilities, ctx)
+        self.option_name = option_name
+        self.possibilities = possibilities
