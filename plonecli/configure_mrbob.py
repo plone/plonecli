@@ -3,6 +3,7 @@
 
 from mrbob.bobexceptions import SkipQuestion
 
+import codecs
 import os
 
 
@@ -31,10 +32,13 @@ def get_mrbob_config_variable(varname):
     """Checks mrbob config of given variable from ~/.mrbob file """
     config = ConfigParser()
     path = home_path + '/.mrbob'
-    config.read(path)
+    config.readfp(codecs.open(path, 'r', 'utf8'))
     if not config.sections():
         return
-    return config.get('variables', varname)
+    if config.has_option('variables', varname):
+        return config.get('variables', varname)
+    else:
+        return
 
 
 def pre_username(configurator, question):
@@ -98,9 +102,9 @@ package.git.init={4}
 package.git.autocommit={5}
 package.git.disabled={6}
 """.format(
-        configurator.variables['configure_mrbob.author.name'],
-        configurator.variables['configure_mrbob.author.email'],
-        configurator.variables['configure_mrbob.author.github.user'],
+        configurator.variables['configure_mrbob.author.name'].encode('utf-8'),
+        configurator.variables['configure_mrbob.author.email'].encode('utf-8'),
+        configurator.variables['configure_mrbob.author.github.user'].encode('utf-8'),  # NOQA: E501
         configurator.variables['configure_mrbob.plone.version'],
         configurator.variables['configure_mrbob.package.git.init'],
         configurator.variables['configure_mrbob.package.git.autocommit'],

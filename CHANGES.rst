@@ -4,7 +4,8 @@ History
 0.2.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix #33 ConfigParser.NoOptionError
+[kakshay21]
 
 
 0.2.1 (2018-07-09)
