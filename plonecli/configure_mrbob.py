@@ -3,6 +3,7 @@
 
 from mrbob.bobexceptions import SkipQuestion
 
+import codecs
 import os
 
 
@@ -31,7 +32,7 @@ def get_mrbob_config_variable(varname):
     """Checks mrbob config of given variable from ~/.mrbob file """
     config = ConfigParser()
     path = home_path + '/.mrbob'
-    config.read(path)
+    config. readfp(codecs.open(path, 'r', 'utf8'))
     if not config.sections():
         return
     return config.get('variables', varname)

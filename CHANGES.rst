@@ -4,7 +4,8 @@ History
 0.2.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- FIx UnicodeDecodeError error #32
+  [kakshay21]
 
 
 0.2.1 (2018-07-09)
