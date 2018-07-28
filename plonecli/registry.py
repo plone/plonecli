@@ -1,5 +1,6 @@
-import pkg_resources
+# -*- coding: utf-8 -*-
 import os
+import pkg_resources
 
 try:
     from ConfigParser import ConfigParser

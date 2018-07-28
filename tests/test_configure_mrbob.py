@@ -4,9 +4,9 @@ from mrbob.bobexceptions import ValidationError
 from mrbob.configurator import Configurator
 from mrbob.configurator import Question
 from mrbob.configurator import SkipQuestion
+from plonecli.configure_mrbob import check_git_disabled
 from plonecli.configure_mrbob import get_mrbob_config_variable
 from plonecli.configure_mrbob import post_render
-from plonecli.configure_mrbob import check_git_disabled
 
 import os.path
 import pytest

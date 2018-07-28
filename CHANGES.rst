@@ -4,7 +4,7 @@ History
 0.2.2 (unreleased)
 ------------------
 
-- Add -t and -s option to the test command
+- Add -t and -s options to the test command
   [kakshay21]
 
 - Fix #33 ConfigParser.NoOptionError

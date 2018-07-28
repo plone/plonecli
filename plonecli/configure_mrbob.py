@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """Configure mrbob."""
-from mrbob.configurator import SkipQuestion
 from bobtemplates.plone.base import echo
+from mrbob.configurator import SkipQuestion
 
 import codecs
 import os
-
 
 try:
     from ConfigParser import RawConfigParser

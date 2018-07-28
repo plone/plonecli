@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 """Console script for plonecli."""
 
-import click
-import subprocess
-import os
-
 from pkg_resources import WorkingSet
-from plonecli.exceptions import NotInPackageError
 from plonecli.exceptions import NoSuchValue
-from plonecli.exceptions import NoSuchPath
+from plonecli.exceptions import NotInPackageError
 from plonecli.registry import template_registry as reg
+
+import click
+import os
+import subprocess
 
 
 def echo(msg, fg='green', reverse=False):
@@ -217,29 +216,24 @@ def run_serve(context):
 
 @cli.command('test')
 @click.option('-a', '--all', 'all', is_flag=True)
-@click.option('-t', '--test', 'test', is_flag=True)
-@click.argument('path', type=click.Path(), required=False)
-@click.option('-s', '--package', 'package', is_flag=True)
+@click.option('-t', '--test', 'test')
+@click.option('-s', '--package', 'package')
 @click.pass_context
-def run_test(context, all, test, package, path):
+def run_test(context, all, test, package):
     """Run the tests in your package"""
     if context.obj.get('target_dir', None) is None:
         raise NotInPackageError(context.command.name)
     params = [
         './bin/test',
     ]
+    if test:
+        params.append('--test')
+        params.append(test)
+    if package:
+        params.append('--package')
+        params.append(package)
     if all:
         params.append('--all')
-    if test and not path:
-        raise NoSuchPath(context.command.name, path)
-    elif test and path:
-        params.append('--test')
-        params.append(path)
-    if package and path:
-        params.append('--package')
-        params.append(path)
-    elif package and not path:
-        raise NoSuchPath(context.command.name, path)
 
     echo(
         '\nRUN: {0}'.format(' '.join(params)),
