@@ -1,7 +1,7 @@
 History
 =======
 
-0.2.2 (unreleased)
+0.2.2 (2018-08-13)
 ------------------
 
 - Add -t and -s options to the test command
