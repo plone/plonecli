@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """Console script for plonecli."""
 
-import click
-import subprocess
-import os
-
 from pkg_resources import WorkingSet
-from plonecli.exceptions import NotInPackageError
 from plonecli.exceptions import NoSuchValue
+from plonecli.exceptions import NotInPackageError
 from plonecli.registry import template_registry as reg
+
+import click
+import os
+import subprocess
 
 
 def echo(msg, fg='green', reverse=False):
     click.echo(
-        click.style(msg, fg=fg, reverse=reverse,)
+        click.style(msg, fg=fg, reverse=reverse),
     )
 
 
@@ -26,7 +26,7 @@ def get_templates(ctx, args, incomplete):
 @click.group(
     chain=True,
     context_settings={'help_option_names': ['-h', '--help']},
-    invoke_without_command=True
+    invoke_without_command=True,
 )
 @click.option('-l', '--list-templates', 'list_templates', is_flag=True)
 @click.option('-V', '--versions', 'versions', is_flag=True)
@@ -45,9 +45,9 @@ def cli(context, list_templates, versions):
         version_str = """Available packages:\n
         plonecli : {0}\n
         bobtemplates.plone: {1}\n""".format(
-                plonecli_version,
-                bobtemplates_version,
-                )
+            plonecli_version,
+            bobtemplates_version,
+        )
         click.echo(version_str)
 
 
@@ -216,16 +216,25 @@ def run_serve(context):
 
 @cli.command('test')
 @click.option('-a', '--all', 'all', is_flag=True)
+@click.option('-t', '--test', 'test')
+@click.option('-s', '--package', 'package')
 @click.pass_context
-def run_test(context, all):
+def run_test(context, all, test, package):
     """Run the tests in your package"""
     if context.obj.get('target_dir', None) is None:
         raise NotInPackageError(context.command.name)
     params = [
         './bin/test',
     ]
+    if test:
+        params.append('--test')
+        params.append(test)
+    if package:
+        params.append('--package')
+        params.append(package)
     if all:
         params.append('--all')
+
     echo(
         '\nRUN: {0}'.format(' '.join(params)),
         fg='green',
@@ -292,5 +301,5 @@ def config():
     )
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     cli()

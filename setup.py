@@ -5,6 +5,7 @@
 from setuptools import find_packages
 from setuptools import setup
 
+
 test_requirements = [
     'pytest',
 ]
@@ -14,8 +15,8 @@ setup(
     packages=find_packages(include=['plonecli']),
     entry_points={
         'console_scripts': [
-            'plonecli=plonecli.cli:cli'
-        ]
+            'plonecli=plonecli.cli:cli',
+        ],
     },
     include_package_data=True,
     install_requires=[

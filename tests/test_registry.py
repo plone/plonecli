@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 
 """Tests for `plonecli` package."""
-import os
 
-from plonecli.registry import TemplateRegistry
 from plonecli.registry import get_package_root
+from plonecli.registry import TemplateRegistry
+
+import os
 
 
 def test_list_templates(tmpdir):
