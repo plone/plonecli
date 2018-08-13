@@ -278,16 +278,17 @@ def build(context, clean):
 @cli.command()
 def config():
     """Configure mr.bob global settings"""
+    params = [
+        'mrbob',
+        'plonecli:configure_mrbob',
+    ]
     echo(
-        '\nRUN: mrbob plonecli:configure_mrbob',
+        '\nRUN: {0}'.format(' '.join(params)),
         fg='green',
         reverse=True,
     )
     subprocess.call(
-        [
-            'mrbob',
-            'plonecli:configure_mrbob',
-        ],
+        params,
     )
 
 
