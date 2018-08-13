@@ -6,6 +6,7 @@ from mrbob.configurator import SkipQuestion
 import codecs
 import os
 
+
 try:
     from ConfigParser import RawConfigParser
 except ImportError:
@@ -100,10 +101,10 @@ author.email={1}
 author.github.user={2}
 plone.version={3}
 """.format(
-                answers['author.name'],
-                answers['author.email'],
-                answers['author.github.user'],
-                answers['plone.version'],
+            answers['author.name'],
+            answers['author.email'],
+            answers['author.github.user'],
+            answers['plone.version'],
         )
         if configurator.variables['configure_mrbob.package.git.disabled']:
             template = template + 'package.git.disabled={0}'.format(
@@ -135,10 +136,10 @@ package.git.autocommit={2}
             config.add_section('variables')
         for key, value in answers.items():
             config.set('variables', key, value)
-        with open(file_path,  'w') as mrbob_config_file:
+        with open(file_path, 'w') as mrbob_config_file:
             config.write(mrbob_config_file)
         # append commented settings at the end
-        with codecs.open(file_path,  'a', 'utf-8') as mrbob_config_file:
+        with codecs.open(file_path, 'a', 'utf-8') as mrbob_config_file:
             mrbob_config_file.writelines(commented_settings)
 
 

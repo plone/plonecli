@@ -13,7 +13,7 @@ import subprocess
 
 def echo(msg, fg='green', reverse=False):
     click.echo(
-        click.style(msg, fg=fg, reverse=reverse,)
+        click.style(msg, fg=fg, reverse=reverse),
     )
 
 
@@ -26,7 +26,7 @@ def get_templates(ctx, args, incomplete):
 @click.group(
     chain=True,
     context_settings={'help_option_names': ['-h', '--help']},
-    invoke_without_command=True
+    invoke_without_command=True,
 )
 @click.option('-l', '--list-templates', 'list_templates', is_flag=True)
 @click.option('-V', '--versions', 'versions', is_flag=True)
@@ -45,9 +45,9 @@ def cli(context, list_templates, versions):
         version_str = """Available packages:\n
         plonecli : {0}\n
         bobtemplates.plone: {1}\n""".format(
-                plonecli_version,
-                bobtemplates_version,
-                )
+            plonecli_version,
+            bobtemplates_version,
+        )
         click.echo(version_str)
 
 
@@ -301,5 +301,5 @@ def config():
     )
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     cli()

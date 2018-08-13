@@ -2,6 +2,7 @@
 import os
 import pkg_resources
 
+
 try:
     from ConfigParser import ConfigParser
     from ConfigParser import NoOptionError
@@ -82,8 +83,13 @@ class TemplateRegistry(object):
             if not tmpl_info.depend_on:
                 continue
             if tmpl_info.depend_on not in self.templates:
-                print('{Template dependency "{0}" not found!}'.format(
-                    tmpl_info.depend_on))
+                print(
+                    '{',
+                    'Template dependency "{0}" not found!'.format(
+                        tmpl_info.depend_on,
+                    ),
+                    '}',
+                )
                 continue
             self.templates[tmpl_info.depend_on][
                 'subtemplates'][entry_point_name] = tmpl_info.plonecli_alias \
@@ -92,10 +98,10 @@ class TemplateRegistry(object):
     def list_templates(self):
         templates_str = 'Available mr.bob templates:\n'
         for tmpl in self.templates.values():
-            templates_str += " - {0}\n".format(tmpl['template_name'])
+            templates_str += ' - {0}\n'.format(tmpl['template_name'])
             subtemplates = tmpl.get('subtemplates', [])
             for subtmpl_name in subtemplates.values():
-                templates_str += "  - {0}\n".format(subtmpl_name)
+                templates_str += '  - {0}\n'.format(subtmpl_name)
         return templates_str
 
     def get_templates(self):
@@ -103,8 +109,11 @@ class TemplateRegistry(object):
             return [tmpl['template_name'] for tmpl in self.templates.values()]
         template = self.templates.get(self.bob_config.template)
         if not template:
-            print("no subtemplates found for {0}!".format(
-                self.bob_config.template))
+            print(
+                'no subtemplates found for {0}!'.format(
+                    self.bob_config.template,
+                ),
+            )
             return []
         return template['subtemplates'].values()
 

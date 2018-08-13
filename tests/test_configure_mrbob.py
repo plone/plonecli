@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from mrbob.bobexceptions import ValidationError
 from mrbob.configurator import Configurator
-from mrbob.configurator import Question
 from mrbob.configurator import SkipQuestion
 from plonecli.configure_mrbob import check_git_disabled
 from plonecli.configure_mrbob import get_mrbob_config_variable
@@ -57,21 +55,47 @@ def test_check_git_disabled_false(tmpdir):
 
 def test_get_mrbob_config_variable(tmpdir):
     # when .mrbob file does not exists
-    assert get_mrbob_config_variable('author.name', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('author.email', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('author.github.user', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('package.git.init', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('package.git.autocommit', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('package.git.disabled', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('plone.version', tmpdir.strpath) == None
+    assert None is get_mrbob_config_variable('author.name', tmpdir.strpath)
+    assert None is get_mrbob_config_variable('author.email', tmpdir.strpath)
+    assert None is get_mrbob_config_variable(
+        'author.github.user',
+        tmpdir.strpath,
+    )
+    assert None is get_mrbob_config_variable(
+        'package.git.init',
+        tmpdir.strpath,
+    )
+    assert None is get_mrbob_config_variable(
+        'package.git.autocommit',
+        tmpdir.strpath,
+    )
+    assert None is get_mrbob_config_variable(
+        'package.git.disabled',
+        tmpdir.strpath,
+    )
+    assert None is get_mrbob_config_variable('plone.version', tmpdir.strpath)
+
     # when .mrbob file exists but without variable section
-    assert get_mrbob_config_variable('author.name', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('author.email', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('author.github.user', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('package.git.init', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('package.git.autocommit', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('package.git.disabled', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('plone.version', tmpdir.strpath) == None
+    assert None is get_mrbob_config_variable('author.name', tmpdir.strpath)
+    assert None is get_mrbob_config_variable('author.email', tmpdir.strpath)
+    assert None is get_mrbob_config_variable(
+        'author.github.user',
+        tmpdir.strpath,
+    )
+    assert None is get_mrbob_config_variable(
+        'package.git.init',
+        tmpdir.strpath,
+    )
+    assert None is get_mrbob_config_variable(
+        'package.git.autocommit',
+        tmpdir.strpath,
+    )
+    assert None is get_mrbob_config_variable(
+        'package.git.disabled',
+        tmpdir.strpath,
+    )
+    assert None is get_mrbob_config_variable('plone.version', tmpdir.strpath)
+
     # when .mrbob file exists with variable section
     template = """[mr.bob]
 verbose = False
@@ -87,13 +111,28 @@ plone.version = 5.1
     with open(os.path.join(tmpdir.strpath, '.mrbob'), 'w') as f:
         f.write(template)
     # when .mrbob file exists with git.disabled set to False
-    assert get_mrbob_config_variable('author.name', tmpdir.strpath) == 'The Plone Collective'
-    assert get_mrbob_config_variable('author.email', tmpdir.strpath) == 'collective@plone.org'
-    assert get_mrbob_config_variable('author.github.user', tmpdir.strpath) == 'collective'
-    assert get_mrbob_config_variable('package.git.init', tmpdir.strpath) == 'y'
-    assert get_mrbob_config_variable('package.git.autocommit', tmpdir.strpath) == 'y'
-    assert get_mrbob_config_variable('package.git.disabled', tmpdir.strpath) == 'n'
-    assert get_mrbob_config_variable('plone.version', tmpdir.strpath) == '5.1'
+    assert 'The Plone Collective' == get_mrbob_config_variable(
+        'author.name',
+        tmpdir.strpath,
+    )
+    assert 'collective@plone.org' == get_mrbob_config_variable(
+        'author.email',
+        tmpdir.strpath,
+    )
+    assert 'collective' == get_mrbob_config_variable(
+        'author.github.user',
+        tmpdir.strpath,
+    )
+    assert 'y' == get_mrbob_config_variable('package.git.init', tmpdir.strpath)
+    assert 'y' == get_mrbob_config_variable(
+        'package.git.autocommit',
+        tmpdir.strpath,
+    )
+    assert 'n' == get_mrbob_config_variable(
+        'package.git.disabled',
+        tmpdir.strpath,
+    )
+    assert '5.1' == get_mrbob_config_variable('plone.version', tmpdir.strpath)
     # when .mrbob file exists with git.disabled set to True
     template = """[mr.bob]
 verbose = False
@@ -106,13 +145,32 @@ plone.version = 5.1
 """
     with open(os.path.join(tmpdir.strpath, '.mrbob'), 'w') as f:
         f.write(template)
-    assert get_mrbob_config_variable('author.name', tmpdir.strpath) == 'The Plone Collective'
-    assert get_mrbob_config_variable('author.email', tmpdir.strpath) == 'collective@plone.org'
-    assert get_mrbob_config_variable('author.github.user', tmpdir.strpath) == 'collective'
-    assert get_mrbob_config_variable('package.git.init', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('package.git.autocommit', tmpdir.strpath) == None
-    assert get_mrbob_config_variable('package.git.disabled', tmpdir.strpath) == 'y'
-    assert get_mrbob_config_variable('plone.version', tmpdir.strpath) == '5.1'
+    assert 'The Plone Collective' == get_mrbob_config_variable(
+        'author.name',
+        tmpdir.strpath,
+    )
+    assert 'collective@plone.org' == get_mrbob_config_variable(
+        'author.email',
+        tmpdir.strpath,
+    )
+
+    assert 'collective' == get_mrbob_config_variable(
+        'author.github.user',
+        tmpdir.strpath,
+    )
+    assert None is get_mrbob_config_variable(
+        'package.git.init',
+        tmpdir.strpath,
+    )
+    assert None is get_mrbob_config_variable(
+        'package.git.autocommit',
+        tmpdir.strpath,
+    )
+    assert 'y' == get_mrbob_config_variable(
+        'package.git.disabled',
+        tmpdir.strpath,
+    )
+    assert '5.1' == get_mrbob_config_variable('plone.version', tmpdir.strpath)
 
 
 def test_plonecli_config_without_config_file(tmpdir):

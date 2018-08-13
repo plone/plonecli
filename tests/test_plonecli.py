@@ -9,7 +9,6 @@ from plonecli import cli
 import click
 import os
 import pytest
-import subprocess
 
 
 @pytest.fixture
@@ -93,7 +92,7 @@ git_init = y
             cli.run_test,
             args=[
                 '-t src/collective/todo/tests/test_robot.py',
-                '-s collective.todo'
+                '-s collective.todo',
             ],
             obj=context.obj,
         )
@@ -104,7 +103,7 @@ git_init = y
             args=[
                 '-t src/collective/todo/tests/test_robot.py',
                 '-s collective.todo',
-                '--all'
+                '--all',
             ],
             obj=context.obj,
         )
