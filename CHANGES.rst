@@ -4,7 +4,8 @@ History
 0.2.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Sort templates on --list-templates/-l command output
+  [MrTango]
 
 
 0.2.2 (2018-08-13)

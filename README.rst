@@ -127,12 +127,15 @@ Creating A Plone Add-on
 
     $ plonecli -l
     Available mr.bob templates:
-     - buildout
-     - addon
-      - vocabulary
-      - theme
-      - content_type
-     - theme_package
+    - addon
+     - behavior
+     - content_type
+     - theme
+     - view
+     - viewlet
+     - vocabulary
+    - buildout
+    - theme_package
 
     $ plonecli create addon src/collective.todo
 
@@ -140,18 +143,18 @@ Creating A Plone Add-on
 Adding Features To Your Plone Add-on
 ------------------------------------
 
+You can add different features thru sub-templates. You can use them also multible time to create different features of the same typ, like two different content types.
+
 .. code-block:: console
 
     $ cd collective.todo
-    $ plonecli -l
-    templates:
-     - content_type
-     - theme
-     - vocabulary
 
+    $ plonecli add behavior
     $ plonecli add content_type
-    $ plonecli add vocabulary
     $ plonecli add theme
+    $ plonecli add view
+    $ plonecli add viewlet
+    $ plonecli add vocabulary
 
 
 Build Your Package
@@ -191,7 +194,13 @@ Run Tests for Application
 
     $ plonecli test
 
-or including Robot tests:
+or run specific tests:
+
+.. code-block:: console
+
+    $ plonecli test -t test_the_thing
+
+or run all tests including Robot tests:
 
 .. code-block:: console
 

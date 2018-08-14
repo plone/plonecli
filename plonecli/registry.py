@@ -97,10 +97,13 @@ class TemplateRegistry(object):
 
     def list_templates(self):
         templates_str = 'Available mr.bob templates:\n'
-        for tmpl in self.templates.values():
-            templates_str += ' - {0}\n'.format(tmpl['template_name'])
+        for key in sorted(self.templates.keys()):
+            tmpl = self.templates[key]
+            templates_str += ' - {0}\n'.format(
+                tmpl['template_name'],
+            )
             subtemplates = tmpl.get('subtemplates', [])
-            for subtmpl_name in subtemplates.values():
+            for subtmpl_name in sorted(subtemplates.values()):
                 templates_str += '  - {0}\n'.format(subtmpl_name)
         return templates_str
 
