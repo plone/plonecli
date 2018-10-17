@@ -1,7 +1,7 @@
 History
 =======
 
-0.3.0 (unreleased)
+0.3.0 (2018-10-17)
 ------------------
 
 - Sort templates on --list-templates/-l command output
