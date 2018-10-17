@@ -130,12 +130,14 @@ Creating A Plone Add-on
     - addon
      - behavior
      - content_type
+     - portlet
      - theme
+     - theme_barceloneta
      - view
      - viewlet
      - vocabulary
     - buildout
-    - theme_package
+    - theme_package [deprecated] >> Please use the theme_barceloneta subtemplate!
 
     $ plonecli create addon src/collective.todo
 
@@ -143,7 +145,7 @@ Creating A Plone Add-on
 Adding Features To Your Plone Add-on
 ------------------------------------
 
-You can add different features thru sub-templates. You can use them also multible time to create different features of the same typ, like two different content types.
+You can add different features thru subtemplates. You can use them also multible time to create different features of the same typ, like two different content types.
 
 .. code-block:: console
 

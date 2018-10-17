@@ -26,7 +26,7 @@ setup(
         'plonecli-click',
         'mr.bob',
         'zest.releaser',
-        'bobtemplates.plone>=3.1.1',
+        'bobtemplates.plone>=3.4.3',
     ],
     extras_require={
         'test': test_requirements,

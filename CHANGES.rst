@@ -7,6 +7,8 @@ History
 - Sort templates on --list-templates/-l command output
   [MrTango]
 
+- Show deprecate flag and info for templates in template list
+  [MrTango]
 
 0.2.2 (2018-08-13)
 ------------------

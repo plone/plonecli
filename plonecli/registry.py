@@ -77,6 +77,8 @@ class TemplateRegistry(object):
             self.templates[entry_point_name] = {
                 'template_name': tmpl_info.plonecli_alias or entry_point_name,
                 'subtemplates': {},
+                'info': tmpl_info.info,
+                'deprecated': tmpl_info.deprecated,
             }
 
         for entry_point_name, tmpl_info in self.template_infos.items():
@@ -99,8 +101,15 @@ class TemplateRegistry(object):
         templates_str = 'Available mr.bob templates:\n'
         for key in sorted(self.templates.keys()):
             tmpl = self.templates[key]
+            tmpl_entry = tmpl['template_name']
+            tmpl_deprecated = tmpl.get('deprecated')
+            tmpl_info = tmpl.get('info')
+            if tmpl_deprecated:
+                tmpl_entry += ' [deprecated]'
+            if tmpl_info:
+                tmpl_entry += ' >> {0}'.format(tmpl_info)
             templates_str += ' - {0}\n'.format(
-                tmpl['template_name'],
+                tmpl_entry,
             )
             subtemplates = tmpl.get('subtemplates', [])
             for subtmpl_name in sorted(subtemplates.values()):
