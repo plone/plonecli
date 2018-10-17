@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "ES6"
+    },
+    "exclude": [
+        "tmp",
+        ".pytest_cache",
+        ".tox",
+        "_build",
+        "build",
+        "dist",
+        "plonecli.egg-info",
+        "man",
+        "htmlcov",
+        ".cache",
+        ".github",
+        "parts",
+        "selenium",
+        "tmp_resources",
+        "local",
+        "node_modules",
+        "**/node_modules/*"
+    ]
+}
