@@ -1,13 +1,16 @@
 History
 =======
 
-0.2.3 (unreleased)
+0.3.0 (unreleased)
 ------------------
 
 - Sort templates on --list-templates/-l command output
   [MrTango]
 
 - Show deprecate flag and info for templates in template list
+  [MrTango]
+
+- Use the now released click library in version >= 7.0, you have to uninstall plonecli-click before upgrading!
   [MrTango]
 
 0.2.2 (2018-08-13)

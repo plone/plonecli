@@ -41,8 +41,7 @@ To upgrade plonecli just do:
 
 
 NOTE:
-For now we are using a forked version of the click library called plonecli-click.
-As soon as the next version of click (>6.7) is out, we will use the normal pypi versions of click.
+We are now using a the ORIGINAL version of the CLICK library, please uninstall plonecli-click before you install the new version of plonecli.
 
 If would like to use plonecli with pipenv, you can do it as follow:
 
@@ -231,7 +230,7 @@ Setup Developer Environment
     $ cd plonecli
     $ virtualenv .
     $ source bin/activate
-    $ pip install -r requirements_dev.txt
+    $ pip install -r requirements.txt
     $ python setup.py develop
     $ plonecli --help
 

@@ -22,8 +22,7 @@ setup(
     install_requires=[
         'setuptools',
         'virtualenv',
-        # 'Click>=6.8a99',
-        'plonecli-click',
+        'Click>=7.0',
         'mr.bob',
         'zest.releaser',
         'bobtemplates.plone>=3.4.3',
