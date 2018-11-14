@@ -278,12 +278,11 @@ Here are the entry_points of the bobtemplates.plone package:
     },
 
 The entry_point name is used as the global template name for mr.bob.
-You also need to provide the bobregistration.py file with the related methods, which should be named after the entry_point name:
+You also need to provide a bobregistry.py file with a method for each entry_point, it should be named after the entry_point name:
 
 .. code-block:: python
 
     # -*- coding: utf-8 -*-
-
 
     class RegEntry(object):
         def __init__(self):
