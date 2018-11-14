@@ -4,7 +4,8 @@ History
 0.3.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Document the new `deprecated` and `info` options
+  [erral]
 
 
 0.3.0 (2018-10-17)

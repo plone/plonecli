@@ -289,6 +289,8 @@ You also need to provide a bobregistry.py file with a method for each entry_poin
             self.template = ''
             self.plonecli_alias = ''
             self.depend_on = None
+            self.deprecated = False
+            self.info = ''
 
 
     # standalone template
@@ -314,6 +316,8 @@ For every template you add a line to the entry_points and define a method in the
 - ``depend_on``:
     1. for a standalone template, the depend_on property is None
     2. for a sub template, the depend_on contains the name of the parent standalone template, usualy `addon`.
+- ``deprecated`` - boolean saying whether this templates is deprecated and will be removed in future releases
+- ``info`` - message that will be shown next to the template when the template is deprecated
 
 
 Contribute
