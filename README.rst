@@ -38,7 +38,7 @@ To upgrade plonecli just do:
 .. code-block:: console
 
     $ pip install -U plonecli --user
-
+    Note: Make sure that the install directory is in $PATH ( e.g. export PATH=$PATH:$HOME/.local/bin/  ) 
 
 NOTE:
 We are now using a the ORIGINAL version of the CLICK library, please uninstall plonecli-click before you install the new version of plonecli.
