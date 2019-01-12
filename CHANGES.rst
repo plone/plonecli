@@ -4,6 +4,9 @@ History
 0.3.1 (unreleased)
 ------------------
 
+- add note for including install directory to $PATH 
+  [fgrcon]
+  
 - Document the new `deprecated` and `info` options
   [erral]
 
