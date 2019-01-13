@@ -61,7 +61,10 @@ if not reg.root_folder:
     @click.argument('name')
     @click.pass_context
     def create(context, template, name):
-        """Create a new Plone package"""
+        """Create a new Plone package.
+
+        Run "Plonecli -l" to see available templates
+        """
         bobtemplate = reg.resolve_template_name(template)
         if bobtemplate is None:
             raise NoSuchValue(
