@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """The setup script."""
+from __future__ import absolute_import
 from setuptools import find_packages
 from setuptools import setup
 
@@ -25,7 +26,7 @@ setup(
         'Click>=7.0',
         'mr.bob',
         'zest.releaser',
-        'bobtemplates.plone>=3.4.3',
+        'bobtemplates.plone>=3.6',
     ],
     extras_require={
         'test': test_requirements,

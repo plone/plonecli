@@ -3,6 +3,7 @@
 
 """Tests for `plonecli` package."""
 
+from __future__ import absolute_import
 from plonecli.registry import get_package_root
 from plonecli.registry import TemplateRegistry
 

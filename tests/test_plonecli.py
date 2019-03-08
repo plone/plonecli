@@ -3,6 +3,7 @@
 
 """Tests for `plonecli` package."""
 
+from __future__ import absolute_import
 from click.testing import CliRunner
 from plonecli import cli
 

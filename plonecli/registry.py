@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import print_function
+
 import os
 import pkg_resources
 
 
 try:
-    from ConfigParser import ConfigParser
-    from ConfigParser import NoOptionError
-    from ConfigParser import NoSectionError
+    from six.moves.configparser import ConfigParser
+    from six.moves.configparser import NoOptionError
+    from six.moves.configparser import NoSectionError
 except ImportError:
     from configparser import ConfigParser
     from configparser import NoOptionError
@@ -127,7 +130,7 @@ class TemplateRegistry(object):
                 ),
             )
             return []
-        return template['subtemplates'].values()
+        return list(template['subtemplates'].values())
 
     def resolve_template_name(self, plonecli_alias):
         """ resolve template name from plonecli alias

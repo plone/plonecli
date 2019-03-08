@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Console script for plonecli."""
 
+from __future__ import absolute_import
 from pkg_resources import WorkingSet
 from plonecli.exceptions import NoSuchValue
 from plonecli.exceptions import NotInPackageError

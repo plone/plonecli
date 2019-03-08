@@ -1,14 +1,17 @@
 History
 =======
 
-0.3.1 (unreleased)
+0.4 (unreleased)
 ------------------
 
-- add note for including install directory to $PATH 
+- add note for including install directory to $PATH
   [fgrcon]
-  
+
 - Document the new `deprecated` and `info` options
   [erral]
+
+- modernize code for Python 3 support
+  [MrTango]
 
 
 0.3.0 (2018-10-17)

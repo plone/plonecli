@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 from mrbob.configurator import Configurator
 from mrbob.configurator import SkipQuestion
 from plonecli.configure_mrbob import check_git_disabled
