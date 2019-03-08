@@ -1,8 +1,8 @@
 History
 =======
 
-0.4 (unreleased)
-------------------
+1.0 (2019-03-08)
+----------------
 
 - add note for including install directory to $PATH
   [fgrcon]
