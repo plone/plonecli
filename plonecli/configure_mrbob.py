@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Configure mrbob."""
+from __future__ import absolute_import
 from bobtemplates.plone.base import echo
 from mrbob.configurator import SkipQuestion
 
@@ -8,7 +9,7 @@ import os
 
 
 try:
-    from ConfigParser import RawConfigParser
+    from six.moves.configparser import RawConfigParser
 except ImportError:
     from configparser import RawConfigParser
 
