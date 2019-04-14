@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
+
 import os
 import pytest
-import subprocess
 import sys
+
 
 @pytest.fixture(scope='module')
 def plonecli_bin():

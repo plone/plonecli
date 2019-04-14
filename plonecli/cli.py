@@ -6,7 +6,6 @@ from pkg_resources import WorkingSet
 from plonecli.exceptions import NoSuchValue
 from plonecli.exceptions import NotInPackageError
 from plonecli.registry import template_registry as reg
-from plonecli.registry import TemplateRegistry
 
 import click
 import os

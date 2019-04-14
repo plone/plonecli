@@ -37,7 +37,7 @@ def read_bob_config(root_folder):
             try:
                 value = config.get(section, option)
                 setattr(bob_config, option, value)
-            except (NoSectionError, NoOptionError) as e:
+            except (NoSectionError, NoOptionError):
                 continue
     return bob_config
 

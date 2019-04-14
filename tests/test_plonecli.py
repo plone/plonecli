@@ -52,10 +52,6 @@ def test_command_line_interface():
     assert version_result.exit_code == 0
     assert 'Available packages:' in version_result.output
 
-    version_result = runner.invoke(cli.cli, ['build', '-p', 'python3.7'])
-    # assert version_result.exit_code == 0
-    assert 'python3.7' in version_result.output
-
 
 def test_plonecli_test():
     runner = CliRunner()
