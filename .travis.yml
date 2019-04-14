@@ -5,6 +5,11 @@ cache:
   directories:
     - $HOME/buildout-cache
 sudo: false
+addons:
+  apt:
+    packages:
+        - python2.7
+        - python3.7
 
 cache:
   pip: true
