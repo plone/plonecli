@@ -6,17 +6,12 @@ cache:
     - $HOME/buildout-cache
 sudo: false
 
-cache:
-  pip: true
-
 matrix:
     include:
         - python: "2.7"
           env: TOXENV=py27,lint-py27
-        - python: "3.6"
-          env: TOXENV=py36,lint-py36
-#        - python: "3.7"
-#          env: TOXENV=py37,lint-py37
+        - python: "3.7"
+          env: TOXENV=py37,lint-py37
 
 before_install:
     pip install --upgrade virtualenv

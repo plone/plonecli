@@ -10,6 +10,8 @@ from plonecli import cli
 import click
 import os
 import pytest
+import subprocess
+import sys
 
 
 @pytest.fixture
@@ -109,3 +111,109 @@ git_init = y
             obj=context.obj,
         )
         assert u'./bin/test --test  src/collective/todo/tests/test_robot.py --package  collective.todo --all' in test_command_result.output  # NOQA: E501
+
+
+def test_plonecli_build_default_py(tmpdir, plonecli_bin):
+    target_path = tmpdir.strpath
+    os.chdir(target_path)
+    template = """
+setuptools==40.8.0
+zc.buildout==2.13.1
+"""
+    with open('requirements.txt', 'w') as f:
+        f.write(template)
+
+    template = """[buildout]
+parts =
+"""
+    with open('buildout.cfg', 'w') as f:
+        f.write(template)
+
+    template = """[main]
+version = 5.2-latest
+template = plone_addon
+git_init = y
+"""
+    with open('bobtemplate.cfg', 'w') as f:
+        f.write(template)
+
+    result = subprocess.check_output(
+        [
+            plonecli_bin,
+            'build',
+        ],
+        cwd=target_path,
+    )
+    assert u'\nRUN: virtualenv . -p python' in result.decode()
+
+
+@pytest.mark.skipif(sys.version_info < (3, 7), reason="requires explicitly python3.7")
+def test_plonecli_build_py_option(tmpdir, plonecli_bin):
+    target_path = tmpdir.strpath
+    os.chdir(target_path)
+    template = """
+setuptools==40.8.0
+zc.buildout==2.13.1
+"""
+    with open('requirements.txt', 'w') as f:
+        f.write(template)
+
+    template = """[buildout]
+parts =
+"""
+    with open('buildout.cfg', 'w') as f:
+        f.write(template)
+
+    template = """[main]
+version = 5.2-latest
+template = plone_addon
+python = python3
+"""
+    with open('bobtemplate.cfg', 'w') as f:
+        f.write(template)
+
+    result = subprocess.check_output(
+        [
+            plonecli_bin,
+            'build',
+            '-p',
+            'python3.7',
+        ],
+        cwd=target_path,
+    )
+    assert u'\nRUN: virtualenv . -p python3.7' in result.decode()
+
+
+@pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
+def test_plonecli_build_py_conf(tmpdir, plonecli_bin):
+    target_path = tmpdir.strpath
+    os.chdir(target_path)
+    template = """
+setuptools==40.8.0
+zc.buildout==2.13.1
+"""
+    with open('requirements.txt', 'w') as f:
+        f.write(template)
+
+    template = """[buildout]
+parts =
+"""
+    with open('buildout.cfg', 'w') as f:
+        f.write(template)
+
+    template = """[main]
+version = 5.2-latest
+template = plone_addon
+python = python3
+"""
+    with open('bobtemplate.cfg', 'w') as f:
+        f.write(template)
+
+    result = subprocess.check_output(
+        [
+            plonecli_bin,
+            'build',
+        ],
+        cwd=target_path,
+    )
+    assert u'\nRUN: virtualenv . -p python3' in result.decode()

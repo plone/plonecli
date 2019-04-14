@@ -5,6 +5,7 @@
 
 from __future__ import absolute_import
 from plonecli.registry import get_package_root
+from plonecli.registry import read_bob_config
 from plonecli.registry import TemplateRegistry
 
 import os
@@ -51,6 +52,22 @@ version=5.1-latest
 
     package_root = get_package_root()
     assert package_root is not None
+
+
+def test_bob_config(tmpdir):
+    target_dir = tmpdir.strpath + '/collective.foo'
+    os.mkdir(target_dir)
+    os.chdir(target_dir)
+    template = """[main]
+template=plone_addon
+version=5.1-latest
+python=python2.7
+"""
+    with open(os.path.join(target_dir + '/bobtemplate.cfg'), 'w') as f:
+        f.write(template)
+    reg = TemplateRegistry()
+    bob_config = read_bob_config(reg.root_folder)
+    assert bob_config.python == 'python2.7'
 
 
 def test_get_subtemplates(tmpdir):
