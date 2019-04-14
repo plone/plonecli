@@ -185,7 +185,7 @@ python = python3
 
 
 @pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
-def test_plonecli_build_py_option(tmpdir, plonecli_bin):
+def test_plonecli_build_py_conf(tmpdir, plonecli_bin):
     target_path = tmpdir.strpath
     os.chdir(target_path)
     template = """
