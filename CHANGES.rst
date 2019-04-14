@@ -4,7 +4,8 @@ History
 1.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add new build option -p to define the python binary to use for the virtualenv
+  [MrTango]
 
 
 1.0 (2019-03-08)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+
 from __future__ import print_function
 
 import os
@@ -19,6 +19,7 @@ except ImportError:
 class BobConfig(object):
     def __init__(self):
         self.template = None
+        self.python = 'python'
 
 
 def read_bob_config(root_folder):
@@ -28,14 +29,20 @@ def read_bob_config(root_folder):
     config = ConfigParser()
     path = root_folder + '/bobtemplate.cfg'
     config.read(path)
-    try:
-        bob_config.template = config.get('main', 'template')
-    except (NoSectionError, NoOptionError):
-        return bob_config
+    sections = {
+        'main': ['template', 'python'],
+    }
+    for section, options in sections.items():
+        for option in options:
+            try:
+                value = config.get(section, option)
+                setattr(bob_config, option, value)
+            except (NoSectionError, NoOptionError) as e:
+                continue
     return bob_config
 
 
-def get_package_root():
+def get_package_root(cur_dir=None):
     """Find package root folder.
 
     It traverses from the cur_dir up until a bobtemplate.cfg was found which
@@ -45,7 +52,7 @@ def get_package_root():
     """
     file_name = 'bobtemplate.cfg'
     root_folder = None
-    cur_dir = os.getcwd()
+    cur_dir = cur_dir or os.getcwd()
     while True:
         files = os.listdir(cur_dir)
         parent_dir = os.path.dirname(cur_dir)
@@ -65,8 +72,8 @@ def get_package_root():
 
 class TemplateRegistry(object):
 
-    def __init__(self):
-        self.root_folder = get_package_root()
+    def __init__(self, cur_dir=None):
+        self.root_folder = get_package_root(cur_dir=cur_dir)
         self.bob_config = read_bob_config(self.root_folder)
         self.templates = {}
         self.template_infos = {}
