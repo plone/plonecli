@@ -1,7 +1,7 @@
 History
 =======
 
-1.1 (unreleased)
+1.1 (2019-04-14)
 ----------------
 
 - Add new build option -p to define the python binary to use for the virtualenv
