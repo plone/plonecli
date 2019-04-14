@@ -16,7 +16,7 @@ matrix:
           env: TOXENV=py37,lint-py37
 
 before_script:
-    sudo apt-get install python3.7 python2.7
+    sudo apt-get install python3 python
 
 before_install:
     pip install --upgrade virtualenv
