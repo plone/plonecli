@@ -27,7 +27,7 @@ Plone CLI
 Installation
 ============
 
-We install plonecli in the global user site-packages, so that we can use it in multible projects.
+We install plonecli in the global user site-packages, so that we can use it in multiple projects.
 
 Versions newer than 0.1.1b4 are installable like any other package with pip:
 
@@ -147,7 +147,7 @@ Creating A Plone Add-on
 Adding Features To Your Plone Add-on
 ------------------------------------
 
-You can add different features thru subtemplates. You can use them also multible time to create different features of the same typ, like two different content types.
+You can add different features through subtemplates. You can use them also multiple times to create different features of the same type, like two different content types.
 
 .. code-block:: console
 
@@ -178,7 +178,7 @@ This will run:
 
 in your target directory.
 
-You can always run the 3 steps explicit by using ``virtualenv``,``requirements``, ``buildout`` instead of build.
+You can always run the 3 steps explicit by using ``virtualenv``, ``requirements``, ``buildout`` instead of build.
 If you want to reset your build use the ``--clean`` option on build.
 This will clear your virtualenv before installing the requirements and also running buildout with ``-n`` to get the newest versions.
 
