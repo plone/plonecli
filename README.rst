@@ -275,8 +275,14 @@ Here are the entry_points of the bobtemplates.plone package:
             'plone_buildout = bobtemplates.plone.bobregistry:plone_buildout',  # NOQA E501
             'plone_theme_package = bobtemplates.plone.bobregistry:plone_theme_package',  # NOQA E501
             'plone_content_type = bobtemplates.plone.bobregistry:plone_content_type',  # NOQA E501
+            'plone_view = bobtemplates.plone.bobregistry:plone_view',
+            'plone_viewlet = bobtemplates.plone.bobregistry:plone_viewlet',
+            'plone_portlet = bobtemplates.plone.bobregistry:plone_portlet',
             'plone_theme = bobtemplates.plone.bobregistry:plone_theme',
+            'plone_theme_barceloneta = bobtemplates.plone.bobregistry:plone_theme_barceloneta',  # NOQA E501
             'plone_vocabulary = bobtemplates.plone.bobregistry:plone_vocabulary',  # NOQA E501
+            'plone_behavior = bobtemplates.plone.bobregistry:plone_behavior',  # NOQA E501
+            'plone_restapi_service = bobtemplates.plone.bobregistry:plone_restapi_service', # NOQA E501
         ],
     },
 
