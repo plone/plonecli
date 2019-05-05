@@ -27,7 +27,7 @@ Plone CLI
 Installation
 ============
 
-We install plonecli in the global user site-packages, so that we can use it in multible projects.
+We install plonecli in the global user site-packages, so that we can use it in multiple projects.
 
 Versions newer than 0.1.1b4 are installable like any other package with pip:
 
@@ -147,7 +147,7 @@ Creating A Plone Add-on
 Adding Features To Your Plone Add-on
 ------------------------------------
 
-You can add different features thru subtemplates. You can use them also multible time to create different features of the same typ, like two different content types.
+You can add different features through subtemplates. You can use them also multiple times to create different features of the same type, like two different content types.
 
 .. code-block:: console
 
@@ -178,7 +178,7 @@ This will run:
 
 in your target directory.
 
-You can always run the 3 steps explicit by using ``virtualenv``,``requirements``, ``buildout`` instead of build.
+You can always run the 3 steps explicit by using ``virtualenv``, ``requirements``, ``buildout`` instead of build.
 If you want to reset your build use the ``--clean`` option on build.
 This will clear your virtualenv before installing the requirements and also running buildout with ``-n`` to get the newest versions.
 
@@ -275,8 +275,14 @@ Here are the entry_points of the bobtemplates.plone package:
             'plone_buildout = bobtemplates.plone.bobregistry:plone_buildout',  # NOQA E501
             'plone_theme_package = bobtemplates.plone.bobregistry:plone_theme_package',  # NOQA E501
             'plone_content_type = bobtemplates.plone.bobregistry:plone_content_type',  # NOQA E501
+            'plone_view = bobtemplates.plone.bobregistry:plone_view',
+            'plone_viewlet = bobtemplates.plone.bobregistry:plone_viewlet',
+            'plone_portlet = bobtemplates.plone.bobregistry:plone_portlet',
             'plone_theme = bobtemplates.plone.bobregistry:plone_theme',
+            'plone_theme_barceloneta = bobtemplates.plone.bobregistry:plone_theme_barceloneta',  # NOQA E501
             'plone_vocabulary = bobtemplates.plone.bobregistry:plone_vocabulary',  # NOQA E501
+            'plone_behavior = bobtemplates.plone.bobregistry:plone_behavior',  # NOQA E501
+            'plone_restapi_service = bobtemplates.plone.bobregistry:plone_restapi_service', # NOQA E501
         ],
     },
 

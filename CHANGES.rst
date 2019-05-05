@@ -4,7 +4,8 @@ History
 1.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fix typos, ReST formatting and update content of README.rst.
+  [staeff]
 
 
 1.1 (2019-04-14)
