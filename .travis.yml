@@ -4,17 +4,22 @@ cache:
   pip: true
   directories:
     - $HOME/buildout-cache
+
 sudo: false
 
 matrix:
     include:
         - python: "2.7"
-          env: TOXENV=py27,lint-py27
+          env: TOXENV=py27,lint
+        - python: "3.6"
+          env: TOXENV=py36,lint
         - python: "3.7"
-          env: TOXENV=py37,lint-py37
+          env: TOXENV=py37,lint
+        - python: "3.8"
+          env: TOXENV=py38,lint
 
 before_install:
-    pip install --upgrade virtualenv
+    pip install --upgrade virtualenv pip
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
