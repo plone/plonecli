@@ -6,6 +6,8 @@ History
 
 - Fix typos, ReST formatting and update content of README.rst.
   [staeff]
+- Cleanup of tox.ini and checks on python versions
+  [loechel]
 
 
 1.1 (2019-04-14)
