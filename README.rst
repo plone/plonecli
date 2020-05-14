@@ -192,14 +192,15 @@ This will run:
 
 .. code-block:: shell
 
-    virtualenv .
+    python3 -m venv venv
     ./bin/pip install -r requirements.txt --upgrade
+    ./bin/buildout bootstrap
     ./bin/buildout
 
 in your target directory.
 
-You can always run the 3 steps explicit by using ``virtualenv``, ``requirements``, ``buildout`` instead of build.
-If you want to reset your build use the ``--clean`` option on build.
+You can always run the 3 steps explicit by using ``venv``, ``requirements``, ``buildout`` instead of build.
+If you want to upgrade/reset your build use the ``--upgrade or --clear`` option on build.
 
 This will clear your virtualenv before installing the requirements and also running buildout with ``-n`` to get the newest versions.
 
