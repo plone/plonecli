@@ -13,6 +13,9 @@ History
 - Add config command to disable the venv creation/update on plonecli build command
   [MrTango]
 
+- Allow auto completion of template names
+  [MrTango]
+
 - Fix typos, ReST formatting and update content of README.rst.
   [staeff]
 

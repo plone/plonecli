@@ -21,7 +21,7 @@ def echo(msg, fg="green", reverse=False):
 def get_templates(ctx, args, incomplete):
     """Return a list of available mr.bob templates."""
     templates = reg.get_templates()
-    return templates
+    return [k for k in templates if incomplete in k]
 
 
 @click.group(
