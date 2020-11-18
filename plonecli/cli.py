@@ -2,6 +2,7 @@
 """Console script for plonecli."""
 
 from __future__ import absolute_import
+from plonecli.configure_mrbob import is_venv_disabled
 
 from pkg_resources import WorkingSet
 from plonecli.exceptions import NoSuchValue
@@ -92,18 +93,21 @@ if reg.root_folder:
         subprocess.call(["mrbob", bobtemplate])
 
 
-@cli.command("virtualenv")
-@click.option("-c", "--clean", is_flag=True)
+@cli.command("venv")
+@click.option("-c", "--clear", is_flag=True)
+@click.option("-u", "--upgrade", is_flag=True)
 @click.option("-p", "--python", help="Python interpreter to use")
 @click.pass_context
-def create_virtualenv(context, clean, python):
-    """Create/update the local virtual environment for the Plone package"""
+def create_virtualenv(context, clear, upgrade, python):
+    """Create/update the local virtuelenv (venv) for the Plone package"""
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
     python = python or context.obj.get("python")
-    params = ["virtualenv", ".", "-p", python]
-    if clean:
+    params = [python, "-m", "venv", "venv"]
+    if clear:
         params.append("--clear")
+    if upgrade:
+        params.append("--upgrade")
     echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
     subprocess.call(params, cwd=context.obj["target_dir"])
 
@@ -115,20 +119,23 @@ def install_requirements(context):
 
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
-    params = ["./bin/pip", "install", "-r", "requirements.txt", "--upgrade"]
+    params = ["./venv/bin/pip", "install", "-r", "requirements.txt", "--upgrade"]
+    echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
+    subprocess.call(params, cwd=context.obj["target_dir"])
+    params = ["./venv/bin/buildout", "bootstrap"]
     echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
     subprocess.call(params, cwd=context.obj["target_dir"])
 
 
 @cli.command("buildout")
-@click.option("-c", "--clean", count=True)
+@click.option("-c", "--clear", count=True)
 @click.pass_context
-def run_buildout(context, clean):
+def run_buildout(context, clear):
     """Run the package buildout"""
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
-    params = ["./bin/buildout"]
-    if clean:
+    params = ["./venv/bin/buildout"]
+    if clear:
         params.append("-n")
     echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
     subprocess.call(params, cwd=context.obj["target_dir"])
@@ -137,7 +144,7 @@ def run_buildout(context, clean):
 @cli.command("serve")
 @click.pass_context
 def run_serve(context):
-    """Run the Plone client in foreground mode"""
+    """Run the Plone client in foreground mode (bin/instance fg)"""
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
     params = ["./bin/instance", "fg"]
@@ -183,21 +190,25 @@ def run_debug(context):
 
 
 @cli.command()
-@click.option("-c", "--clean", count=True)
+@click.option("-c", "--clear", count=True)
+@click.option("-u", "--upgrade", count=True)
 @click.option("-p", "--python", help="Python interpreter to use")
 @click.pass_context
-def build(context, clean, python=None):
+def build(context, clear, upgrade, python=None):
     """Bootstrap and build the package"""
     target_dir = context.obj.get("target_dir", None)
     python = python or context.obj.get("python")
     if target_dir is None:
         raise NotInPackageError(context.command.name)
-    if clean:
-        context.invoke(create_virtualenv, clean=True, python=python)
-    else:
-        context.invoke(create_virtualenv, python=python)
+    if not is_venv_disabled():
+        if clear:
+            context.invoke(create_virtualenv, clear=True, python=python)
+        elif upgrade:
+            context.invoke(create_virtualenv, clear=True, python=python)
+        else:
+            context.invoke(create_virtualenv, python=python)
     context.invoke(install_requirements)
-    context.invoke(run_buildout, clean=clean)
+    context.invoke(run_buildout, clear=clear)
     # context.forward(run_buildout)
 
 

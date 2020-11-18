@@ -96,11 +96,21 @@ def pre_package_git_autocommit(configurator, question):
 
 
 def pre_package_git_disable(configurator, question):
-    """Get git setting from mrbob config file."""
+    """Get git disabled setting from mrbob config file."""
     default = get_mrbob_config_variable("package.git.disabled", home_path)
     if default and question:
         question.default = default
 
+def pre_package_venv_disabled(configurator, question):
+    """Get venv disabled setting from mrbob config file."""
+    default = get_mrbob_config_variable("package.venv.disabled", home_path)
+    if default and question:
+        question.default = default
+
+def is_venv_disabled():
+    """Get venv disabled setting from mrbob config, for plonecli usage."""
+    flag = get_mrbob_config_variable("package.venv.disabled", home_path)
+    return flag
 
 def generate_mrbob_ini(configurator, directory_path, answers):
     file_name = u".mrbob"
@@ -116,13 +126,13 @@ verbose = False
 author.name = {0}
 author.email = {1}
 author.github.user = {2}
-plone.version = {3}
+package.venv.disabled = {3}
 package.git.disabled = {4}
 """.format(
             safe_string(answers["author.name"]),
             safe_string(answers["author.email"]),
             safe_string(answers["author.github.user"]),
-            safe_string(answers["plone.version"]),
+            safe_string(answers["package.venv.disabled"]),
             safe_string(answers["package.git.disabled"]),
         )
         if not configurator.variables["configure_mrbob.package.git.disabled"]:
@@ -143,13 +153,13 @@ package.git.autocommit = {1}
 # set your default values for questions here, they questions are still being ask
 # but with your defaults:
 
-#plone.version = 5.2.2
+plone.version = {0}
 #dexterity_type_global_allow = n
 #dexterity_type_filter_content_types = y
 #dexterity_type_activate_default_behaviors = n
 #dexterity_type_supermodel = y
 #python.version = python3.7
-"""
+""".format(safe_string(answers["plone.version"]))
         )
         with open(file_path, "w") as f:
             f.write(template)
@@ -190,7 +200,10 @@ def post_render(configurator, target_directory=None):
         "configure_mrbob.author.github.user"
     ].encode(
         "utf-8"
-    )  # NOQA: E501
+    )
+    mrbob_config["package.venv.disabled"] = configurator.variables[
+        "configure_mrbob.package.venv.disabled"
+    ]
     if not configurator.variables["configure_mrbob.package.git.disabled"]:
         mrbob_config["package.git.disabled"] = "n"
         mrbob_config["package.git.init"] = configurator.variables[
