@@ -205,7 +205,7 @@ plone.version = 5.1
 """
     with open(os.path.join(tmpdir.strpath, '.mrbob'), 'r') as f:
         content = f.read()
-        assert content != template
+        assert content == template
 
 
 def test_plonecli_config_with_config_file(tmpdir):

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """Configure mrbob."""
 from __future__ import absolute_import
+
 from bobtemplates.plone.base import echo
+from functools import singledispatch
 from mrbob.configurator import SkipQuestion
 
 import codecs
@@ -14,6 +16,19 @@ except ImportError:
     from configparser import RawConfigParser
 
 home_path = os.path.expanduser('~')
+
+
+@singledispatch
+def safe_string(data):
+    return data
+
+
+@safe_string.register
+def _(data: bytes):
+    try:
+        return data.decode("utf-8")
+    except TypeError:
+        return data
 
 
 def check_git_disabled(configurator, answer):
@@ -102,10 +117,11 @@ author.email={1}
 author.github.user={2}
 plone.version={3}
 """.format(
-            answers['author.name'],
-            answers['author.email'],
-            answers['author.github.user'],
-            answers['plone.version'],
+            safe_string(answers["author.name"]),
+            safe_string(answers["author.email"]),
+            safe_string(answers["author.github.user"]),
+            safe_string(answers["plone.version"]),
+            safe_string(answers["package.git.disabled"]),
         )
         if configurator.variables['configure_mrbob.package.git.disabled']:
             template = template + 'package.git.disabled={0}'.format(
