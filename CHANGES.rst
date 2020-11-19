@@ -16,6 +16,9 @@ History
 - Allow auto completion of template names
   [MrTango]
 
+- Improve mrbob config generation and now override an existing config file after a warning
+  [MrTango]
+
 - Fix typos, ReST formatting and update content of README.rst.
   [staeff]
 
