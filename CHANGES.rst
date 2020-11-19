@@ -1,8 +1,8 @@
 History
 =======
 
-2.0 (unreleased)
-----------------
+2.0a2 (2020-11-19)
+------------------
 
 - Fix #63 generate_mrbob_ini and the acconding tests
   [MrTango]
