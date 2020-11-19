@@ -172,9 +172,9 @@ python = python3
         f.write(template)
 
     result = subprocess.check_output(
-        [plonecli_bin, "build", "-p", "python3.7"], cwd=target_path,
+        [plonecli_bin, "build", "-p", "python3"], cwd=target_path,
     )
-    assert u"\nRUN: python3.7 -m venv venv" in result.decode()
+    assert u"\nRUN: python3 -m venv venv" in result.decode()
 
 
 @pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
