@@ -19,7 +19,8 @@ def safe_string(data):
     return data
 
 
-@safe_string.register
+# the bytes param here is only needed for py3.6:
+@safe_string.register(bytes)
 def _(data: bytes):
     try:
         return data.decode("utf-8")
@@ -144,7 +145,6 @@ package.git.autocommit = {1}
                     safe_string(answers["package.git.autocommit"]),
                 )
             )
-
         template = (
             template
             + """
