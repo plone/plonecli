@@ -51,7 +51,7 @@ def configoverride_warning_post_question(configurator, question, answer):
 
 
 def mrbob_config_exists(configurator, answer):
-    target_directory = configurator.target_directory
+    target_directory = home_path
     file_name = u".mrbob"
     file_list = os.listdir(target_directory)
     if file_name not in file_list:
@@ -147,7 +147,6 @@ def is_venv_disabled():
 def generate_mrbob_ini(configurator, directory_path, answers):
     file_name = u".mrbob"
     file_path = directory_path + "/" + file_name
-    file_list = os.listdir(directory_path)
     template = """[mr.bob]
 verbose = False
 
