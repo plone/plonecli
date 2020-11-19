@@ -9,6 +9,7 @@ from mrbob.configurator import SkipQuestion
 
 import codecs
 import os
+import sys
 
 
 home_path = os.path.expanduser("~")
@@ -26,6 +27,37 @@ def _(data: bytes):
         return data.decode("utf-8")
     except TypeError:
         return data
+
+
+@singledispatch
+def safe_bytes(data):
+    return data
+
+
+# the str param here is only needed for py3.6:
+@safe_bytes.register(str)
+def _(data: str):
+    try:
+        return data.encode("utf-8")
+    except TypeError:
+        return data
+
+
+def configoverride_warning_post_question(configurator, question, answer):
+    if answer.lower() != "y":
+        print("Abort!")
+        sys.exit(0)
+    return answer
+
+
+def mrbob_config_exists(configurator, answer):
+    target_directory = configurator.target_directory
+    file_name = u".mrbob"
+    file_list = os.listdir(target_directory)
+    if file_name not in file_list:
+        raise SkipQuestion(
+            u"No existing mrbob config file found, so we skip this question."
+        )
 
 
 def check_git_disabled(configurator, answer):
@@ -116,8 +148,7 @@ def generate_mrbob_ini(configurator, directory_path, answers):
     file_name = u".mrbob"
     file_path = directory_path + "/" + file_name
     file_list = os.listdir(directory_path)
-    if file_name not in file_list:
-        template = """[mr.bob]
+    template = """[mr.bob]
 verbose = False
 
 [variables]
@@ -129,25 +160,25 @@ author.github.user = {2}
 package.venv.disabled = {3}
 package.git.disabled = {4}
 """.format(
-            safe_string(answers["author.name"]),
-            safe_string(answers["author.email"]),
-            safe_string(answers["author.github.user"]),
-            safe_string(answers["package.venv.disabled"]),
-            safe_string(answers["package.git.disabled"]),
-        )
-        if not configurator.variables["configure_mrbob.package.git.disabled"]:
-            template = (
-                template
-                + """package.git.init = {0}
-package.git.autocommit = {1}
-""".format(
-                    safe_string(answers["package.git.init"]),
-                    safe_string(answers["package.git.autocommit"]),
-                )
-            )
+        safe_string(answers["author.name"]),
+        safe_string(answers["author.email"]),
+        safe_string(answers["author.github.user"]),
+        safe_string(answers["package.venv.disabled"]),
+        safe_string(answers["package.git.disabled"]),
+    )
+    if not configurator.variables["configure_mrbob.package.git.disabled"]:
         template = (
             template
-            + """
+            + """package.git.init = {0}
+package.git.autocommit = {1}
+""".format(
+                safe_string(answers["package.git.init"]),
+                safe_string(answers["package.git.autocommit"]),
+            )
+        )
+    template = (
+        template
+        + """
 [defaults]
 # set your default values for questions here, they questions are still being ask
 # but with your defaults:
@@ -159,47 +190,24 @@ plone.version = {0}
 #dexterity_type_supermodel = y
 #python.version = python3.7
 """.format(
-                safe_string(answers["plone.version"])
-            )
+            safe_string(answers["plone.version"])
         )
-        with open(file_path, "w") as f:
-            f.write(template)
-    else:
-        # get config file contents
-        lines = [
-            line.rstrip("\n") for line in codecs.open(file_path, "r", "utf-8")
-        ]  # NOQA: E501
-        commented_settings = [
-            line for line in lines if line and line[0] == "#"
-        ]  # NOQA: E501
-        config = RawConfigParser()
-        # to explicitly convert `key` to str so that we don't get error in
-        # .join() of `value`(of type str) and `key`(of type unicode)
-        # in RawConfigParser.write() method
-        config.optionxform = str
-        config.readfp(codecs.open(file_path, "r", "utf-8"))
-        if not config.has_section("variables"):
-            config.add_section("variables")
-        for key, value in answers.items():
-            config.set("variables", key, value)
-        with open(file_path, "w") as mrbob_config_file:
-            config.write(mrbob_config_file)
-        # append commented settings at the end
-        with codecs.open(file_path, "a", "utf-8") as mrbob_config_file:
-            mrbob_config_file.writelines(commented_settings)
+    )
+    with open(file_path, "w") as f:
+        f.write(template)
 
 
 def post_render(configurator, target_directory=None):
     mrbob_config = {}
-    mrbob_config["author.name"] = configurator.variables[
-        "configure_mrbob.author.name"
-    ].encode("utf-8")
-    mrbob_config["author.email"] = configurator.variables[
-        "configure_mrbob.author.email"
-    ].encode("utf-8")
-    mrbob_config["author.github.user"] = configurator.variables[
-        "configure_mrbob.author.github.user"
-    ].encode("utf-8")
+    mrbob_config["author.name"] = safe_string(
+        configurator.variables["configure_mrbob.author.name"]
+    )
+    mrbob_config["author.email"] = safe_string(
+        configurator.variables["configure_mrbob.author.email"]
+    )
+    mrbob_config["author.github.user"] = safe_string(
+        configurator.variables["configure_mrbob.author.github.user"]
+    )
     mrbob_config["package.venv.disabled"] = configurator.variables[
         "configure_mrbob.package.venv.disabled"
     ]
@@ -213,9 +221,9 @@ def post_render(configurator, target_directory=None):
         ]
     else:
         mrbob_config["package.git.disabled"] = "y"
-    mrbob_config["plone.version"] = configurator.variables[
-        "configure_mrbob.plone.version"
-    ].encode("utf-8")
+    mrbob_config["plone.version"] = safe_string(
+        configurator.variables["configure_mrbob.plone.version"]
+    )
     if not target_directory:
         configurator.target_directory = home_path
         target_directory = configurator.target_directory

@@ -194,7 +194,7 @@ plone.version = 5.1
 #dexterity_type_filter_content_types = y
 #dexterity_type_activate_default_behaviors = n
 #dexterity_type_supermodel = y
-#python.version = python3.7
+python.version = python3
 """
     with open(os.path.join(tmpdir.strpath, ".mrbob"), "w") as f:
         f.write(template)
@@ -218,77 +218,9 @@ plone.version = 5.1
     with open(os.path.join(tmpdir.strpath, ".mrbob"), "r") as f:
         content = f.read()
         assert "XYZ" in content
-
-
-def test_plonecli_config_with_comments(tmpdir):
-    template = """[mr.bob]
-verbose = False
-
-[variables]
-author.name = The Plone Collective
-author.email = collective@plone.org
-#author.github.user = collective
-package.git.init = y
-package.git.autocommit = y
-package.git.disabled = y
-plone.version = 5.1
-"""
-    with open(os.path.join(tmpdir.strpath, ".mrbob"), "w") as f:
-        f.write(template)
-
-    configurator = Configurator(
-        template="plonecli:configure_mrbob",
-        target_directory=tmpdir.strpath,
-        bobconfig={"non_interactive": True},
-        variables={
-            "configure_mrbob.author.name": "XYZ",
-            "configure_mrbob.author.email": "collective@plone.org",
-            "configure_mrbob.author.github.user": "collective",
-            "configure_mrbob.package.venv.disabled": "n",
-            "configure_mrbob.package.git.init": "y",
-            "configure_mrbob.package.git.autocommit": "y",
-            "configure_mrbob.package.git.disabled": "y",
-            "configure_mrbob.plone.version": "5.1",
-        },
-    )
-    post_render(configurator, target_directory=tmpdir.strpath)
-    with open(os.path.join(tmpdir.strpath, ".mrbob"), "r") as f:
-        content = f.read()
-        assert "#author.github.user" in content
-
-
-def test_plonecli_config_with_other_tags(tmpdir):
-    template = """[mr.bob]
-verbose = False
-[defaults]
-author.age = 21
-[variables]
-author.name = The Plone Collective
-author.email = collective@plone.org
-author.github.user = collective
-package.git.disabled = y
-plone.version = 5.1
-"""
-    with open(os.path.join(tmpdir.strpath, ".mrbob"), "w") as f:
-        f.write(template)
-
-    configurator = Configurator(
-        template="plonecli:configure_mrbob",
-        target_directory=tmpdir.strpath,
-        bobconfig={"non_interactive": True},
-        variables={
-            "configure_mrbob.author.name": "XYZ",
-            "configure_mrbob.author.email": "collective@plone.org",
-            "configure_mrbob.author.github.user": "collective",
-            "configure_mrbob.package.venv.disabled": "n",
-            "configure_mrbob.package.git.init": "y",
-            "configure_mrbob.package.git.autocommit": "y",
-            "configure_mrbob.package.git.disabled": "n",
-            "configure_mrbob.plone.version": "5.1",
-        },
-    )
-    post_render(configurator, target_directory=tmpdir.strpath)
-    with open(os.path.join(tmpdir.strpath, ".mrbob"), "r") as f:
-        content = f.read()
-        assert "[defaults]" in content
-        assert "author.age" in content
+        assert "author.email = collective@plone.org" in content
+        assert (
+            """plone.version = 5.1
+#dexterity_type_global_allow = n"""
+            in content
+        )
