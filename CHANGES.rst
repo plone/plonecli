@@ -1,8 +1,8 @@
 History
 =======
 
-1.2 (unreleased)
-----------------
+2.0a1 (2020-11-19)
+------------------
 
 - Fix typos, ReST formatting and update content of README.rst.
   [staeff]
