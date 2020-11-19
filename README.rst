@@ -44,9 +44,10 @@ To upgrade plonecli just do:
     Note: Make sure that the install directory is in $PATH ( e.g. export PATH=$PATH:$HOME/.local/bin/  )
 
 NOTE:
-We are now using a the ORIGINAL version of the CLICK library, please uninstall plonecli-click before you install the new version of plonecli.
+Sometimes it happends that you will have older versions of bobtemplates.plone in your system after upgrades.
+The best way to solve this is, to uninstall bobtemplates.plone muiltiple times until it says, that there is no packages installed anymore.
 
-If would like to use plonecli with pipenv, you can do it as follow:
+If one would like to use plonecli with pipenv, you can do it as follow:
 
 .. code-block:: console
 
@@ -56,6 +57,7 @@ If would like to use plonecli with pipenv, you can do it as follow:
     $ pipenv shell
     $ plonecli -l
 
+The same applies if you use other tools like pyenv virtualenv.
 
 Bash Auto Completion
 --------------------
@@ -92,6 +94,9 @@ Full documentation for end users can be found in the "docs" folder, this will be
 
 *Note:* you can set default answers for mr.bob questions, see `bobtemplates.plone README <https://github.com/plone/bobtemplates.plone/#configuration>`_.
 
+Details of the templates used by plonecli, you can find in the bobtemplates.plone documentation.
+https://bobtemplatesplone.readthedocs.io
+
 Usage
 =====
 
@@ -119,7 +124,7 @@ Available Commands
       requirements  Install the local package requirements
       serve         Run the Plone client in foreground mode
       test          Run the tests in your package
-      virtualenv    Create/update the local virtual environment...
+      venv          Create/update the local virtual environment...
 
 
 Creating A Plone Add-on
@@ -129,16 +134,21 @@ Creating A Plone Add-on
 
     $ plonecli -l
     Available mr.bob templates:
-    - addon
-     - behavior
-     - content_type
-     - portlet
-     - theme
-     - theme_barceloneta
-     - view
-     - viewlet
-     - vocabulary
-    - buildout
+     - addon
+      - behavior
+      - content_type
+      - indexer
+      - portlet
+      - restapi_service
+      - subscriber
+      - svelte_app
+      - theme
+      - theme_barceloneta
+      - upgrade_step
+      - view
+      - viewlet
+      - vocabulary
+      - buildout
     - theme_package [deprecated] >> Please use the theme_barceloneta subtemplate!
 
     $ plonecli create addon src/collective.todo
@@ -172,15 +182,15 @@ This will run:
 
 .. code-block::
 
-    $ virtualenv .
+    $ python3 -m venv venv
     $ ./bin/pip install -r requirements.txt --upgrade
+    $ ./bin/buildout boostrap
     $ ./bin/buildout
 
 in your target directory.
 
-You can always run the 3 steps explicit by using ``virtualenv``, ``requirements``, ``buildout`` instead of build.
-If you want to reset your build use the ``--clean`` option on build.
-This will clear your virtualenv before installing the requirements and also running buildout with ``-n`` to get the newest versions.
+You can always run the 3 steps explicit by using ``venv``, ``requirements``, ``buildout`` instead of build.
+If you want to upgrade/reset your build use the ``--upgrade or --clear`` option on build.
 
 
 Run Your Application
@@ -231,10 +241,9 @@ Setup Developer Environment
 
     $ git clone https://github.com/plone/plonecli/
     $ cd plonecli
-    $ virtualenv .
-    $ source bin/activate
-    $ pip install -r requirements.txt
-    $ python setup.py develop
+    $ python3 -m venv venv .
+    $ ./venv/bin/pip install -r requirements.txt
+    $ ./venv/bin/pip install -e .[dev,test]
     $ plonecli --help
 
 
