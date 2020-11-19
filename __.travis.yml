@@ -2,9 +2,9 @@ language: python
 dist: xenial
 os: linux
 cache:
-  pip: true
-  directories:
-    - $HOME/buildout-cache
+    pip: true
+    directories:
+        - $HOME/buildout-cache
 
 jobs:
     include:
@@ -16,8 +16,7 @@ jobs:
           env: TOXENV=py38,lint-py38
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install:
-    travis_retry pip3 install -U tox-travis coveralls coverage
+install: travis_retry pip3 install -U tox-travis coveralls coverage
 
 # command to run tests, e.g. python setup.py test
 script:
