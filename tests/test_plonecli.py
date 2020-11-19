@@ -204,3 +204,32 @@ python = python3
 
     result = subprocess.check_output([plonecli_bin, "build"], cwd=target_path)
     assert "\nRUN: python3 -m venv venv" in result.decode()
+
+
+@pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
+def test_plonecli_build_target_py27(tmpdir, plonecli_bin):
+    target_path = tmpdir.strpath
+    os.chdir(target_path)
+    template = """
+setuptools==40.8.0
+zc.buildout==2.13.1
+"""
+    with open("requirements.txt", "w") as f:
+        f.write(template)
+
+    template = """[buildout]
+parts =
+"""
+    with open("buildout.cfg", "w") as f:
+        f.write(template)
+
+    template = """[main]
+version = 5.2.2
+template = plone_addon
+python = python2.7
+"""
+    with open("bobtemplate.cfg", "w") as f:
+        f.write(template)
+
+    result = subprocess.check_output([plonecli_bin, "build"], cwd=target_path)
+    assert "\nRUN: virtualenv -p python2.7 venv" in result.decode()

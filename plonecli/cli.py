@@ -102,8 +102,11 @@ def create_virtualenv(context, clear, upgrade, python):
     """Create/update the local virtualenv (venv) for the Plone package"""
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
-    python = python or context.obj.get("python")
-    params = [python, "-m", "venv", "venv"]
+    python_bin = python or context.obj.get("python")
+    if python_bin == "python2.7":
+        params = ["virtualenv", "-p", python_bin, "venv"]
+    else:
+        params = [python_bin, "-m", "venv", "venv"]
     if clear:
         params.append("--clear")
     if upgrade:
