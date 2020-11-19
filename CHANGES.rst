@@ -1,14 +1,20 @@
 History
 =======
 
-2.0a2 (unreleased)
-------------------
+2.0 (unreleased)
+----------------
 
-- Nothing changed yet.
+- Fix #63 generate_mrbob_ini and the acconding tests
+  [MrTango]
 
+- Drop Python2.7 support and remove it from tox and travis setup. Also improve linting with new isort and black.
+  [MrTango]
 
-2.0a1 (2020-11-19)
-------------------
+- Add config command to disable the venv creation/update on plonecli build command
+  [MrTango]
+
+- Allow auto completion of template names
+  [MrTango]
 
 - Fix typos, ReST formatting and update content of README.rst.
   [staeff]

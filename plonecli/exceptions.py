@@ -2,6 +2,7 @@
 """Custom exceptions."""
 
 from __future__ import absolute_import
+
 from click.exceptions import BadOptionUsage
 from click.exceptions import NoSuchOption
 
