@@ -26,6 +26,7 @@ def test_check_git_disabled_true(tmpdir):
             "configure_mrbob.author.name": "The Plone Collective",
             "configure_mrbob.author.email": "collective@plone.org",
             "configure_mrbob.author.github.user": "collective",
+            "configure_mrbob.package.venv.disabled": False,
             "configure_mrbob.package.git.disabled": True,
         },
     )
@@ -42,6 +43,7 @@ def test_check_git_disabled_false(tmpdir):
             "configure_mrbob.author.name": "The Plone Collective",
             "configure_mrbob.author.email": "collective@plone.org",
             "configure_mrbob.author.github.user": "collective",
+            "configure_mrbob.package.venv.disabled": False,
             "configure_mrbob.package.git.disabled": False,
             "configure_mrbob.package.git.init": True,
             "configure_mrbob.package.git.autocommit": True,
@@ -138,6 +140,7 @@ def test_plonecli_config_without_config_file(tmpdir):
             "configure_mrbob.package.git.init": "y",
             "configure_mrbob.package.git.autocommit": "y",
             "configure_mrbob.package.git.disabled": "y",
+            "configure_mrbob.package.venv.disabled": "n",
             "configure_mrbob.plone.version": "5.1",
         },
     )
@@ -151,14 +154,14 @@ verbose = False
 author.name = The Plone Collective
 author.email = collective@plone.org
 author.github.user = collective
-plone.version = 5.1
+package.venv.disabled = n
 package.git.disabled = y
 
 [defaults]
 # set your default values for questions here, they questions are still being ask
 # but with your defaults:
 
-#plone.version = 5.2.2
+plone.version = 5.1
 #dexterity_type_global_allow = n
 #dexterity_type_filter_content_types = y
 #dexterity_type_activate_default_behaviors = n
@@ -180,13 +183,13 @@ verbose = False
 author.name = The Plone Collective
 author.email = collective@plone.org
 author.github.user = collective
-plone.version = 5.1
+package.venv.disabled = n
 
 [defaults]
 # set your default values for questions here, they questions are still being ask
 # but with your defaults:
 
-#plone.version = 5.2.2
+plone.version = 5.1
 #dexterity_type_global_allow = n
 #dexterity_type_filter_content_types = y
 #dexterity_type_activate_default_behaviors = n
@@ -204,6 +207,7 @@ plone.version = 5.1
             "configure_mrbob.author.name": "XYZ",
             "configure_mrbob.author.email": "collective@plone.org",
             "configure_mrbob.author.github.user": "collective",
+            "configure_mrbob.package.venv.disabled": "n",
             "configure_mrbob.package.git.init": "y",
             "configure_mrbob.package.git.autocommit": "y",
             "configure_mrbob.package.git.disabled": "y",
@@ -240,6 +244,7 @@ plone.version = 5.1
             "configure_mrbob.author.name": "XYZ",
             "configure_mrbob.author.email": "collective@plone.org",
             "configure_mrbob.author.github.user": "collective",
+            "configure_mrbob.package.venv.disabled": "n",
             "configure_mrbob.package.git.init": "y",
             "configure_mrbob.package.git.autocommit": "y",
             "configure_mrbob.package.git.disabled": "y",
@@ -275,6 +280,7 @@ plone.version = 5.1
             "configure_mrbob.author.name": "XYZ",
             "configure_mrbob.author.email": "collective@plone.org",
             "configure_mrbob.author.github.user": "collective",
+            "configure_mrbob.package.venv.disabled": "n",
             "configure_mrbob.package.git.init": "y",
             "configure_mrbob.package.git.autocommit": "y",
             "configure_mrbob.package.git.disabled": "n",

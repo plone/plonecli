@@ -3,17 +3,13 @@
 from __future__ import absolute_import
 
 from bobtemplates.plone.base import echo
+from configparser import RawConfigParser
 from functools import singledispatch
 from mrbob.configurator import SkipQuestion
 
 import codecs
 import os
 
-
-try:
-    from six.moves.configparser import RawConfigParser
-except ImportError:
-    from configparser import RawConfigParser
 
 home_path = os.path.expanduser("~")
 
@@ -101,16 +97,19 @@ def pre_package_git_disable(configurator, question):
     if default and question:
         question.default = default
 
+
 def pre_package_venv_disabled(configurator, question):
     """Get venv disabled setting from mrbob config file."""
     default = get_mrbob_config_variable("package.venv.disabled", home_path)
     if default and question:
         question.default = default
 
+
 def is_venv_disabled():
     """Get venv disabled setting from mrbob config, for plonecli usage."""
-    flag = get_mrbob_config_variable("package.venv.disabled", home_path)
+    flag = get_mrbob_config_variable("package.venv.disabled", home_path) == "y"
     return flag
+
 
 def generate_mrbob_ini(configurator, directory_path, answers):
     file_name = u".mrbob"
@@ -159,7 +158,9 @@ plone.version = {0}
 #dexterity_type_activate_default_behaviors = n
 #dexterity_type_supermodel = y
 #python.version = python3.7
-""".format(safe_string(answers["plone.version"]))
+""".format(
+                safe_string(answers["plone.version"])
+            )
         )
         with open(file_path, "w") as f:
             f.write(template)
@@ -198,9 +199,7 @@ def post_render(configurator, target_directory=None):
     ].encode("utf-8")
     mrbob_config["author.github.user"] = configurator.variables[
         "configure_mrbob.author.github.user"
-    ].encode(
-        "utf-8"
-    )
+    ].encode("utf-8")
     mrbob_config["package.venv.disabled"] = configurator.variables[
         "configure_mrbob.package.venv.disabled"
     ]

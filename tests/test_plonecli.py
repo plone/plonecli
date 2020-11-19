@@ -135,15 +135,15 @@ parts =
         f.write(template)
 
     template = """[main]
-version = 5.2-latest
+version = 5.2.2
 template = plone_addon
+python = python3.7
 git_init = y
 """
     with open("bobtemplate.cfg", "w") as f:
         f.write(template)
-
     result = subprocess.check_output([plonecli_bin, "build"], cwd=target_path)
-    assert u"\nRUN: virtualenv . -p python" in result.decode()
+    assert u"\nRUN: python3.7 -m venv venv" in result.decode()
 
 
 @pytest.mark.skipif(sys.version_info < (3, 7), reason="requires explicitly python3.7")
@@ -174,7 +174,7 @@ python = python3
     result = subprocess.check_output(
         [plonecli_bin, "build", "-p", "python3.7"], cwd=target_path,
     )
-    assert u"\nRUN: virtualenv . -p python3.7" in result.decode()
+    assert u"\nRUN: python3.7 -m venv venv" in result.decode()
 
 
 @pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
@@ -203,4 +203,4 @@ python = python3
         f.write(template)
 
     result = subprocess.check_output([plonecli_bin, "build"], cwd=target_path)
-    assert u"\nRUN: virtualenv . -p python3" in result.decode()
+    assert "\nRUN: python3 -m venv venv" in result.decode()

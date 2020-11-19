@@ -2,9 +2,9 @@
 """Console script for plonecli."""
 
 from __future__ import absolute_import
-from plonecli.configure_mrbob import is_venv_disabled
 
 from pkg_resources import WorkingSet
+from plonecli.configure_mrbob import is_venv_disabled
 from plonecli.exceptions import NoSuchValue
 from plonecli.exceptions import NotInPackageError
 from plonecli.registry import template_registry as reg
@@ -99,7 +99,7 @@ if reg.root_folder:
 @click.option("-p", "--python", help="Python interpreter to use")
 @click.pass_context
 def create_virtualenv(context, clear, upgrade, python):
-    """Create/update the local virtuelenv (venv) for the Plone package"""
+    """Create/update the local virtualenv (venv) for the Plone package"""
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
     python = python or context.obj.get("python")
@@ -197,10 +197,10 @@ def run_debug(context):
 def build(context, clear, upgrade, python=None):
     """Bootstrap and build the package"""
     target_dir = context.obj.get("target_dir", None)
-    python = python or context.obj.get("python")
     if target_dir is None:
         raise NotInPackageError(context.command.name)
     if not is_venv_disabled():
+        python = python or context.obj.get("python")
         if clear:
             context.invoke(create_virtualenv, clear=True, python=python)
         elif upgrade:
