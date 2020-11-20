@@ -45,7 +45,7 @@ To upgrade plonecli just do:
 
 NOTE:
 Sometimes it happends that you will have older versions of bobtemplates.plone in your system after upgrades.
-The best way to solve this is, to uninstall bobtemplates.plone muiltiple times until it says, that there is no packages installed anymore.
+The best way to solve this is, to uninstall bobtemplates.plone muiltiple times until it says, that there is no package installed anymore.
 
 If one would like to use plonecli with pipenv, you can do it as follow:
 
@@ -58,6 +58,11 @@ If one would like to use plonecli with pipenv, you can do it as follow:
     $ plonecli -l
 
 The same applies if you use other tools like pyenv virtualenv.
+
+NOTE:
+When using tools like pyenv or pipenv, you should disable the local virtualenv creation by setting *package.venv.disabled = y* in your .mrbob config file.
+You can also use plonecli config to generate the config for you.
+
 
 Bash Auto Completion
 --------------------
