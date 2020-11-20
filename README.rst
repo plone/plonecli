@@ -59,6 +59,11 @@ If one would like to use plonecli with pipenv, you can do it as follow:
 
 The same applies if you use other tools like pyenv virtualenv.
 
+NOTE:
+When using tools like pyenv or pipenv, you should disable the local virtualenv creation by setting *package.venv.disabled = y* in your .mrbob config file.
+You can also use plonecli config to generate the config for you.
+
+
 Bash Auto Completion
 --------------------
 
