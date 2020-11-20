@@ -4,8 +4,12 @@ History
 2.0a3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add alias upport and an alias for "virtualenv" for the venv command
+  [MrTango]
 
+- Improve handling of global/local commands, we use ClickFilteredAliasedGroup to filter the command rather than using an if condition in code.
+  [MrTango]
+  
 
 2.0a2 (2020-11-19)
 ------------------

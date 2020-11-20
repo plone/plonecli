@@ -65,7 +65,6 @@ git_init = y
     with runner.isolated_filesystem():
         with open("bobtemplate.cfg", "w") as f:
             f.write(template)
-
         context = click.Context(cli.run_test)
         context.obj = {}
         context.obj["target_dir"] = os.path.dirname(os.path.abspath("bobtemplate.cfg"))

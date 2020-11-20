@@ -23,6 +23,7 @@ setup(
         "setuptools",
         "virtualenv",
         "Click>=7.0",
+        "click-aliases",
         "mr.bob",
         "zest.releaser",
         "bobtemplates.plone>=5.2.0",

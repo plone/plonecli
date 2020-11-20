@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import
 
+from click_aliases import ClickAliasedGroup
 from pkg_resources import WorkingSet
 from plonecli.configure_mrbob import is_venv_disabled
 from plonecli.exceptions import NoSuchValue
@@ -24,7 +25,23 @@ def get_templates(ctx, args, incomplete):
     return [k for k in templates if incomplete in k]
 
 
+class ClickFilteredAliasedGroup(ClickAliasedGroup):
+    def list_commands(self, ctx):
+        existing_cmds = super().list_commands(ctx)
+        global_cmds = ["create", "config"]
+        global_only_cmds = ["create"]
+        if not reg.root_folder:
+            # global:
+            cmds = [cmd for cmd in existing_cmds if cmd in global_cmds]
+        else:
+            # local:
+            cmds = [cmd for cmd in existing_cmds if cmd not in global_only_cmds]
+        cmds = cmds
+        return cmds
+
+
 @click.group(
+    cls=ClickFilteredAliasedGroup,
     chain=True,
     context_settings={"help_option_names": ["-h", "--help"]},
     invoke_without_command=True,
@@ -52,48 +69,42 @@ def cli(context, list_templates, versions):
         click.echo(version_str)
 
 
-if not reg.root_folder:
-
-    @cli.command()
-    @click.argument("template", type=click.STRING, autocompletion=get_templates)
-    @click.argument("name")
-    @click.pass_context
-    def create(context, template, name):
-        """Create a new Plone package"""
-        bobtemplate = reg.resolve_template_name(template)
-        if bobtemplate is None:
-            raise NoSuchValue(
-                context.command.name, template, possibilities=reg.get_templates()
-            )
-        cur_dir = os.getcwd()
-        context.obj["target_dir"] = "{0}/{1}".format(cur_dir, name)
-        echo(
-            "\nRUN: mrbob {0} -O {1}".format(bobtemplate, name),
-            fg="green",
-            reverse=True,
+@cli.command()
+@click.argument("template", type=click.STRING, autocompletion=get_templates)
+@click.argument("name")
+@click.pass_context
+def create(context, template, name):
+    """Create a new Plone package"""
+    bobtemplate = reg.resolve_template_name(template)
+    if bobtemplate is None:
+        raise NoSuchValue(
+            context.command.name, template, possibilities=reg.get_templates()
         )
-        subprocess.call(["mrbob", bobtemplate, "-O", name])
+    cur_dir = os.getcwd()
+    context.obj["target_dir"] = "{0}/{1}".format(cur_dir, name)
+    echo(
+        "\nRUN: mrbob {0} -O {1}".format(bobtemplate, name), fg="green", reverse=True,
+    )
+    subprocess.call(["mrbob", bobtemplate, "-O", name])
 
 
-if reg.root_folder:
-
-    @cli.command()
-    @click.argument("template", type=click.STRING, autocompletion=get_templates)
-    @click.pass_context
-    def add(context, template):
-        """Add features to your existing Plone package"""
-        if context.obj.get("target_dir", None) is None:
-            raise NotInPackageError(context.command.name)
-        bobtemplate = reg.resolve_template_name(template)
-        if bobtemplate is None:
-            raise NoSuchValue(
-                context.command.name, template, possibilities=reg.get_templates()
-            )
-        echo("\nRUN: mrbob {0}".format(bobtemplate), fg="green", reverse=True)
-        subprocess.call(["mrbob", bobtemplate])
+@cli.command()
+@click.argument("template", type=click.STRING, autocompletion=get_templates)
+@click.pass_context
+def add(context, template):
+    """Add features to your existing Plone package"""
+    if context.obj.get("target_dir", None) is None:
+        raise NotInPackageError(context.command.name)
+    bobtemplate = reg.resolve_template_name(template)
+    if bobtemplate is None:
+        raise NoSuchValue(
+            context.command.name, template, possibilities=reg.get_templates()
+        )
+    echo("\nRUN: mrbob {0}".format(bobtemplate), fg="green", reverse=True)
+    subprocess.call(["mrbob", bobtemplate])
 
 
-@cli.command("venv")
+@cli.command("venv", aliases=["virtualenv"])
 @click.option("-c", "--clear", is_flag=True)
 @click.option("-u", "--upgrade", is_flag=True)
 @click.option("-p", "--python", help="Python interpreter to use")
@@ -122,10 +133,24 @@ def install_requirements(context):
 
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
-    params = ["./venv/bin/pip", "install", "-r", "requirements.txt", "--upgrade"]
+
+    if not is_venv_disabled():
+        params = [
+            "./venv/bin/pip",
+            "install",
+            "-r",
+            "requirements.txt",
+            "--upgrade",
+        ]
+    else:
+        params = ["pip", "install", "-r", "requirements.txt", "--upgrade"]
     echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
     subprocess.call(params, cwd=context.obj["target_dir"])
-    params = ["./venv/bin/buildout", "bootstrap"]
+
+    if not is_venv_disabled():
+        params = ["./venv/bin/buildout", "bootstrap"]
+    else:
+        params = ["buildout", "bootstrap"]
     echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
     subprocess.call(params, cwd=context.obj["target_dir"])
 
@@ -137,7 +162,10 @@ def run_buildout(context, clear):
     """Run the package buildout"""
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
-    params = ["./venv/bin/buildout"]
+    if not is_venv_disabled():
+        params = ["./venv/bin/buildout"]
+    else:
+        params = ["buildout"]
     if clear:
         params.append("-n")
     echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
