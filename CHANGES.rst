@@ -1,7 +1,7 @@
 History
 =======
 
-2.0a3 (unreleased)
+2.0b1 (2020-11-20)
 ------------------
 
 - Add alias upport and an alias for "virtualenv" for the venv command
