@@ -4,7 +4,7 @@ History
 2.0b2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Release
 
 
 2.0b1 (2020-11-20)
@@ -15,7 +15,7 @@ History
 
 - Improve handling of global/local commands, we use ClickFilteredAliasedGroup to filter the command rather than using an if condition in code.
   [MrTango]
-  
+
 
 2.0a2 (2020-11-19)
 ------------------
