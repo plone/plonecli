@@ -21,7 +21,10 @@ Plone CLI
 
 **A Plone CLI for creating Plone packages**
 
-*The Plone CLI is meant for developing Plone packages, we will not add functions to install or run Plone in production. For this we should build another package, let's say *plonectl* which will provide installing and deployment functions. It also support's GIT by default, to keep track of changes one is doing with the templates.*
+The Plone CLI is meant for developing Plone packages, we will *not* add functions to install or run Plone in production.
+For this we should build another package, let's say ``plonectl`` which will provide installing and deployment functions.
+
+It also support's GIT by default, to keep track of changes one is doing with the templates.
 
 
 Installation
@@ -29,33 +32,36 @@ Installation
 
 We install plonecli in the global user site-packages, so that we can use it in multiple projects.
 
-Versions newer than 0.1.1b4 are installable like any other package with pip:
+**Versions newer than 0.1.1b4 are installable like any other package with pip**.
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ pip install plonecli --user
-    $ plonecli -l
+    pip install plonecli --user
+    plonecli -l
 
 To upgrade plonecli just do:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ pip install -U plonecli --user
-    Note: Make sure that the install directory is in $PATH ( e.g. export PATH=$PATH:$HOME/.local/bin/  )
+    pip install -U plonecli --user
 
-NOTE:
-Sometimes it happends that you will have older versions of bobtemplates.plone in your system after upgrades.
+**Note:** Sometimes it happends that you will have older versions of bobtemplates.plone in your system after upgrades.
 The best way to solve this is, to uninstall bobtemplates.plone muiltiple times until it says, that there is no package installed anymore.
+
+Make sure that the install directory is in *$PATH* (e.g. *export PATH=$PATH:$HOME/.local/bin/*)
+
+**Note:** We are now using a the ORIGINAL version of the `CLICK <https://click.palletsprojects.com/>`_ library,
+please uninstall plonecli-click before you install the new version of plonecli.
 
 If one would like to use plonecli with pipenv, you can do it as follow:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ mkdir cli
-    $ cd cli
-    $ pipenv install plonecli
-    $ pipenv shell
-    $ plonecli -l
+    mkdir cli
+    cd cli
+    pipenv install plonecli
+    pipenv shell
+    plonecli -l
 
 The same applies if you use other tools like pyenv virtualenv.
 
@@ -71,23 +77,22 @@ To enable auto completion plonecli provides the plonecli_autocomplete.sh script,
 
 If you installed plonecli in user global packages:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ . ~/.local/bin/plonecli_autocomplete.sh
-
+    . ~/.local/bin/plonecli_autocomplete.sh
 
 If you installed plonecli in a virtualenv it's:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ . /path/to/your/virtualenv/bin/plonecli_autocomplete.sh
+    . /path/to/your/virtualenv/bin/plonecli_autocomplete.sh
 
 
 If you used pipenv to install plonecli, you have to find out the path to the virtualenv before:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ pipenv --virtualenv
+    pipenv --virtualenv
     /home/maik/.local/share/virtualenvs/pe-WnXOnVWH
     . /home/maik/.local/share/virtualenvs/pe-WnXOnVWH/bin/plonecli_autocomplete.sh
 
@@ -97,7 +102,7 @@ Documentation
 
 Full documentation for end users can be found in the "docs" folder, this will be available in the Plone docs at some point.
 
-*Note:* you can set default answers for mr.bob questions, see `bobtemplates.plone README <https://github.com/plone/bobtemplates.plone/#configuration>`_.
+**Note:** you can set default answers for mr.bob questions, see `bobtemplates.plone README <https://github.com/plone/bobtemplates.plone/#configuration>`_.
 
 Details of the templates used by plonecli, you can find in the bobtemplates.plone documentation.
 https://bobtemplatesplone.readthedocs.io
@@ -108,9 +113,9 @@ Usage
 Available Commands
 ------------------
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ plonecli --help
+    plonecli --help
     Usage: plonecli [OPTIONS] COMMAND1 [ARGS]... [COMMAND2 [ARGS]...]...
 
       Plone Command Line Interface (CLI)
@@ -164,66 +169,68 @@ Adding Features To Your Plone Add-on
 
 You can add different features through subtemplates. You can use them also multiple times to create different features of the same type, like two different content types.
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ cd collective.todo
+    cd collective.todo
 
-    $ plonecli add behavior
-    $ plonecli add content_type
-    $ plonecli add theme
-    $ plonecli add view
-    $ plonecli add viewlet
-    $ plonecli add vocabulary
+    plonecli add behavior
+    plonecli add content_type
+    plonecli add theme
+    plonecli add view
+    plonecli add viewlet
+    plonecli add vocabulary
 
 
 Build Your Package
 ------------------
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ plonecli build
+    plonecli build
 
 This will run:
 
-.. code-block::
+.. code-block:: shell
 
-    $ python3 -m venv venv
-    $ ./bin/pip install -r requirements.txt --upgrade
-    $ ./bin/buildout boostrap
-    $ ./bin/buildout
+    python3 -m venv venv
+    ./bin/pip install -r requirements.txt --upgrade
+    ./bin/buildout bootstrap
+    ./bin/buildout
 
 in your target directory.
 
 You can always run the 3 steps explicit by using ``venv``, ``requirements``, ``buildout`` instead of build.
 If you want to upgrade/reset your build use the ``--upgrade or --clear`` option on build.
 
+This will clear your virtualenv before installing the requirements and also running buildout with ``-n`` to get the newest versions.
+
 
 Run Your Application
 --------------------
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ plonecli serve
+    plonecli serve
 
 
 Run Tests for Application
 -------------------------
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ plonecli test
+    plonecli test
 
 or run specific tests:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ plonecli test -t test_the_thing
+    plonecli test -t test_the_thing
 
 or run all tests including Robot tests:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ plonecli test --all
+    plonecli test --all
 
 
 Combining Commands
@@ -231,9 +238,9 @@ Combining Commands
 
 You can combine the steps above like this:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ plonecli create addon src/collective.todo build test --all serve
+    plonecli create addon src/collective.todo build test --all serve
 
 
 Developer Guide
@@ -242,14 +249,14 @@ Developer Guide
 Setup Developer Environment
 ---------------------------
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ git clone https://github.com/plone/plonecli/
-    $ cd plonecli
-    $ python3 -m venv venv .
-    $ ./venv/bin/pip install -r requirements.txt
-    $ ./venv/bin/pip install -e .[dev,test]
-    $ plonecli --help
+    git clone https://github.com/plone/plonecli/
+    cd plonecli
+    python3 -m venv venv .
+    ./venv/bin/pip install -r requirements.txt
+    ./venv/bin/pip install -e .[dev,test]
+    plonecli --help
 
 
 Running Tests
@@ -257,21 +264,21 @@ Running Tests
 
 You can run the tests using the following command:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ tox
+    tox
 
 or by installing py.test and run the test directly without tox:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ py.test test/
+    py.test test/
 
 or a single test:
 
-.. code-block:: console
+.. code-block:: shell
 
-    $ py.test test/ -k test_get_package_root
+    py.test test/ -k test_get_package_root
 
 
 Register Your Bobtemplates Package For Plonecli
@@ -301,6 +308,7 @@ Here are the entry_points of the bobtemplates.plone package:
     },
 
 The entry_point name is used as the global template name for mr.bob.
+
 You also need to provide a bobregistry.py file with a method for each entry_point, it should be named after the entry_point name:
 
 .. code-block:: python

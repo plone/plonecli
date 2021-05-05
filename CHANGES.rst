@@ -6,6 +6,9 @@ History
 
 - Fix setup.cfg - v2.1 is a brown bag release.
   [jensens]
+  
+- Improve README
+  [svx]
 
 
 2.1 (2021-05-05)
