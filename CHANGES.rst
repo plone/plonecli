@@ -1,7 +1,7 @@
 History
 =======
 
-2.1 (unreleased)
+2.1 (2021-05-05)
 ----------------
 
 - Call mr.bob using its API, no longer as subprocess.
