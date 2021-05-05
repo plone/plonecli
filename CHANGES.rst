@@ -4,8 +4,11 @@ History
 2.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Do not install zest.releaser with plonecli (keep for dev/tox).
+  [jensens]
 
+- Do not install virtualenv if not Python 2.7
+  [jensens]
 
 2.0 (2020-12-10)
 ----------------

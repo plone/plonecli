@@ -21,11 +21,10 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         "setuptools",
-        "virtualenv",
+        'virtualenv;python_version<"3"',
         "Click>=7.0",
         "click-aliases",
         "mr.bob",
-        "zest.releaser",
         "bobtemplates.plone>=5.2.0",
     ],
     extras_require={
