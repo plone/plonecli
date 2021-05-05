@@ -4,12 +4,12 @@
 from __future__ import absolute_import
 
 from click_aliases import ClickAliasedGroup
+from mrbob.cli import main as mrbobmain
 from pkg_resources import WorkingSet
 from plonecli.configure_mrbob import is_venv_disabled
 from plonecli.exceptions import NoSuchValue
 from plonecli.exceptions import NotInPackageError
 from plonecli.registry import template_registry as reg
-from mrbob.cli import main as mrbobmain
 
 import click
 import os
@@ -84,7 +84,9 @@ def create(context, template, name):
     cur_dir = os.getcwd()
     context.obj["target_dir"] = "{0}/{1}".format(cur_dir, name)
     echo(
-        "\nRUN: mrbob {0} -O {1}".format(bobtemplate, name), fg="green", reverse=True,
+        "\nRUN: mrbob {0} -O {1}".format(bobtemplate, name),
+        fg="green",
+        reverse=True,
     )
     mrbobmain([bobtemplate, "-O", name])
 

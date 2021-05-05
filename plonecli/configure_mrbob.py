@@ -66,7 +66,7 @@ def check_git_disabled(configurator, answer):
 
 
 def get_mrbob_config_variable(varname, dirname):
-    """Checks mrbob config of given variable from ~/.mrbob file """
+    """Checks mrbob config of given variable from ~/.mrbob file"""
     config = RawConfigParser()
     file_name = ".mrbob"
     config_path = dirname + "/" + file_name
@@ -166,14 +166,11 @@ package.git.disabled = {4}
         safe_string(answers["package.git.disabled"]),
     )
     if not configurator.variables["configure_mrbob.package.git.disabled"]:
-        template = (
-            template
-            + """package.git.init = {0}
+        template = template + """package.git.init = {0}
 package.git.autocommit = {1}
 """.format(
-                safe_string(answers["package.git.init"]),
-                safe_string(answers["package.git.autocommit"]),
-            )
+            safe_string(answers["package.git.init"]),
+            safe_string(answers["package.git.autocommit"]),
         )
     template = (
         template

@@ -5,5 +5,5 @@ import pkg_resources
 
 
 __author__ = """Maik Derstappen"""
-__email__ = 'md@derico.de'
-__version__ = pkg_resources.require('plonecli')[0].version
+__email__ = "md@derico.de"
+__version__ = pkg_resources.require("plonecli")[0].version
