@@ -1,7 +1,7 @@
 History
 =======
 
-2.1,1 (unreleased)
+2.1.1 (unreleased)
 ------------------
 
 - Fix setup.cfg - v2.1 is a brown bag release.
