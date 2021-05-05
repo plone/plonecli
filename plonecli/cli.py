@@ -117,7 +117,10 @@ def create_virtualenv(context, clear, upgrade, python):
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
     python_bin = python or context.obj.get("python")
-    params = [python_bin, "-m", "venv", "venv"]
+    if python_bin == "python2.7":
+        params = ["virtualenv", "-p", python_bin, "venv"]
+    else:
+        params = [python_bin, "-m", "venv", "venv"]
     if clear:
         params.append("--clear")
     if upgrade:
