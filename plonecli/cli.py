@@ -4,6 +4,7 @@
 from __future__ import absolute_import
 
 from click_aliases import ClickAliasedGroup
+from mrbob.cli import main as mrbobmain
 from pkg_resources import WorkingSet
 from plonecli.configure_mrbob import is_venv_disabled
 from plonecli.exceptions import NoSuchValue
@@ -83,9 +84,11 @@ def create(context, template, name):
     cur_dir = os.getcwd()
     context.obj["target_dir"] = "{0}/{1}".format(cur_dir, name)
     echo(
-        "\nRUN: mrbob {0} -O {1}".format(bobtemplate, name), fg="green", reverse=True,
+        "\nRUN: mrbob {0} -O {1}".format(bobtemplate, name),
+        fg="green",
+        reverse=True,
     )
-    subprocess.call(["mrbob", bobtemplate, "-O", name])
+    mrbobmain([bobtemplate, "-O", name])
 
 
 @cli.command()
@@ -101,7 +104,7 @@ def add(context, template):
             context.command.name, template, possibilities=reg.get_templates()
         )
     echo("\nRUN: mrbob {0}".format(bobtemplate), fg="green", reverse=True)
-    subprocess.call(["mrbob", bobtemplate])
+    mrbobmain([bobtemplate])
 
 
 @cli.command("venv", aliases=["virtualenv"])
