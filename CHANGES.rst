@@ -1,10 +1,11 @@
 History
 =======
 
-2.2 (unreleased)
-----------------
+2.1,1 (unreleased)
+------------------
 
-- Nothing changed yet.
+- Fix setup.cfg - v2.1 is a brown bag release.
+  [jensens]
 
 
 2.1 (2021-05-05)
