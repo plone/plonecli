@@ -1,12 +1,18 @@
 History
 =======
 
+2.2 (unreleased)
+----------------
+
+- Nothing changed yet.
+
+
 2.1.1 (2021-05-05)
 ------------------
 
 - Fix setup.cfg - v2.1 is a brown bag release.
   [jensens]
-  
+
 - Improve README
   [svx]
 
