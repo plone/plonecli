@@ -4,11 +4,16 @@ History
 2.1 (unreleased)
 ----------------
 
+- Call mr.bob using its API, no longer as subprocess.
+  This ease the usage in a virtualenv.
+  [jensens]
+
 - Do not install zest.releaser with plonecli (keep for dev/tox).
   [jensens]
 
 - Do not install virtualenv if not Python 2.7
   [jensens]
+
 
 2.0 (2020-12-10)
 ----------------

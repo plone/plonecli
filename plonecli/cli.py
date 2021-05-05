@@ -9,6 +9,7 @@ from plonecli.configure_mrbob import is_venv_disabled
 from plonecli.exceptions import NoSuchValue
 from plonecli.exceptions import NotInPackageError
 from plonecli.registry import template_registry as reg
+from mrbob.cli import main as mrbobmain
 
 import click
 import os
@@ -85,7 +86,7 @@ def create(context, template, name):
     echo(
         "\nRUN: mrbob {0} -O {1}".format(bobtemplate, name), fg="green", reverse=True,
     )
-    subprocess.call(["mrbob", bobtemplate, "-O", name])
+    mrbobmain([bobtemplate, "-O", name])
 
 
 @cli.command()
@@ -101,7 +102,7 @@ def add(context, template):
             context.command.name, template, possibilities=reg.get_templates()
         )
     echo("\nRUN: mrbob {0}".format(bobtemplate), fg="green", reverse=True)
-    subprocess.call(["mrbob", bobtemplate])
+    mrbobmain([bobtemplate])
 
 
 @cli.command("venv", aliases=["virtualenv"])
@@ -114,10 +115,7 @@ def create_virtualenv(context, clear, upgrade, python):
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
     python_bin = python or context.obj.get("python")
-    if python_bin == "python2.7":
-        params = ["virtualenv", "-p", python_bin, "venv"]
-    else:
-        params = [python_bin, "-m", "venv", "venv"]
+    params = [python_bin, "-m", "venv", "venv"]
     if clear:
         params.append("--clear")
     if upgrade:
