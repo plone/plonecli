@@ -1,8 +1,8 @@
 History
 =======
 
-2.2 (unreleased)
-----------------
+2.1.2 (2021-05-06)
+------------------
 
 - Fix broken releases 2.1/2.1.1
   [MrTango]
