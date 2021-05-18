@@ -13,9 +13,7 @@ include Makefile
 include tox.ini
 recursive-include docs *.svg
 
-recursive-include tests *
-recursive-include plonecli *
-recursive-exclude * __pycache__
-recursive-exclude * *.py[co]
+graft plonecli
+graft tests
 
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
