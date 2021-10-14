@@ -45,8 +45,8 @@ To upgrade plonecli just do:
 
     pip install -U plonecli --user
 
-**Note:** Sometimes it happends that you will have older versions of bobtemplates.plone in your system after upgrades.
-The best way to solve this is, to uninstall bobtemplates.plone muiltiple times until it says, that there is no package installed anymore.
+**Note:** Sometimes it happens that you will have older versions of bobtemplates.plone in your system after upgrades.
+The best way to solve this is, to uninstall bobtemplates.plone multiple times until it says, that there is no package installed anymore.
 
 Make sure that the install directory is in *$PATH* (e.g. *export PATH=$PATH:$HOME/.local/bin/*)
 
@@ -95,6 +95,9 @@ If you used pipenv to install plonecli, you have to find out the path to the vir
     pipenv --virtualenv
     /home/maik/.local/share/virtualenvs/pe-WnXOnVWH
     . /home/maik/.local/share/virtualenvs/pe-WnXOnVWH/bin/plonecli_autocomplete.sh
+
+For other shells than BASH, like Zsh or Fish consult the click-docs:
+https://click.palletsprojects.com/en/7.x/bashcomplete/#activation
 
 
 Documentation

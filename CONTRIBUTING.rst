@@ -69,8 +69,8 @@ Ready to contribute? Here's how to set up `plonecli` for local development.
 
 3. Create a virtualenv and install your local copy.::
 
-    $ virtualenv .
-    $ ./bin/python setup.py develop
+    $ python3 -m venv venv
+    $ ./venv/bin/pip install -e .[dev]
 
     Now you can make your changes locally.
 
@@ -103,9 +103,9 @@ To run a subset of tests::
 
 $ tox -l
 py27
-py34
-py35
-py36
+py37
+py38
+py39
 flake8
 $ tox -e flake8
 
