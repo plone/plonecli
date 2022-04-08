@@ -4,7 +4,8 @@ History
 2.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Remove dependency on ``virtualenv``.
+  [wesleybl]
 
 
 2.1.2 (2021-05-06)

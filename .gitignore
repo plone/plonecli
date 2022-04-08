@@ -74,3 +74,7 @@ target/
 /tmpdist
 /_build
 /venv
+pyvenv.cfg
+
+.settings/
+.*project

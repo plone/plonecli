@@ -21,7 +21,6 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         "setuptools",
-        'virtualenv;python_version<"3"',
         "Click>=7.0",
         "click-aliases",
         "mr.bob",
