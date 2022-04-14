@@ -7,6 +7,9 @@ History
 - Remove dependency on ``virtualenv``.
   [wesleybl]
 
+- Rename deprecated ``autocompletion`` parameter to ``shell_complete``
+  [zshashz]
+
 
 2.1.2 (2021-05-06)
 ------------------
