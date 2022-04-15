@@ -71,7 +71,7 @@ def cli(context, list_templates, versions):
 
 
 @cli.command()
-@click.argument("template", type=click.STRING, autocompletion=get_templates)
+@click.argument("template", type=click.STRING, shell_complete=get_templates)
 @click.argument("name")
 @click.pass_context
 def create(context, template, name):
@@ -92,7 +92,7 @@ def create(context, template, name):
 
 
 @cli.command()
-@click.argument("template", type=click.STRING, autocompletion=get_templates)
+@click.argument("template", type=click.STRING, shell_complete=get_templates)
 @click.pass_context
 def add(context, template):
     """Add features to your existing Plone package"""
