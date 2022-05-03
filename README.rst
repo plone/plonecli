@@ -16,7 +16,7 @@
 Plone CLI
 =========
 
-.. image:: https://github.com/plone/plonecli/blob/master/docs/plone_cli_logo.svg
+.. image:: https://raw.githubusercontent.com/plone/plonecli/master/docs/plone_cli_logo.svg
 
 
 **A Plone CLI for creating Plone packages**
@@ -68,6 +68,17 @@ The same applies if you use other tools like pyenv virtualenv.
 NOTE:
 When using tools like pyenv or pipenv, you should disable the local virtualenv creation by setting *package.venv.disabled = y* in your .mrbob config file.
 You can also use plonecli config to generate the config for you.
+
+Installation on macOS
+---------------------
+
+Add the following lines to your .bash_profile. After running pip you can see where the files are located depending on your system.
+
+.. code-block:: shell
+
+    # plonecli
+    export PATH="$HOME/Library/Python/3.7/bin:$PATH"
+    source $HOME/Library/Python/3.7/bin/plonecli_autocomplete.sh
 
 
 Bash Auto Completion
