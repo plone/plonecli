@@ -9,7 +9,7 @@ Features
 
 - allow bobtemplates to be registered for plonecli
 - list available bobtemplates for the current context
-- standalone and subtemplates
+- standalone and sub templates
 - auto completion of commands and available templates
 - command chaining
 
