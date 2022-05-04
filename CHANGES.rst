@@ -1,7 +1,7 @@
 History
 =======
 
-2.2 (unreleased)
+2.2 (2022-05-04)
 ----------------
 
 - Remove dependency on ``virtualenv``.
