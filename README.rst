@@ -177,6 +177,9 @@ Creating A Plone Add-on
 
     $ plonecli create addon src/collective.todo
 
+.. note::
+    Package names with dashes and underlines might cause build failures. Therefore
+    it recommended to avoid using these special characters in your package names.
 
 Adding Features To Your Plone Add-on
 ------------------------------------
