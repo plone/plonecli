@@ -14,7 +14,7 @@ from plonecli.registry import template_registry as reg
 import click
 import os
 import subprocess
-
+import string
 
 def echo(msg, fg="green", reverse=False):
     click.echo(click.style(msg, fg=fg, reverse=reverse))
@@ -81,6 +81,8 @@ def create(context, template, name):
         raise NoSuchValue(
             context.command.name, template, possibilities=reg.get_templates()
         )
+    if set(name).intersection(set(string.punctuation)):
+        raise NameError('Name contains special characters')
     cur_dir = os.getcwd()
     context.obj["target_dir"] = "{0}/{1}".format(cur_dir, name)
     echo(
