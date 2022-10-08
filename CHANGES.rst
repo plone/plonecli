@@ -1,7 +1,7 @@
 History
 =======
 
-2.3 (unreleased)
+2.3 (2022-10-08)
 ----------------
 
 - Depend on bobtemplates.plone >=6.0b16
