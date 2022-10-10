@@ -24,7 +24,7 @@ setup(
         "Click>=7.0",
         "click-aliases",
         "mr.bob",
-        "bobtemplates.plone>=6.0b16",
+        "bobtemplates.plone>=6.0b15",
         "tox",
     ],
     extras_require={

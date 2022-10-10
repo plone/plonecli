@@ -4,7 +4,7 @@ History
 2.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Depend on bobtemplates.plone >=6.0b15 ;)
 
 
 2.3 (2022-10-08)
