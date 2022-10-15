@@ -170,7 +170,6 @@ Creating A Plone Add-on
       - viewlet
       - vocabulary
       - buildout
-    - theme_package [deprecated] >> Please use the theme_barceloneta subtemplate!
 
     $ plonecli create addon src/collective.todo
 
@@ -297,7 +296,7 @@ Register Your Bobtemplates Package For Plonecli
 
 All mr.bob templates can be registered for plonecli by adding an entry_point to your setup.py.
 
-Here are the entry_points of the bobtemplates.plone package:
+Here are some entry_points of the bobtemplates.plone package:
 
 .. code-block:: python
 
@@ -305,7 +304,6 @@ Here are the entry_points of the bobtemplates.plone package:
         'mrbob_templates': [
             'plone_addon = bobtemplates.plone.bobregistry:plone_addon',
             'plone_buildout = bobtemplates.plone.bobregistry:plone_buildout',  # NOQA E501
-            'plone_theme_package = bobtemplates.plone.bobregistry:plone_theme_package',  # NOQA E501
             'plone_content_type = bobtemplates.plone.bobregistry:plone_content_type',  # NOQA E501
             'plone_view = bobtemplates.plone.bobregistry:plone_view',
             'plone_viewlet = bobtemplates.plone.bobregistry:plone_viewlet',
