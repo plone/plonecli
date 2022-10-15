@@ -100,7 +100,6 @@ def test_get_templates(tmpdir):
     reg = TemplateRegistry()
     templates = reg.get_templates()
     assert 'addon' in templates
-    assert 'theme_package' in templates
     assert 'buildout' in templates
 
 
