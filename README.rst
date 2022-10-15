@@ -8,7 +8,6 @@
 .. image:: https://img.shields.io/pypi/pyversions/bobtemplates.plone.svg?style=plastic
     :alt: PyPI - Python Version
 
-[![Python package](https://github.com/plone/plonecli/actions/workflows/python-package.yml/badge.svg)](https://github.com/plone/plonecli/actions/workflows/python-package.yml)
 
 =========
 Plone CLI
