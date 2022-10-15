@@ -1,9 +1,5 @@
-.. image:: https://secure.travis-ci.org/plone/plonecli.png?branch=master
-    :target: http://travis-ci.org/plone/plonecli
-
-.. image:: https://coveralls.io/repos/github/plone/plonecli/badge.svg?branch=master
-    :target: https://coveralls.io/github/plone/plonecli?branch=master
-    :alt: Coveralls
+.. image:: https://github.com/plone/plonecli/actions/workflows/python-package.yml/badge.svg
+    :target: https://github.com/plone/plonecli/actions/workflows/python-package.yml
 
 .. image:: https://img.shields.io/pypi/v/plonecli.svg
     :target: https://pypi.python.org/pypi/plonecli/
@@ -11,6 +7,8 @@
 
 .. image:: https://img.shields.io/pypi/pyversions/bobtemplates.plone.svg?style=plastic
     :alt: PyPI - Python Version
+
+[![Python package](https://github.com/plone/plonecli/actions/workflows/python-package.yml/badge.svg)](https://github.com/plone/plonecli/actions/workflows/python-package.yml)
 
 =========
 Plone CLI
