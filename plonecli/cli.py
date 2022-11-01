@@ -77,7 +77,7 @@ def cli(context, list_templates, versions):
     "-c",
     "--config",
     default=None,
-    help="Configuration file to specify either [mr.bob] or [variables] sections.",
+    help="mrbob configuration file. The default is ~/.mrbob.",
 )
 @click.pass_context
 def create(context, template, name, config):
