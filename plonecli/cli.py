@@ -73,8 +73,14 @@ def cli(context, list_templates, versions):
 @cli.command()
 @click.argument("template", type=click.STRING, shell_complete=get_templates)
 @click.argument("name")
+@click.option(
+    "-c",
+    "--config",
+    default=None,
+    help="Configuration file to specify either [mr.bob] or [variables] sections.",
+)
 @click.pass_context
-def create(context, template, name):
+def create(context, template, name, config):
     """Create a new Plone package"""
     bobtemplate = reg.resolve_template_name(template)
     if bobtemplate is None:
@@ -83,18 +89,29 @@ def create(context, template, name):
         )
     cur_dir = os.getcwd()
     context.obj["target_dir"] = "{0}/{1}".format(cur_dir, name)
+
+    mrbob_args = [bobtemplate, "-O", name]
+    if config is not None:
+        mrbob_args.extend(["-c", config])
+
     echo(
-        "\nRUN: mrbob {0} -O {1}".format(bobtemplate, name),
+        "\nRUN: {0}".format(" ".join(mrbob_args)),
         fg="green",
         reverse=True,
     )
-    mrbobmain([bobtemplate, "-O", name])
+    mrbobmain(mrbob_args)
 
 
 @cli.command()
 @click.argument("template", type=click.STRING, shell_complete=get_templates)
+@click.option(
+    "-c",
+    "--config",
+    default=None,
+    help="Configuration file to specify either [mr.bob] or [variables] sections.",
+)
 @click.pass_context
-def add(context, template):
+def add(context, template, config):
     """Add features to your existing Plone package"""
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
@@ -103,8 +120,12 @@ def add(context, template):
         raise NoSuchValue(
             context.command.name, template, possibilities=reg.get_templates()
         )
-    echo("\nRUN: mrbob {0}".format(bobtemplate), fg="green", reverse=True)
-    mrbobmain([bobtemplate])
+    mrbob_args = [bobtemplate]
+    if config is not None:
+        mrbob_args.extend(["-c", config])
+
+    echo("\nRUN: mrbob {0}".format(" ".join(mrbob_args)), fg="green", reverse=True)
+    mrbobmain(mrbob_args)
 
 
 @cli.command("venv", aliases=["virtualenv"])
