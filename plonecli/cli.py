@@ -74,13 +74,13 @@ def cli(context, list_templates, versions):
 @click.argument("template", type=click.STRING, shell_complete=get_templates)
 @click.argument("name")
 @click.option(
-    "-c",
-    "--config",
+    "-b",
+    "--bobconfig",
     default=None,
     help="mrbob configuration file. The default is ~/.mrbob.",
 )
 @click.pass_context
-def create(context, template, name, config):
+def create(context, template, name, bobconfig):
     """Create a new Plone package"""
     bobtemplate = reg.resolve_template_name(template)
     if bobtemplate is None:
@@ -91,8 +91,8 @@ def create(context, template, name, config):
     context.obj["target_dir"] = "{0}/{1}".format(cur_dir, name)
 
     mrbob_args = [bobtemplate, "-O", name]
-    if config is not None:
-        mrbob_args.extend(["-c", config])
+    if bobconfig is not None:
+        mrbob_args.extend(["-c", bobconfig])
 
     echo(
         "\nRUN: {0}".format(" ".join(mrbob_args)),
@@ -105,13 +105,13 @@ def create(context, template, name, config):
 @cli.command()
 @click.argument("template", type=click.STRING, shell_complete=get_templates)
 @click.option(
-    "-c",
-    "--config",
+    "-b",
+    "--bobconfig",
     default=None,
     help="mrbob configuration file. The default is ~/.mrbob.",
 )
 @click.pass_context
-def add(context, template, config):
+def add(context, template, bobconfig):
     """Add features to your existing Plone package"""
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
@@ -121,8 +121,8 @@ def add(context, template, config):
             context.command.name, template, possibilities=reg.get_templates()
         )
     mrbob_args = [bobtemplate]
-    if config is not None:
-        mrbob_args.extend(["-c", config])
+    if bobconfig is not None:
+        mrbob_args.extend(["-c", bobconfig])
 
     echo("\nRUN: mrbob {0}".format(" ".join(mrbob_args)), fg="green", reverse=True)
     mrbobmain(mrbob_args)
