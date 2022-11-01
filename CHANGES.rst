@@ -4,7 +4,8 @@ History
 2.5 (unreleased)
 ----------------
 
-- Provide a way to pass a configuration file to create and add commands
+- Provide a way to pass a mrbob configuration file
+ ``
   [erral]
 
 2.4 (2022-10-10)
