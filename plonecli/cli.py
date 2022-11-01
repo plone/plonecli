@@ -108,7 +108,7 @@ def create(context, template, name, config):
     "-c",
     "--config",
     default=None,
-    help="Configuration file to specify either [mr.bob] or [variables] sections.",
+    help="mrbob configuration file. The default is ~/.mrbob.",
 )
 @click.pass_context
 def add(context, template, config):
