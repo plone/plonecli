@@ -1,7 +1,7 @@
 History
 =======
 
-2.5 (unreleased)
+2.5 (2022-11-03)
 ----------------
 
 - Provide a way to pass a mrbob configuration file
