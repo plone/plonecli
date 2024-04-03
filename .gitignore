@@ -74,3 +74,4 @@ target/
 /tmpdist
 /_build
 /venv
+/bak_pyproject.toml

@@ -1,6 +1,12 @@
 History
 =======
 
+1.1.1 (unreleased)
+
+- Pin down version of regex and mr.bob for Python 2, to make it leas painful to install plonecli in Python 2.
+  [MrTango]
+
+
 1.1 (2019-04-14)
 ----------------
 
