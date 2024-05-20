@@ -79,3 +79,4 @@ pyvenv.cfg
 .settings/
 .*project
 /bak_pyproject.toml
+/docs/venv
