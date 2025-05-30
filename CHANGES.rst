@@ -4,7 +4,8 @@ History
 7.0a2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- fix lookup of bobtemplates-plone templates
+  [MrTango]
 
 
 7.0a1 (2025-05-30)

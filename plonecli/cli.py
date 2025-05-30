@@ -59,7 +59,7 @@ def cli(context, list_templates, versions):
         click.echo(reg.list_templates())
     if versions:
         ws = WorkingSet()
-        bobtemplates_dist = ws.by_key["bobtemplates.plone"]
+        bobtemplates_dist = ws.by_key["bobtemplates-plone"]
         bobtemplates_version = bobtemplates_dist.version
         plonecli_version = ws.by_key["plonecli"].version
         version_str = """Available packages:\n

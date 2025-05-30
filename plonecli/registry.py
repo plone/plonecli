@@ -79,7 +79,8 @@ class TemplateRegistry(object):
         for entry_point in pkg_resources.iter_entry_points("mrbob_templates"):
             template_info_method = entry_point.load()
             self.template_infos[entry_point.name] = template_info_method()
-
+        from pprint import pprint
+        pprint([ti.__dict__ for ti in self.template_infos.values()])
         for entry_point_name, tmpl_info in self.template_infos.items():
             if tmpl_info.depend_on:
                 continue
