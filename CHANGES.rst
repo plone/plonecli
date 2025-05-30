@@ -1,8 +1,8 @@
 History
 =======
 
-7.0a1 (unreleased)
-----------------
+7.0a1 (2025-05-30)
+------------------
 
 - bump bobtemplates.plone dependency to 7.0.0a1
   [MrTango]
