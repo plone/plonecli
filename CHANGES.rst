@@ -1,10 +1,11 @@
 History
 =======
 
-2.6 (unreleased)
+7.0a1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- bump bobtemplates.plone dependency to 7.0.0a1
+  [MrTango]
 
 
 2.5 (2022-11-03)
