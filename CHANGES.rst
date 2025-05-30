@@ -1,7 +1,7 @@
 History
 =======
 
-7.0a2 (unreleased)
+7.0a2 (2025-05-30)
 ------------------
 
 - fix lookup of bobtemplates-plone templates
