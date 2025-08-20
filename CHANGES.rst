@@ -1,7 +1,7 @@
 History
 =======
 
-7.0a4 (unreleased)
+7.0a4 (2025-08-20)
 ------------------
 
 - add --non-interactive parameter
