@@ -4,7 +4,8 @@ History
 7.0a4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- add --non-interactive parameter
+  [MrTango]
 
 
 7.0a3 (2025-08-20)
