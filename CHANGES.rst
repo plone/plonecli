@@ -4,7 +4,8 @@ History
 7.0a3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- fix tmplate registry
+  [MrTango]
 
 
 7.0a2 (2025-05-30)
