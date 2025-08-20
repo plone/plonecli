@@ -79,8 +79,13 @@ def cli(context, list_templates, versions):
     default=None,
     help="mrbob configuration file. The default is ~/.mrbob.",
 )
+@click.option(
+    "--non-interactive",
+    is_flag=True,
+    help="Run in non-interactive mode using default answers.",
+)
 @click.pass_context
-def create(context, template, name, bobconfig):
+def create(context, template, name, bobconfig, non_interactive):
     """Create a new Plone package"""
     bobtemplate = reg.resolve_template_name(template)
     if bobtemplate is None:
@@ -93,9 +98,11 @@ def create(context, template, name, bobconfig):
     mrbob_args = [bobtemplate, "-O", name]
     if bobconfig is not None:
         mrbob_args.extend(["-c", bobconfig])
+    if non_interactive:
+        mrbob_args.append("-n")
 
     echo(
-        "\nRUN: {0}".format(" ".join(mrbob_args)),
+        "\nRUN: mrbob {0}".format(" ".join(mrbob_args)),
         fg="green",
         reverse=True,
     )
@@ -110,8 +117,13 @@ def create(context, template, name, bobconfig):
     default=None,
     help="mrbob configuration file. The default is ~/.mrbob.",
 )
+@click.option(
+    "--non-interactive",
+    is_flag=True,
+    help="Run in non-interactive mode using default answers.",
+)
 @click.pass_context
-def add(context, template, bobconfig):
+def add(context, template, bobconfig, non_interactive):
     """Add features to your existing Plone package"""
     if context.obj.get("target_dir", None) is None:
         raise NotInPackageError(context.command.name)
@@ -123,6 +135,8 @@ def add(context, template, bobconfig):
     mrbob_args = [bobtemplate]
     if bobconfig is not None:
         mrbob_args.extend(["-c", bobconfig])
+    if non_interactive:
+        mrbob_args.append("-n")
 
     echo("\nRUN: mrbob {0}".format(" ".join(mrbob_args)), fg="green", reverse=True)
     mrbobmain(mrbob_args)
