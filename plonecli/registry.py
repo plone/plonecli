@@ -79,8 +79,6 @@ class TemplateRegistry(object):
         for entry_point in pkg_resources.iter_entry_points("mrbob_templates"):
             template_info_method = entry_point.load()
             self.template_infos[entry_point.name] = template_info_method()
-        from pprint import pprint
-        pprint([ti.__dict__ for ti in self.template_infos.values()])
         for entry_point_name, tmpl_info in self.template_infos.items():
             if tmpl_info.depend_on:
                 continue
@@ -95,14 +93,18 @@ class TemplateRegistry(object):
             if not tmpl_info.depend_on:
                 continue
             if tmpl_info.depend_on not in self.templates:
+                # Create virtual parent template if it doesn't exist
+                self.templates[tmpl_info.depend_on] = {
+                    "template_name": tmpl_info.depend_on.replace('plone_', ''),
+                    "subtemplates": {},
+                    "info": "Virtual template for subtemplates",
+                    "deprecated": False,
+                }
                 print(
-                    "{",
-                    'Template dependency "{0}" not found!'.format(
+                    "Created virtual template '{0}' for subtemplates".format(
                         tmpl_info.depend_on,
                     ),
-                    "}",
                 )
-                continue
             self.templates[tmpl_info.depend_on]["subtemplates"][entry_point_name] = (
                 tmpl_info.plonecli_alias or entry_point_name
             )
