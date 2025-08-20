@@ -1,7 +1,7 @@
 History
 =======
 
-7.0a3 (unreleased)
+7.0a3 (2025-08-20)
 ------------------
 
 - fix tmplate registry
