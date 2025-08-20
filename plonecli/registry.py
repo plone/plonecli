@@ -150,4 +150,18 @@ class TemplateRegistry(object):
         return template_name
 
 
-template_registry = TemplateRegistry()
+# Lazy initialization to ensure correct working directory
+_template_registry = None
+
+def get_template_registry():
+    global _template_registry
+    if _template_registry is None:
+        _template_registry = TemplateRegistry()
+    return _template_registry
+
+# For backward compatibility
+class LazyTemplateRegistry:
+    def __getattr__(self, name):
+        return getattr(get_template_registry(), name)
+
+template_registry = LazyTemplateRegistry()
