@@ -1,10 +1,38 @@
 History
 =======
 
-2.6 (unreleased)
-----------------
+7.0a5 (unreleased)
+------------------
 
 - Nothing changed yet.
+
+
+7.0a4 (2025-08-20)
+------------------
+
+- add --non-interactive parameter
+  [MrTango]
+
+
+7.0a3 (2025-08-20)
+------------------
+
+- fix tmplate registry
+  [MrTango]
+
+
+7.0a2 (2025-05-30)
+------------------
+
+- fix lookup of bobtemplates-plone templates
+  [MrTango]
+
+
+7.0a1 (2025-05-30)
+------------------
+
+- bump bobtemplates.plone dependency to 7.0.0a1
+  [MrTango]
 
 
 2.5 (2022-11-03)

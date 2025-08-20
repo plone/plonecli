@@ -79,7 +79,6 @@ class TemplateRegistry(object):
         for entry_point in pkg_resources.iter_entry_points("mrbob_templates"):
             template_info_method = entry_point.load()
             self.template_infos[entry_point.name] = template_info_method()
-
         for entry_point_name, tmpl_info in self.template_infos.items():
             if tmpl_info.depend_on:
                 continue
@@ -94,14 +93,18 @@ class TemplateRegistry(object):
             if not tmpl_info.depend_on:
                 continue
             if tmpl_info.depend_on not in self.templates:
+                # Create virtual parent template if it doesn't exist
+                self.templates[tmpl_info.depend_on] = {
+                    "template_name": tmpl_info.depend_on.replace('plone_', ''),
+                    "subtemplates": {},
+                    "info": "Virtual template for subtemplates",
+                    "deprecated": False,
+                }
                 print(
-                    "{",
-                    'Template dependency "{0}" not found!'.format(
+                    "Created virtual template '{0}' for subtemplates".format(
                         tmpl_info.depend_on,
                     ),
-                    "}",
                 )
-                continue
             self.templates[tmpl_info.depend_on]["subtemplates"][entry_point_name] = (
                 tmpl_info.plonecli_alias or entry_point_name
             )
@@ -147,4 +150,18 @@ class TemplateRegistry(object):
         return template_name
 
 
-template_registry = TemplateRegistry()
+# Lazy initialization to ensure correct working directory
+_template_registry = None
+
+def get_template_registry():
+    global _template_registry
+    if _template_registry is None:
+        _template_registry = TemplateRegistry()
+    return _template_registry
+
+# For backward compatibility
+class LazyTemplateRegistry:
+    def __getattr__(self, name):
+        return getattr(get_template_registry(), name)
+
+template_registry = LazyTemplateRegistry()
