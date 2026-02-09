@@ -20,7 +20,7 @@ setup(
     include_package_data=True,
     python_requires=">=3.6",
     install_requires=[
-        "setuptools",
+        "setuptools<82.0.0",
         "Click>=7.0",
         "click-aliases",
         "mr.bob",
