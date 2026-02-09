@@ -3,9 +3,11 @@
 
 from __future__ import absolute_import
 
+import importlib.metadata
+
 from click_aliases import ClickAliasedGroup
 from mrbob.cli import main as mrbobmain
-from pkg_resources import WorkingSet
+
 from plonecli.configure_mrbob import is_venv_disabled
 from plonecli.exceptions import NoSuchValue
 from plonecli.exceptions import NotInPackageError
@@ -58,10 +60,8 @@ def cli(context, list_templates, versions):
     if list_templates:
         click.echo(reg.list_templates())
     if versions:
-        ws = WorkingSet()
-        bobtemplates_dist = ws.by_key["bobtemplates.plone"]
-        bobtemplates_version = bobtemplates_dist.version
-        plonecli_version = ws.by_key["plonecli"].version
+        bobtemplates_version = importlib.metadata.version("bobtemplates.plone")
+        plonecli_version = importlib.metadata.version("plonecli")
         version_str = """Available packages:\n
         plonecli : {0}\n
         bobtemplates.plone: {1}\n""".format(
