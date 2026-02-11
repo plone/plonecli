@@ -2,9 +2,8 @@
 
 from __future__ import print_function
 
+import importlib.metadata
 import os
-import pkg_resources
-
 
 try:
     from six.moves.configparser import ConfigParser
@@ -76,7 +75,8 @@ class TemplateRegistry(object):
         self.bob_config = read_bob_config(self.root_folder)
         self.templates = {}
         self.template_infos = {}
-        for entry_point in pkg_resources.iter_entry_points("mrbob_templates"):
+
+        for entry_point in importlib.metadata.entry_points(group="mrbob_templates"):
             template_info_method = entry_point.load()
             self.template_infos[entry_point.name] = template_info_method()
 

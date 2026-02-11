@@ -70,9 +70,11 @@ git_init = y
         context.obj["target_dir"] = os.path.dirname(os.path.abspath("bobtemplate.cfg"))
 
         test_command_result_a = runner.invoke(
-            cli.run_test, args=["--all"], obj=context.obj,
+            cli.run_test,
+            args=["--all"],
+            obj=context.obj,
         )
-        assert u"\nRUN: ./bin/test --all" in test_command_result_a.output
+        assert "\nRUN: ./bin/test --all" in test_command_result_a.output
 
         test_command_result_t_a = runner.invoke(
             cli.run_test,
@@ -80,15 +82,17 @@ git_init = y
             obj=context.obj,
         )
         assert (
-            u"./bin/test --test  src/collective/todo/tests/test_robot.py --all"
+            "./bin/test --test  src/collective/todo/tests/test_robot.py --all"
             in test_command_result_t_a.output
         )  # NOQA: E501
 
         test_command_result_s_a = runner.invoke(
-            cli.run_test, args=["-s collective.todo", "-a"], obj=context.obj,
+            cli.run_test,
+            args=["-s collective.todo", "-a"],
+            obj=context.obj,
         )
         assert (
-            u"./bin/test --package  collective.todo --all"
+            "./bin/test --package  collective.todo --all"
             in test_command_result_s_a.output
         )  # NOQA: E501
 
@@ -98,7 +102,7 @@ git_init = y
             obj=context.obj,
         )
         assert (
-            u"./bin/test --test  src/collective/todo/tests/test_robot.py --package  collective.todo"
+            "./bin/test --test  src/collective/todo/tests/test_robot.py --package  collective.todo"
             in test_command_result_t_s.output
         )  # NOQA: E501
 
@@ -112,7 +116,7 @@ git_init = y
             obj=context.obj,
         )
         assert (
-            u"./bin/test --test  src/collective/todo/tests/test_robot.py --package  collective.todo --all"
+            "./bin/test --test  src/collective/todo/tests/test_robot.py --package  collective.todo --all"
             in test_command_result.output
         )  # NOQA: E501
 
@@ -142,7 +146,7 @@ git_init = y
     with open("bobtemplate.cfg", "w") as f:
         f.write(template)
     result = subprocess.check_output([plonecli_bin, "build"], cwd=target_path)
-    assert u"\nRUN: python3 -m venv venv" in result.decode()
+    assert "\nRUN: python3 -m venv venv" in result.decode()
 
 
 @pytest.mark.skipif(sys.version_info < (3, 7), reason="requires explicitly python3.7")
@@ -171,9 +175,10 @@ python = python3
         f.write(template)
 
     result = subprocess.check_output(
-        [plonecli_bin, "build", "-p", "python3"], cwd=target_path,
+        [plonecli_bin, "build", "-p", "python3"],
+        cwd=target_path,
     )
-    assert u"\nRUN: python3 -m venv venv" in result.decode()
+    assert "\nRUN: python3 -m venv venv" in result.decode()
 
 
 @pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
@@ -203,32 +208,3 @@ python = python3
 
     result = subprocess.check_output([plonecli_bin, "build"], cwd=target_path)
     assert "\nRUN: python3 -m venv venv" in result.decode()
-
-
-@pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
-def test_plonecli_build_target_py27(tmpdir, plonecli_bin):
-    target_path = tmpdir.strpath
-    os.chdir(target_path)
-    template = """
-setuptools==40.8.0
-zc.buildout==2.13.1
-"""
-    with open("requirements.txt", "w") as f:
-        f.write(template)
-
-    template = """[buildout]
-parts =
-"""
-    with open("buildout.cfg", "w") as f:
-        f.write(template)
-
-    template = """[main]
-version = 5.2.2
-template = plone_addon
-python = python2.7
-"""
-    with open("bobtemplate.cfg", "w") as f:
-        f.write(template)
-
-    result = subprocess.check_output([plonecli_bin, "build"], cwd=target_path)
-    assert "\nRUN: virtualenv -p python2.7 venv" in result.decode()

@@ -52,17 +52,17 @@ def configoverride_warning_post_question(configurator, question, answer):
 
 def mrbob_config_exists(configurator, answer):
     target_directory = home_path
-    file_name = u".mrbob"
+    file_name = ".mrbob"
     file_list = os.listdir(target_directory)
     if file_name not in file_list:
         raise SkipQuestion(
-            u"No existing mrbob config file found, so we skip this question."
+            "No existing mrbob config file found, so we skip this question."
         )
 
 
 def check_git_disabled(configurator, answer):
     if configurator.variables["configure_mrbob.package.git.disabled"]:
-        raise SkipQuestion(u"GIT is disabled, so we skip git related questions.")
+        raise SkipQuestion("GIT is disabled, so we skip git related questions.")
 
 
 def get_mrbob_config_variable(varname, dirname):
@@ -73,7 +73,7 @@ def get_mrbob_config_variable(varname, dirname):
     file_list = os.listdir(dirname)
     if file_name not in file_list:
         return
-    config.readfp(codecs.open(config_path, "r", "utf-8"))
+    config.read_file(codecs.open(config_path, "r", "utf-8"))
     if not config.sections():
         return
     if config.has_option("variables", varname):
@@ -145,7 +145,7 @@ def is_venv_disabled():
 
 
 def generate_mrbob_ini(configurator, directory_path, answers):
-    file_name = u".mrbob"
+    file_name = ".mrbob"
     file_path = directory_path + "/" + file_name
     template = """[mr.bob]
 verbose = False
@@ -166,11 +166,14 @@ package.git.disabled = {4}
         safe_string(answers["package.git.disabled"]),
     )
     if not configurator.variables["configure_mrbob.package.git.disabled"]:
-        template = template + """package.git.init = {0}
+        template = (
+            template
+            + """package.git.init = {0}
 package.git.autocommit = {1}
 """.format(
-            safe_string(answers["package.git.init"]),
-            safe_string(answers["package.git.autocommit"]),
+                safe_string(answers["package.git.init"]),
+                safe_string(answers["package.git.autocommit"]),
+            )
         )
     template = (
         template
@@ -225,6 +228,6 @@ def post_render(configurator, target_directory=None):
         target_directory = configurator.target_directory
     generate_mrbob_ini(configurator, target_directory, mrbob_config)
     echo(
-        u"\nMrbob's settings have been saved to {0}/.mrbob\n".format(target_directory),
+        "\nMrbob's settings have been saved to {0}/.mrbob\n".format(target_directory),
         msg_type="info",
     )

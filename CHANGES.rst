@@ -4,7 +4,11 @@ History
 2.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Support only python 3.11 - 3.14
+  [erral]
+
+- Require setuptools < 82.0.0
+  [erral]
 
 
 2.5 (2022-11-03)
