@@ -8,7 +8,6 @@ from pathlib import Path
 from copier import run_copy
 
 from plonecli.config import PlonecliConfig
-from plonecli.plone_versions import get_latest_stable_version
 from plonecli.project import ProjectContext
 
 
@@ -134,69 +133,7 @@ def _build_user_defaults(config: PlonecliConfig) -> dict:
     if config.author_email and config.author_email != "dev@plone.org":
         defaults["author_email"] = config.author_email
 
-    # plone_version is resolved later in _build_user_defaults_with_template
-    # because it needs to match the template's choice format.
     return defaults
-
-
-def _match_version_to_choices(version: str, choices: list[str]) -> str | None:
-    """Match a version string to a list of template choices.
-
-    Tries exact match first, then major.minor prefix match.
-    Returns the best matching choice, or None if no match.
-    """
-    if version in choices:
-        return version
-
-    # Try truncating to major.minor (e.g. "6.1.1" -> "6.1")
-    parts = version.split(".")
-    if len(parts) >= 2:
-        short = f"{parts[0]}.{parts[1]}"
-        if short in choices:
-            return short
-
-    # Try matching by major.minor prefix (pick the first/highest match)
-    if len(parts) >= 2:
-        prefix = f"{parts[0]}.{parts[1]}."
-        for choice in choices:
-            if choice.startswith(prefix):
-                return choice
-
-    return None
-
-
-def _resolve_plone_version_default(
-    config: PlonecliConfig, template_path: str,
-) -> str | None:
-    """Resolve plone_version to a value compatible with the template's choices.
-
-    Reads the template's copier.yml to determine valid choices, then matches
-    the configured (or auto-detected) version to those choices.
-    """
-    plone_version = config.plone_version
-    if not plone_version:
-        plone_version = get_latest_stable_version()
-    if not plone_version:
-        return None
-
-    # Read the template's copier.yml to find plone_version choices
-    copier_yml = Path(template_path) / "copier.yml"
-    if copier_yml.exists():
-        try:
-            import yaml
-
-            with open(copier_yml) as f:
-                template_config = yaml.safe_load(f)
-            pv_config = template_config.get("plone_version", {})
-            if isinstance(pv_config, dict):
-                choices = pv_config.get("choices", [])
-                if choices:
-                    matched = _match_version_to_choices(plone_version, choices)
-                    return matched
-        except Exception:
-            pass
-
-    return plone_version
 
 
 def run_create(
@@ -216,16 +153,11 @@ def run_create(
     ensure_templates_cloned(config)
     src = str(get_template_path(template_name, config))
 
-    defaults = _build_user_defaults(config)
-    plone_version = _resolve_plone_version_default(config, src)
-    if plone_version:
-        defaults["plone_version"] = plone_version
-
     run_copy(
         src_path=src,
         dst_path=target_name,
         data=data or {},
-        user_defaults=defaults,
+        user_defaults=_build_user_defaults(config),
         unsafe=True,
     )
 
