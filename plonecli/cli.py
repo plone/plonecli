@@ -14,8 +14,6 @@ from plonecli.exceptions import NoSuchValue, NotInPackageError
 from plonecli.project import find_project_root
 from plonecli.registry import TemplateRegistry
 from plonecli.templates import (
-    MAIN_TEMPLATES,
-    SUBTEMPLATES,
     ensure_templates_cloned,
     get_templates_info,
     run_add,
@@ -113,7 +111,7 @@ def create(context, template, name):
     reg = TemplateRegistry(config)
 
     resolved = reg.resolve_template_name(template)
-    if resolved is None or resolved not in MAIN_TEMPLATES:
+    if resolved is None or not reg.is_main_template(resolved):
         raise NoSuchValue(
             context.command.name,
             template,
@@ -138,8 +136,7 @@ def add(context, template):
     reg = TemplateRegistry(config, project)
 
     resolved = reg.resolve_template_name(template)
-    allowed = SUBTEMPLATES.get(project.project_type, [])
-    if resolved is None or resolved not in allowed:
+    if resolved is None or not reg.is_subtemplate(resolved):
         raise NoSuchValue(
             context.command.name,
             template,
