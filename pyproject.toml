@@ -1,13 +1,11 @@
 [project]
 name = "plonecli"
-version = "3.0.0a1"
+version = "8.0.0a1"
 description = "A Plone CLI for creating Plone packages"
-readme = "README.rst"
+readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "BSD-3-Clause"}
-authors = [
-    {name = "Maik Derstappen", email = "md@derico.de"},
-]
+license = { text = "BSD-3-Clause" }
+authors = [{ name = "Maik Derstappen", email = "md@derico.de" }]
 keywords = ["plone", "cli", "copier", "scaffolding"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -26,21 +24,12 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 
-dependencies = [
-    "Click>=8.0",
-    "click-aliases",
-    "copier>=9.0.0",
-]
+dependencies = ["Click>=8.0", "click-aliases", "copier>=9.0.0"]
 
 [project.optional-dependencies]
-test = [
-    "pytest",
-    "pytest-cov",
-]
-dev = [
-    "tox",
-    "ruff",
-]
+test = ["pytest", "pytest-cov"]
+docs = ["sphinx", "myst-parser"]
+dev = ["tox", "ruff"]
 
 [project.scripts]
 plonecli = "plonecli.cli:cli"

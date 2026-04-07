@@ -257,6 +257,129 @@ This is useful for:
 - Organizations maintaining their own template sets
 
 
+Template Registry
+=================
+
+plonecli discovers available templates dynamically by scanning for ``copier.yml`` files in the templates directory. Each template must include a ``_plonecli`` metadata section in its ``copier.yml`` so that plonecli knows how to classify and present it.
+
+Metadata Convention
+-------------------
+
+Add a ``_plonecli`` key to your template's ``copier.yml``. Copier ignores unknown ``_``-prefixed keys, so this is safe and non-breaking.
+
+**Main template** (used with ``plonecli create``):
+
+.. code-block:: yaml
+
+    # backend_addon/copier.yml
+    _plonecli:
+      type: main
+      aliases:
+        - addon
+      description: "Create a Plone backend add-on package"
+
+    # ... regular copier questions below ...
+    package_name:
+      type: str
+      help: "Package name (e.g. collective.todo)"
+
+**Subtemplate** (used with ``plonecli add``):
+
+.. code-block:: yaml
+
+    # content_type/copier.yml
+    _plonecli:
+      type: sub
+      parent: backend_addon
+      description: "Add a Dexterity content type"
+
+    # ... regular copier questions below ...
+
+Metadata Fields
+---------------
+
+``type`` *(required)*
+    Either ``main`` or ``sub``.
+
+    - ``main``: A project template, available via ``plonecli create <template> <name>``.
+    - ``sub``: A feature template, available via ``plonecli add <template>`` when inside a matching project.
+
+``parent`` *(required for sub, ignored for main)*
+    The ``project_type`` of the parent project this subtemplate applies to. This must match the project type that plonecli detects from the project's ``pyproject.toml`` (e.g. ``backend_addon``, ``project``). A subtemplate only appears when you are inside a project of the matching type.
+
+``aliases`` *(optional, default: [])*
+    A list of alternative names users can type instead of the directory name. For example, ``aliases: [addon]`` lets users run ``plonecli create addon my.addon`` instead of ``plonecli create backend_addon my.addon``.
+
+``description`` *(optional)*
+    A short human-readable description shown in ``plonecli -l`` output.
+
+``deprecated`` *(optional, default: false)*
+    Set to ``true`` to mark a template as deprecated. Deprecated templates still work but show a warning.
+
+``info`` *(optional)*
+    An informational message displayed when the template is used (e.g. migration instructions for deprecated templates).
+
+How Discovery Works
+-------------------
+
+1. plonecli clones the configured copier-templates repository to ``~/.copier-templates/plone-copier-templates`` on first run.
+2. The template registry scans each subdirectory for a ``copier.yml`` file.
+3. It reads the ``_plonecli`` metadata section from each ``copier.yml``.
+4. Templates without a ``_plonecli`` section are still discovered but treated as subtemplates with no parent assignment (they won't appear in any listing).
+
+Template Directory Structure
+-----------------------------
+
+A copier-templates repository should follow this layout:
+
+.. code-block:: text
+
+    copier-templates/
+    ├── backend_addon/
+    │   ├── copier.yml          # Must contain _plonecli metadata
+    │   └── {{package_name}}/   # Copier template files
+    ├── content_type/
+    │   ├── copier.yml
+    │   └── ...
+    ├── behavior/
+    │   ├── copier.yml
+    │   └── ...
+    └── zope-setup/
+        ├── copier.yml
+        └── ...
+
+Each subdirectory with a ``copier.yml`` is treated as a template. The directory name is the canonical template name.
+
+Example: Adding a New Template
+------------------------------
+
+To add a new subtemplate (e.g. a ``viewlet`` template for backend addons):
+
+1. Create a ``viewlet/`` directory in your copier-templates repository.
+2. Add a ``copier.yml`` with the ``_plonecli`` metadata and your copier questions:
+
+   .. code-block:: yaml
+
+       _plonecli:
+         type: sub
+         parent: backend_addon
+         description: "Add a viewlet"
+
+       viewlet_name:
+         type: str
+         help: "Name of the viewlet"
+
+3. Add your template files (Jinja2 templates rendered by copier).
+4. Commit and push. Users pick it up with ``plonecli update``.
+
+No changes to plonecli itself are needed -- the new template is discovered automatically.
+
+Roadmap
+-------
+
+See `ROADMAP.md <ROADMAP.md>`_ for planned features including multi-package template support via Python entrypoints and publishing ``plone-copier-templates`` on PyPI.
+
+
 Developer Guide
 ===============
 
@@ -269,7 +392,8 @@ Setup Developer Environment
     cd plonecli
     uv venv
     uv pip install -e ".[dev,test]"
-    plonecli --help
+    uv run plonecli --help
+    uv run plonecli -V
 
 
 Running Tests
@@ -281,10 +405,10 @@ Running Tests
     tox
 
     # Or directly with pytest
-    pytest tests/
+    uv run pytest tests/
 
     # A single test
-    pytest tests/ -k test_find_project_root
+    uv run pytest tests/ -k test_find_project_root
 
 
 Contribute
