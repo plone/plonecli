@@ -1,45 +1,57 @@
-# -*- coding: utf-8 -*-
 """Console script for plonecli."""
 
-from __future__ import absolute_import
+from __future__ import annotations
 
 import importlib.metadata
-
-from click_aliases import ClickAliasedGroup
-from mrbob.cli import main as mrbobmain
-
-from plonecli.configure_mrbob import is_venv_disabled
-from plonecli.exceptions import NoSuchValue
-from plonecli.exceptions import NotInPackageError
-from plonecli.registry import template_registry as reg
+import subprocess
+import sys
 
 import click
-import os
-import subprocess
+from click_aliases import ClickAliasedGroup
+
+from plonecli.config import load_config, save_config
+from plonecli.exceptions import NoSuchValue, NotInPackageError
+from plonecli.project import find_project_root
+from plonecli.registry import TemplateRegistry
+from plonecli.templates import (
+    MAIN_TEMPLATES,
+    SUBTEMPLATES,
+    ensure_templates_cloned,
+    get_templates_info,
+    run_add,
+    run_create,
+    update_templates_clone,
+)
 
 
 def echo(msg, fg="green", reverse=False):
     click.echo(click.style(msg, fg=fg, reverse=reverse))
 
 
+def _get_registry():
+    """Create a TemplateRegistry with current context."""
+    config = load_config()
+    project = find_project_root()
+    return TemplateRegistry(config, project)
+
+
 def get_templates(ctx, args, incomplete):
-    """Return a list of available mr.bob templates."""
-    templates = reg.get_templates()
+    """Shell completion for template names."""
+    reg = _get_registry()
+    templates = reg.get_available_templates()
     return [k for k in templates if incomplete in k]
 
 
 class ClickFilteredAliasedGroup(ClickAliasedGroup):
     def list_commands(self, ctx):
         existing_cmds = super().list_commands(ctx)
-        global_cmds = ["create", "config"]
+        project = find_project_root()
+        global_cmds = ["completion", "create", "config", "update"]
         global_only_cmds = ["create"]
-        if not reg.root_folder:
-            # global:
+        if not project:
             cmds = [cmd for cmd in existing_cmds if cmd in global_cmds]
         else:
-            # local:
             cmds = [cmd for cmd in existing_cmds if cmd not in global_only_cmds]
-        cmds = cmds
         return cmds
 
 
@@ -54,225 +66,291 @@ class ClickFilteredAliasedGroup(ClickAliasedGroup):
 @click.pass_context
 def cli(context, list_templates, versions):
     """Plone Command Line Interface (CLI)"""
-    context.obj = {}
-    context.obj["target_dir"] = reg.root_folder
-    context.obj["python"] = reg.bob_config.python
+    config = load_config()
+    project = find_project_root()
+    context.obj = {
+        "config": config,
+        "project": project,
+        "target_dir": str(project.root_folder) if project else None,
+    }
+
     if list_templates:
+        reg = TemplateRegistry(config, project)
         click.echo(reg.list_templates())
+
     if versions:
-        bobtemplates_version = importlib.metadata.version("bobtemplates.plone")
         plonecli_version = importlib.metadata.version("plonecli")
-        version_str = """Available packages:\n
-        plonecli : {0}\n
-        bobtemplates.plone: {1}\n""".format(
-            plonecli_version, bobtemplates_version
-        )
-        click.echo(version_str)
+        templates_info = get_templates_info(config)
+        click.echo(f"plonecli: {plonecli_version}")
+        click.echo(f"copier-templates: {templates_info}")
+
+    # Check for updates (non-blocking, cached)
+    if not list_templates and not versions:
+        try:
+            from plonecli.updater import check_for_updates
+
+            new_version = check_for_updates()
+            if new_version:
+                echo(
+                    f"\nA new version of plonecli is available: {new_version}",
+                    fg="yellow",
+                )
+                echo(
+                    "Update with: uv tool upgrade plonecli\n",
+                    fg="yellow",
+                )
+        except Exception:  # noqa: BLE001
+            pass
 
 
 @cli.command()
 @click.argument("template", type=click.STRING, shell_complete=get_templates)
 @click.argument("name")
-@click.option(
-    "-b",
-    "--bobconfig",
-    default=None,
-    help="mrbob configuration file. The default is ~/.mrbob.",
-)
 @click.pass_context
-def create(context, template, name, bobconfig):
+def create(context, template, name):
     """Create a new Plone package"""
-    bobtemplate = reg.resolve_template_name(template)
-    if bobtemplate is None:
+    config = context.obj["config"]
+    reg = TemplateRegistry(config)
+
+    resolved = reg.resolve_template_name(template)
+    if resolved is None or resolved not in MAIN_TEMPLATES:
         raise NoSuchValue(
-            context.command.name, template, possibilities=reg.get_templates()
+            context.command.name,
+            template,
+            possibilities=reg.get_main_templates(),
         )
-    cur_dir = os.getcwd()
-    context.obj["target_dir"] = "{0}/{1}".format(cur_dir, name)
 
-    mrbob_args = [bobtemplate, "-O", name]
-    if bobconfig is not None:
-        mrbob_args.extend(["-c", bobconfig])
-
-    echo(
-        "\nRUN: {0}".format(" ".join(mrbob_args)),
-        fg="green",
-        reverse=True,
-    )
-    mrbobmain(mrbob_args)
+    echo(f"\nCreating {resolved} project: {name}", fg="green", reverse=True)
+    run_create(resolved, name, config)
+    context.obj["target_dir"] = name
 
 
 @cli.command()
 @click.argument("template", type=click.STRING, shell_complete=get_templates)
-@click.option(
-    "-b",
-    "--bobconfig",
-    default=None,
-    help="mrbob configuration file. The default is ~/.mrbob.",
-)
 @click.pass_context
-def add(context, template, bobconfig):
+def add(context, template):
     """Add features to your existing Plone package"""
-    if context.obj.get("target_dir", None) is None:
+    project = context.obj.get("project")
+    if project is None:
         raise NotInPackageError(context.command.name)
-    bobtemplate = reg.resolve_template_name(template)
-    if bobtemplate is None:
+
+    config = context.obj["config"]
+    reg = TemplateRegistry(config, project)
+
+    resolved = reg.resolve_template_name(template)
+    allowed = SUBTEMPLATES.get(project.project_type, [])
+    if resolved is None or resolved not in allowed:
         raise NoSuchValue(
-            context.command.name, template, possibilities=reg.get_templates()
+            context.command.name,
+            template,
+            possibilities=reg.get_subtemplates(),
         )
-    mrbob_args = [bobtemplate]
-    if bobconfig is not None:
-        mrbob_args.extend(["-c", bobconfig])
 
-    echo("\nRUN: mrbob {0}".format(" ".join(mrbob_args)), fg="green", reverse=True)
-    mrbobmain(mrbob_args)
+    echo(f"\nAdding {resolved} to {project.root_folder.name}", fg="green", reverse=True)
+    run_add(resolved, project, config)
 
 
-@cli.command("venv", aliases=["virtualenv"])
-@click.option("-c", "--clear", is_flag=True)
-@click.option("-u", "--upgrade", is_flag=True)
-@click.option("-p", "--python", help="Python interpreter to use")
+@cli.command()
 @click.pass_context
-def create_virtualenv(context, clear, upgrade, python):
-    """Create/update the local virtualenv (venv) for the Plone package"""
-    if context.obj.get("target_dir", None) is None:
+def setup(context):
+    """Run zope-setup inside an existing backend_addon"""
+    project = context.obj.get("project")
+    if project is None:
         raise NotInPackageError(context.command.name)
-    python_bin = python or context.obj.get("python")
-    if python_bin == "python2.7":
-        params = ["virtualenv", "-p", python_bin, "venv"]
-    else:
-        params = [python_bin, "-m", "venv", "venv"]
-    if clear:
-        params.append("--clear")
-    if upgrade:
-        params.append("--upgrade")
-    echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
-    subprocess.call(params, cwd=context.obj["target_dir"])
+    if project.project_type != "backend_addon":
+        raise click.UsageError(
+            "The 'setup' command can only be run inside a backend_addon project."
+        )
 
-
-@cli.command("requirements")
-@click.pass_context
-def install_requirements(context):
-    """Install the local package requirements"""
-
-    if context.obj.get("target_dir", None) is None:
-        raise NotInPackageError(context.command.name)
-
-    if not is_venv_disabled():
-        params = [
-            "./venv/bin/pip",
-            "install",
-            "-r",
-            "requirements.txt",
-            "--upgrade",
-        ]
-    else:
-        params = ["pip", "install", "-r", "requirements.txt", "--upgrade"]
-    echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
-    subprocess.call(params, cwd=context.obj["target_dir"])
-
-    if not is_venv_disabled():
-        params = ["./venv/bin/buildout", "bootstrap"]
-    else:
-        params = ["buildout", "bootstrap"]
-    echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
-    subprocess.call(params, cwd=context.obj["target_dir"])
-
-
-@cli.command("buildout")
-@click.option("-c", "--clear", count=True)
-@click.pass_context
-def run_buildout(context, clear):
-    """Run the package buildout"""
-    if context.obj.get("target_dir", None) is None:
-        raise NotInPackageError(context.command.name)
-    if not is_venv_disabled():
-        params = ["./venv/bin/buildout"]
-    else:
-        params = ["buildout"]
-    if clear:
-        params.append("-n")
-    echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
-    subprocess.call(params, cwd=context.obj["target_dir"])
+    config = context.obj["config"]
+    echo("\nRunning zope-setup...", fg="green", reverse=True)
+    run_create("zope-setup", str(project.root_folder), config)
 
 
 @cli.command("serve")
 @click.pass_context
 def run_serve(context):
-    """Run the Plone client in foreground mode (bin/instance fg)"""
-    if context.obj.get("target_dir", None) is None:
+    """Start the Plone instance (delegates to invoke start)"""
+    project = context.obj.get("project")
+    if project is None:
         raise NotInPackageError(context.command.name)
-    params = ["./bin/instance", "fg"]
-    echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
+    params = ["uv", "run", "invoke", "start"]
+    echo(f"\nRUN: {' '.join(params)}", fg="green", reverse=True)
     echo("\nINFO: Open this in a Web Browser: http://localhost:8080")
     echo("INFO: You can stop it by pressing CTRL + c\n")
-    subprocess.call(params, cwd=context.obj["target_dir"])
+    subprocess.call(params, cwd=str(project.root_folder))
 
 
 @cli.command("test")
-@click.option("-a", "--all", "all", is_flag=True)
-@click.option("-t", "--test", "test")
-@click.option("-s", "--package", "package")
+@click.option("-v", "--verbose", is_flag=True, help="Verbose test output")
 @click.pass_context
-def run_test(context, all, test, package):
-    """Run the tests in your package"""
-    if context.obj.get("target_dir", None) is None:
+def run_test(context, verbose):
+    """Run the tests in your package (delegates to invoke test)"""
+    project = context.obj.get("project")
+    if project is None:
         raise NotInPackageError(context.command.name)
-    params = ["./bin/test"]
-    if test:
-        params.append("--test")
-        params.append(test)
-    if package:
-        params.append("--package")
-        params.append(package)
-    if all:
-        params.append("--all")
-
-    echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
-    subprocess.call(params, cwd=context.obj["target_dir"])
+    params = ["uv", "run", "invoke", "test"]
+    if verbose:
+        params.append("--verbose")
+    echo(f"\nRUN: {' '.join(params)}", fg="green", reverse=True)
+    subprocess.call(params, cwd=str(project.root_folder))
 
 
 @cli.command("debug")
 @click.pass_context
 def run_debug(context):
-    """Run the Plone client in debug mode"""
-    if context.obj.get("target_dir", None) is None:
+    """Start the Plone instance in debug mode (delegates to invoke debug)"""
+    project = context.obj.get("project")
+    if project is None:
         raise NotInPackageError(context.command.name)
-    params = ["./bin/instance", "debug"]
-    echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
+    params = ["uv", "run", "invoke", "debug"]
+    echo(f"\nRUN: {' '.join(params)}", fg="green", reverse=True)
     echo("INFO: You can stop it by pressing CTRL + c\n")
-    subprocess.call(params, cwd=context.obj["target_dir"])
+    subprocess.call(params, cwd=str(project.root_folder))
 
 
 @cli.command()
-@click.option("-c", "--clear", count=True)
-@click.option("-u", "--upgrade", count=True)
-@click.option("-p", "--python", help="Python interpreter to use")
 @click.pass_context
-def build(context, clear, upgrade, python=None):
-    """Bootstrap and build the package"""
-    target_dir = context.obj.get("target_dir", None)
-    if target_dir is None:
-        raise NotInPackageError(context.command.name)
-    if not is_venv_disabled():
-        python = python or context.obj.get("python")
-        if clear:
-            context.invoke(create_virtualenv, clear=True, python=python)
-        elif upgrade:
-            context.invoke(create_virtualenv, clear=True, python=python)
-        else:
-            context.invoke(create_virtualenv, python=python)
-    context.invoke(install_requirements)
-    context.invoke(run_buildout, clear=clear)
-    # context.forward(run_buildout)
+def config(context):
+    """Configure plonecli global settings"""
+    cfg = context.obj["config"]
+
+    # Check for migration from .mrbob on first run
+    from plonecli.config import CONFIG_FILE, migrate_from_mrbob
+
+    if not CONFIG_FILE.exists():
+        migrated = migrate_from_mrbob()
+        if migrated:
+            echo("Found existing ~/.mrbob configuration.", fg="yellow")
+            if click.confirm("Import settings from ~/.mrbob?", default=True):
+                cfg = migrated
+
+    # Interactive prompts with current values as defaults
+    cfg.author_name = click.prompt("Author name", default=cfg.author_name)
+    cfg.author_email = click.prompt("Author email", default=cfg.author_email)
+    cfg.github_user = click.prompt("GitHub username", default=cfg.github_user)
+
+    # Suggest latest Plone version
+    from plonecli.plone_versions import get_latest_stable_version
+
+    default_version = cfg.plone_version or get_latest_stable_version()
+    cfg.plone_version = click.prompt(
+        "Default Plone version", default=default_version
+    )
+
+    cfg.repo_url = click.prompt("Templates repo URL", default=cfg.repo_url)
+    cfg.repo_branch = click.prompt("Templates branch", default=cfg.repo_branch)
+
+    save_config(cfg)
+    echo(f"\nConfiguration saved to {CONFIG_FILE}", fg="green")
 
 
 @cli.command()
-def config():
-    """Configure mr.bob global settings"""
-    params = ["mrbob", "plonecli:configure_mrbob"]
-    echo("\nRUN: {0}".format(" ".join(params)), fg="green", reverse=True)
-    subprocess.call(params)
+@click.pass_context
+def update(context):
+    """Update copier-templates and check for plonecli updates"""
+    config = context.obj["config"]
+
+    # Update templates clone
+    echo("\nUpdating copier-templates...", fg="green")
+    try:
+        ensure_templates_cloned(config)
+        msg = update_templates_clone(config)
+        echo(f"  {msg}", fg="green")
+    except Exception as e:  # noqa: BLE001
+        echo(f"  Failed to update templates: {e}", fg="red")
+
+    # Check PyPI for plonecli updates
+    echo("\nChecking for plonecli updates...", fg="green")
+    try:
+        from plonecli.updater import check_for_updates
+
+        new_version = check_for_updates(force=True)
+        if new_version:
+            current = importlib.metadata.version("plonecli")
+            echo(
+                f"  New version available: {new_version} (current: {current})",
+                fg="yellow",
+            )
+            echo("  Update with: uv tool upgrade plonecli", fg="yellow")
+        else:
+            echo("  plonecli is up to date.", fg="green")
+    except Exception as e:  # noqa: BLE001
+        echo(f"  Could not check for updates: {e}", fg="red")
+
+    # Show templates info
+    echo(f"\nTemplates: {get_templates_info(config)}", fg="green")
+
+
+@cli.command()
+@click.argument(
+    "shell",
+    required=False,
+    type=click.Choice(["bash", "zsh", "fish"]),
+)
+@click.option("--install", is_flag=True, help="Install completion into your shell config")
+def completion(shell, install):
+    """Show or install shell completion.
+
+    Without arguments, auto-detects your shell and prints the completion script.
+    Use --install to append the activation line to your shell config file.
+    """
+    import os
+
+    if shell is None:
+        login_shell = os.path.basename(os.environ.get("SHELL", ""))
+        if login_shell in ("bash", "zsh", "fish"):
+            shell = login_shell
+        else:
+            raise click.UsageError(
+                f"Could not detect shell (SHELL={os.environ.get('SHELL', '')!r}).\n"
+                "Please specify one: plonecli completion bash|zsh|fish"
+            )
+
+    env_var = "_PLONECLI_COMPLETE"
+    source_cmd = f"{env_var}={shell}_source plonecli"
+
+    if not install:
+        # Print the completion script to stdout
+        import subprocess as _sp
+
+        env = {**os.environ, env_var: f"{shell}_source"}
+        result = _sp.run(["plonecli"], capture_output=True, text=True, env=env)
+        if result.stdout:
+            click.echo(result.stdout)
+        else:
+            # Fallback: print eval instruction
+            click.echo(f'eval "$({source_cmd})"')
+        return
+
+    # --install: append eval line to the appropriate rc file
+    rc_files = {
+        "bash": os.path.expanduser("~/.bashrc"),
+        "zsh": os.path.expanduser("~/.zshrc"),
+        "fish": os.path.expanduser("~/.config/fish/completions/plonecli.fish"),
+    }
+    rc_file = rc_files[shell]
+
+    if shell == "fish":
+        # Fish uses a completions directory with the script itself
+        os.makedirs(os.path.dirname(rc_file), exist_ok=True)
+        eval_line = f"env {source_cmd} | source"
+    else:
+        eval_line = f'eval "$({source_cmd})"'
+
+    # Check if already installed
+    if os.path.exists(rc_file):
+        with open(rc_file) as f:
+            content = f.read()
+        if "_PLONECLI_COMPLETE" in content:
+            echo(f"Shell completion already configured in {rc_file}", fg="yellow")
+            return
+
+    with open(rc_file, "a") as f:
+        f.write(f"\n# plonecli shell completion\n{eval_line}\n")
+
+    echo(f"Shell completion installed in {rc_file}", fg="green")
+    echo(f"Restart your shell or run: source {rc_file}", fg="green")
 
 
 if __name__ == "__main__":

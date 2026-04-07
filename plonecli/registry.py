@@ -1,150 +1,98 @@
-# -*- coding: utf-8 -*-
+"""Template discovery from local copier-templates clone."""
 
-from __future__ import print_function
+from __future__ import annotations
 
-import importlib.metadata
-import os
+from pathlib import Path
 
-try:
-    from six.moves.configparser import ConfigParser
-    from six.moves.configparser import NoOptionError
-    from six.moves.configparser import NoSectionError
-except ImportError:
-    from configparser import ConfigParser
-    from configparser import NoOptionError
-    from configparser import NoSectionError
+from plonecli.config import PlonecliConfig
+from plonecli.project import ProjectContext
+from plonecli.templates import MAIN_TEMPLATES, SUBTEMPLATES, TEMPLATE_ALIASES
 
 
-class BobConfig(object):
-    def __init__(self):
-        self.template = None
-        self.python = "python"
+class TemplateRegistry:
+    """Discovers available templates by scanning the local clone for copier.yml files."""
 
+    def __init__(
+        self,
+        config: PlonecliConfig,
+        project: ProjectContext | None = None,
+    ):
+        self.config = config
+        self.project = project
+        self.templates_dir = Path(config.templates_dir)
 
-def read_bob_config(root_folder):
-    bob_config = BobConfig()
-    if not root_folder:
-        return bob_config
-    config = ConfigParser()
-    path = root_folder + "/bobtemplate.cfg"
-    config.read(path)
-    sections = {
-        "main": ["template", "python"],
-    }
-    for section, options in sections.items():
-        for option in options:
-            try:
-                value = config.get(section, option)
-                setattr(bob_config, option, value)
-            except (NoSectionError, NoOptionError):
-                continue
-    return bob_config
-
-
-def get_package_root(cur_dir=None):
-    """Find package root folder.
-
-    It traverses from the cur_dir up until a bobtemplate.cfg was found which
-    contains a 'main' section with a 'template' option.
-
-    :returns: root_folder or None
-    """
-    file_name = "bobtemplate.cfg"
-    root_folder = None
-    cur_dir = cur_dir or os.getcwd()
-    while True:
-        files = os.listdir(cur_dir)
-        parent_dir = os.path.dirname(cur_dir)
-        if file_name in files:
-            bob_config = read_bob_config(cur_dir)
-            if not bob_config.template:
-                cur_dir = parent_dir
-                continue
-            root_folder = cur_dir
-            break
-        else:
-            if cur_dir == parent_dir:
-                break
-            cur_dir = parent_dir
-    return root_folder
-
-
-class TemplateRegistry(object):
-    def __init__(self, cur_dir=None):
-        self.root_folder = get_package_root(cur_dir=cur_dir)
-        self.bob_config = read_bob_config(self.root_folder)
-        self.templates = {}
-        self.template_infos = {}
-
-        for entry_point in importlib.metadata.entry_points(group="mrbob_templates"):
-            template_info_method = entry_point.load()
-            self.template_infos[entry_point.name] = template_info_method()
-
-        for entry_point_name, tmpl_info in self.template_infos.items():
-            if tmpl_info.depend_on:
-                continue
-            self.templates[entry_point_name] = {
-                "template_name": tmpl_info.plonecli_alias or entry_point_name,
-                "subtemplates": {},
-                "info": tmpl_info.info,
-                "deprecated": tmpl_info.deprecated,
-            }
-
-        for entry_point_name, tmpl_info in self.template_infos.items():
-            if not tmpl_info.depend_on:
-                continue
-            if tmpl_info.depend_on not in self.templates:
-                print(
-                    "{",
-                    'Template dependency "{0}" not found!'.format(
-                        tmpl_info.depend_on,
-                    ),
-                    "}",
-                )
-                continue
-            self.templates[tmpl_info.depend_on]["subtemplates"][entry_point_name] = (
-                tmpl_info.plonecli_alias or entry_point_name
-            )
-
-    def list_templates(self):
-        templates_str = "Available mr.bob templates:\n"
-        for key in sorted(self.templates.keys()):
-            tmpl = self.templates[key]
-            tmpl_entry = tmpl["template_name"]
-            tmpl_deprecated = tmpl.get("deprecated")
-            tmpl_info = tmpl.get("info")
-            if tmpl_deprecated:
-                tmpl_entry += " [deprecated]"
-            if tmpl_info:
-                tmpl_entry += " >> {0}".format(tmpl_info)
-            templates_str += " - {0}\n".format(
-                tmpl_entry,
-            )
-            subtemplates = tmpl.get("subtemplates", [])
-            for subtmpl_name in sorted(subtemplates.values()):
-                templates_str += "  - {0}\n".format(subtmpl_name)
-        return templates_str
-
-    def get_templates(self):
-        if not self.root_folder:
-            return [tmpl["template_name"] for tmpl in self.templates.values()]
-        template = self.templates.get(self.bob_config.template)
-        if not template:
-            print(
-                "no subtemplates found for {0}!".format(
-                    self.bob_config.template,
-                ),
-            )
+    def _discover_templates(self) -> list[str]:
+        """Scan the templates directory for subdirectories with copier.yml."""
+        if not self.templates_dir.exists():
             return []
-        return list(template["subtemplates"].values())
+        templates = []
+        for entry in sorted(self.templates_dir.iterdir()):
+            if entry.is_dir() and (entry / "copier.yml").exists():
+                templates.append(entry.name)
+        return templates
 
-    def resolve_template_name(self, plonecli_alias):
-        """resolve template name from plonecli alias"""
-        template_name = None
-        for entry_point, tmpl_info in self.template_infos.items():
-            if tmpl_info.plonecli_alias == plonecli_alias:
-                template_name = tmpl_info.template
-        return template_name
+    def get_main_templates(self) -> list[str]:
+        """List templates available for `plonecli create`."""
+        discovered = self._discover_templates()
+        return [t for t in discovered if t in MAIN_TEMPLATES]
 
+    def get_subtemplates(self) -> list[str]:
+        """List templates available for `plonecli add`.
 
-template_registry = TemplateRegistry()
+        Context-aware: returns subtemplates valid for the detected project type.
+        """
+        if not self.project:
+            return []
+        allowed = SUBTEMPLATES.get(self.project.project_type, [])
+        discovered = self._discover_templates()
+        return [t for t in discovered if t in allowed]
+
+    def get_available_templates(self) -> list[str]:
+        """Context-aware template list.
+
+        Returns main templates if outside a project, subtemplates if inside.
+        """
+        if self.project:
+            return self.get_subtemplates()
+        return self.get_main_templates()
+
+    def list_templates(self) -> str:
+        """Return a formatted string of all available templates for display."""
+        lines = ["Available templates:"]
+
+        main = self.get_main_templates()
+        if main:
+            lines.append("")
+            lines.append("  Project templates (plonecli create <template> <name>):")
+            for t in main:
+                # Show user-friendly aliases
+                aliases = [a for a, v in TEMPLATE_ALIASES.items() if v == t and a != t]
+                alias_str = f" (alias: {aliases[0]})" if aliases else ""
+                lines.append(f"    - {t}{alias_str}")
+
+                # Show subtemplates for this project type
+                project_type = "backend_addon" if t == "backend_addon" else "project"
+                subs = SUBTEMPLATES.get(project_type, [])
+                if subs:
+                    for s in subs:
+                        lines.append(f"        - {s}")
+
+        if self.project:
+            subs = self.get_subtemplates()
+            if subs:
+                lines.append("")
+                lines.append("  Feature templates (plonecli add <template>):")
+                for s in subs:
+                    lines.append(f"    - {s}")
+
+        return "\n".join(lines)
+
+    def resolve_template_name(self, alias: str) -> str | None:
+        """Resolve a user-provided alias to a canonical template directory name."""
+        if alias in TEMPLATE_ALIASES:
+            return TEMPLATE_ALIASES[alias]
+        # Check if it's a valid template name directly
+        discovered = self._discover_templates()
+        if alias in discovered:
+            return alias
+        return None

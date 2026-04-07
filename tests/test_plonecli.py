@@ -1,210 +1,182 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""Tests for plonecli CLI commands."""
 
-"""Tests for `plonecli` package."""
+from unittest.mock import MagicMock, patch
 
-from __future__ import absolute_import
-
-from click.testing import CliRunner
-from plonecli import cli
-
-import click
-import os
 import pytest
-import subprocess
-import sys
+from click.testing import CliRunner
+
+from plonecli.cli import cli
 
 
 @pytest.fixture
-def response():
-    """Sample pytest fixture.
-
-    See more at: http://doc.pytest.org/en/latest/fixture.html
-    """
-    # import requests
-    # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
+def runner():
+    return CliRunner()
 
 
-def test_content(response):
-    """Sample pytest test function with the pytest fixture as an argument."""
-    # from bs4 import BeautifulSoup
-    # assert 'GitHub' in BeautifulSoup(response.content).title.string
-
-
-def test_command_line_interface():
-    """Test the CLI."""
-    runner = CliRunner()
-    result = runner.invoke(cli.cli)
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+def test_cli_help(mock_config, mock_project, runner):
+    mock_config.return_value = MagicMock(templates_dir="/tmp/nonexistent")
+    result = runner.invoke(cli, ["--help"])
     assert result.exit_code == 0
-    # assert 'Plone Command Line Interface' in result.output
-
-    help_result = runner.invoke(cli.cli, ["--help"])
-    assert help_result.exit_code == 0
-    assert "Usage: cli" in help_result.output
-
-    help_result = runner.invoke(cli.cli, ["-h"])
-    assert help_result.exit_code == 0
-    assert "Usage: cli" in help_result.output
-
-    version_result = runner.invoke(cli.cli, ["-V"])
-    assert version_result.exit_code == 0
-    assert "Available packages:" in version_result.output
-
-    version_result = runner.invoke(cli.cli, ["--versions"])
-    assert version_result.exit_code == 0
-    assert "Available packages:" in version_result.output
+    assert "Plone Command Line Interface" in result.output
 
 
-def test_plonecli_test():
-    runner = CliRunner()
-    template = """[main]
-version = 5.1-latest
-template = plone_addon
-git_init = y
-"""
-    with runner.isolated_filesystem():
-        with open("bobtemplate.cfg", "w") as f:
-            f.write(template)
-        context = click.Context(cli.run_test)
-        context.obj = {}
-        context.obj["target_dir"] = os.path.dirname(os.path.abspath("bobtemplate.cfg"))
-
-        test_command_result_a = runner.invoke(
-            cli.run_test,
-            args=["--all"],
-            obj=context.obj,
-        )
-        assert "\nRUN: ./bin/test --all" in test_command_result_a.output
-
-        test_command_result_t_a = runner.invoke(
-            cli.run_test,
-            args=["-t src/collective/todo/tests/test_robot.py", "-a"],
-            obj=context.obj,
-        )
-        assert (
-            "./bin/test --test  src/collective/todo/tests/test_robot.py --all"
-            in test_command_result_t_a.output
-        )  # NOQA: E501
-
-        test_command_result_s_a = runner.invoke(
-            cli.run_test,
-            args=["-s collective.todo", "-a"],
-            obj=context.obj,
-        )
-        assert (
-            "./bin/test --package  collective.todo --all"
-            in test_command_result_s_a.output
-        )  # NOQA: E501
-
-        test_command_result_t_s = runner.invoke(
-            cli.run_test,
-            args=["-t src/collective/todo/tests/test_robot.py", "-s collective.todo"],
-            obj=context.obj,
-        )
-        assert (
-            "./bin/test --test  src/collective/todo/tests/test_robot.py --package  collective.todo"
-            in test_command_result_t_s.output
-        )  # NOQA: E501
-
-        test_command_result = runner.invoke(
-            cli.run_test,
-            args=[
-                "-t src/collective/todo/tests/test_robot.py",
-                "-s collective.todo",
-                "--all",
-            ],
-            obj=context.obj,
-        )
-        assert (
-            "./bin/test --test  src/collective/todo/tests/test_robot.py --package  collective.todo --all"
-            in test_command_result.output
-        )  # NOQA: E501
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+def test_cli_versions(mock_config, mock_project, runner):
+    mock_config.return_value = MagicMock(templates_dir="/tmp/nonexistent")
+    with patch("plonecli.cli.importlib.metadata.version", return_value="3.0.0a1"):
+        with patch("plonecli.cli.get_templates_info", return_value="abc123 2026-04-07"):
+            result = runner.invoke(cli, ["-V"])
+            assert "3.0.0a1" in result.output
+            assert "abc123" in result.output
 
 
-def test_plonecli_build_default_py(tmpdir, plonecli_bin):
-    target_path = tmpdir.strpath
-    os.chdir(target_path)
-    template = """
-setuptools==40.8.0
-zc.buildout==2.13.1
-"""
-    with open("requirements.txt", "w") as f:
-        f.write(template)
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+def test_cli_list_templates(mock_config, mock_project, runner, tmp_path):
+    # Set up mock templates dir
+    for name in ["backend_addon", "zope-setup", "behavior", "content_type"]:
+        d = tmp_path / name
+        d.mkdir()
+        (d / "copier.yml").touch()
 
-    template = """[buildout]
-parts =
-"""
-    with open("buildout.cfg", "w") as f:
-        f.write(template)
-
-    template = """[main]
-version = 5.2.2
-template = plone_addon
-python = python3
-git_init = y
-"""
-    with open("bobtemplate.cfg", "w") as f:
-        f.write(template)
-    result = subprocess.check_output([plonecli_bin, "build"], cwd=target_path)
-    assert "\nRUN: python3 -m venv venv" in result.decode()
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    result = runner.invoke(cli, ["-l"])
+    assert "Available templates:" in result.output
+    assert "backend_addon" in result.output
 
 
-@pytest.mark.skipif(sys.version_info < (3, 7), reason="requires explicitly python3.7")
-def test_plonecli_build_py_option(tmpdir, plonecli_bin):
-    target_path = tmpdir.strpath
-    os.chdir(target_path)
-    template = """
-setuptools==40.8.0
-zc.buildout==2.13.1
-"""
-    with open("requirements.txt", "w") as f:
-        f.write(template)
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_create_command(mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path):
+    for name in ["backend_addon", "zope-setup"]:
+        d = tmp_path / name
+        d.mkdir()
+        (d / "copier.yml").touch()
 
-    template = """[buildout]
-parts =
-"""
-    with open("buildout.cfg", "w") as f:
-        f.write(template)
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    result = runner.invoke(cli, ["create", "addon", "my.addon"])
 
-    template = """[main]
-version = 5.2-latest
-template = plone_addon
-python = python3
-"""
-    with open("bobtemplate.cfg", "w") as f:
-        f.write(template)
+    assert result.exit_code == 0
+    mock_run_create.assert_called_once()
+    call_args = mock_run_create.call_args
+    assert call_args[0][0] == "backend_addon"
+    assert call_args[0][1] == "my.addon"
 
-    result = subprocess.check_output(
-        [plonecli_bin, "build", "-p", "python3"],
-        cwd=target_path,
+
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+def test_create_unknown_template(mock_config, mock_project, runner, tmp_path):
+    for name in ["backend_addon"]:
+        d = tmp_path / name
+        d.mkdir()
+        (d / "copier.yml").touch()
+
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    result = runner.invoke(cli, ["create", "nonexistent", "mypackage"])
+    assert result.exit_code != 0
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_command(mock_ensure, mock_run_add, mock_config, mock_project, runner, tmp_path):
+    for name in ["backend_addon", "behavior", "content_type"]:
+        d = tmp_path / name
+        d.mkdir()
+        (d / "copier.yml").touch()
+
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="backend_addon",
+        package_name="test.addon",
+        package_folder="test/addon",
+        settings={},
     )
-    assert "\nRUN: python3 -m venv venv" in result.decode()
+
+    result = runner.invoke(cli, ["add", "behavior"])
+    assert result.exit_code == 0
+    mock_run_add.assert_called_once()
 
 
-@pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
-def test_plonecli_build_py_conf(tmpdir, plonecli_bin):
-    target_path = tmpdir.strpath
-    os.chdir(target_path)
-    template = """
-setuptools==40.8.0
-zc.buildout==2.13.1
-"""
-    with open("requirements.txt", "w") as f:
-        f.write(template)
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+def test_add_outside_project(mock_config, mock_project, runner, tmp_path):
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    result = runner.invoke(cli, ["add", "behavior"])
+    assert result.exit_code != 0
 
-    template = """[buildout]
-parts =
-"""
-    with open("buildout.cfg", "w") as f:
-        f.write(template)
 
-    template = """[main]
-version = 5.2-latest
-template = plone_addon
-python = python3
-"""
-    with open("bobtemplate.cfg", "w") as f:
-        f.write(template)
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.subprocess.call", return_value=0)
+def test_serve_command(mock_call, mock_config, mock_project, runner, tmp_path):
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="project",
+        settings={},
+    )
 
-    result = subprocess.check_output([plonecli_bin, "build"], cwd=target_path)
-    assert "\nRUN: python3 -m venv venv" in result.decode()
+    result = runner.invoke(cli, ["serve"])
+    assert result.exit_code == 0
+    mock_call.assert_called_once()
+    call_args = mock_call.call_args[0][0]
+    assert call_args == ["uv", "run", "invoke", "start"]
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.subprocess.call", return_value=0)
+def test_test_command(mock_call, mock_config, mock_project, runner, tmp_path):
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="backend_addon",
+        settings={},
+    )
+
+    result = runner.invoke(cli, ["test"])
+    assert result.exit_code == 0
+    call_args = mock_call.call_args[0][0]
+    assert call_args == ["uv", "run", "invoke", "test"]
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.subprocess.call", return_value=0)
+def test_test_command_verbose(mock_call, mock_config, mock_project, runner, tmp_path):
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="backend_addon",
+        settings={},
+    )
+
+    result = runner.invoke(cli, ["test", "--verbose"])
+    assert result.exit_code == 0
+    call_args = mock_call.call_args[0][0]
+    assert "--verbose" in call_args
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.subprocess.call", return_value=0)
+def test_debug_command(mock_call, mock_config, mock_project, runner, tmp_path):
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="project",
+        settings={},
+    )
+
+    result = runner.invoke(cli, ["debug"])
+    assert result.exit_code == 0
+    call_args = mock_call.call_args[0][0]
+    assert call_args == ["uv", "run", "invoke", "debug"]
