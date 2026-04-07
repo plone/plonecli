@@ -92,22 +92,6 @@ _PLONECLI_COMPLETE=bash_source plonecli > ~/.plonecli-complete.bash
 source ~/.plonecli-complete.bash
 ```
 
-### Developer Shell Completion
-
-When developing plonecli or copier-templates from a git checkout, the installed `plonecli` entry point may not reflect your local changes. Use `uv run` to run the development version, but note that tab-completion only works for the installed `plonecli` command, not `uv run plonecli`.
-
-For development, temporarily install the package in editable mode so that the `plonecli` entry point uses your local code:
-
-```shell
-uv tool install --editable .
-```
-
-This makes the global `plonecli` command point to your working copy, and shell completion works normally. When done, reinstall the released version:
-
-```shell
-uv tool install plonecli
-```
-
 
 ## First Run
 
@@ -403,6 +387,23 @@ git clone https://github.com/plone/plonecli/
 cd plonecli
 uv sync --extra dev --extra test
 plonecli --help
+```
+
+
+### Shell Completion for Development
+
+When developing plonecli or copier-templates from a git checkout, the installed `plonecli` entry point may not reflect your local changes. Use `uv run` to run the development version, but note that tab-completion only works for the installed `plonecli` command, not `uv run plonecli`.
+
+For development, temporarily install the package in editable mode so that the `plonecli` entry point uses your local code:
+
+```shell
+uv tool install --editable .
+```
+
+This makes the global `plonecli` command point to your working copy, and shell completion works normally. When done, reinstall the released version:
+
+```shell
+uv tool install plonecli
 ```
 
 

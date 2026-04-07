@@ -134,11 +134,16 @@ def _build_user_defaults(config: PlonecliConfig) -> dict:
     if config.author_email and config.author_email != "dev@plone.org":
         defaults["author_email"] = config.author_email
 
-    # Resolve plone_version: use config value or fetch latest
+    # Resolve plone_version: use config value or fetch latest.
+    # Truncate to major.minor (e.g. "6.1.1" -> "6.1") to match
+    # the template choices which use major.minor format.
     plone_version = config.plone_version
     if not plone_version:
         plone_version = get_latest_stable_version()
     if plone_version:
+        parts = plone_version.split(".")
+        if len(parts) >= 2:
+            plone_version = f"{parts[0]}.{parts[1]}"
         defaults["plone_version"] = plone_version
 
     return defaults
