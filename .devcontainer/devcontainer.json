@@ -41,7 +41,9 @@
 	"remoteUser": "node",
 	"mounts": [
 		"source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-		"source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"
+		"source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume",
+		"source=${localEnv:HOME}/develop/plone/src/copier-templates,target=/home/node/develop/plone/src/copier-templates,type=bind,consistency=delegated",
+		"source=${localEnv:HOME}/.copier-templates/plone-copier-templates,target=/home/node/.copier-templates/plone-copier-templates,type=bind,readonly"
 	],
 	"containerEnv": {
 		"CLAUDE_CONFIG_DIR": "/home/node/.claude",
