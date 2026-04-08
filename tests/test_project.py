@@ -96,3 +96,56 @@ plone_version = "6.1"
     ctx = find_project_root(tmp_path)
     assert ctx is not None
     assert ctx.project_type == "backend_addon"
+
+
+def _make_bobtemplate_cfg(path, template="plone_addon"):
+    """Create a legacy bobtemplate.cfg."""
+    cfg = path / "bobtemplate.cfg"
+    cfg.write_text(f"""\
+[main]
+version = 5.1
+python = python2.7
+template = {template}
+git_init = y
+""")
+
+
+def test_find_bobtemplate_cfg(tmp_path):
+    """A directory with bobtemplate.cfg template=plone_addon is detected as backend_addon."""
+    project_dir = tmp_path / "lmu.geozentrum"
+    project_dir.mkdir()
+    _make_bobtemplate_cfg(project_dir)
+    ctx = find_project_root(project_dir)
+    assert ctx is not None
+    assert ctx.project_type == "backend_addon"
+    assert ctx.package_name == "lmu.geozentrum"
+    assert ctx.package_folder == "lmu/geozentrum"
+
+
+def test_bobtemplate_cfg_walks_up(tmp_path):
+    """bobtemplate.cfg detection works when starting from a subdirectory."""
+    project_dir = tmp_path / "my.addon"
+    subdir = project_dir / "src" / "my" / "addon"
+    subdir.mkdir(parents=True)
+    _make_bobtemplate_cfg(project_dir)
+    ctx = find_project_root(subdir)
+    assert ctx is not None
+    assert ctx.root_folder == project_dir
+    assert ctx.project_type == "backend_addon"
+
+
+def test_pyproject_takes_priority_over_bobtemplate(tmp_path):
+    """pyproject.toml detection wins over bobtemplate.cfg."""
+    _make_backend_addon(tmp_path)
+    _make_bobtemplate_cfg(tmp_path)
+    ctx = find_project_root(tmp_path)
+    assert ctx is not None
+    assert ctx.project_type == "backend_addon"
+    assert ctx.package_name == "collective.myaddon"
+
+
+def test_bobtemplate_cfg_unknown_template_ignored(tmp_path):
+    """bobtemplate.cfg with an unknown template type is ignored."""
+    _make_bobtemplate_cfg(tmp_path, template="unknown_template")
+    ctx = find_project_root(tmp_path)
+    assert ctx is None

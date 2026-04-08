@@ -24,7 +24,7 @@ MAIN_TEMPLATES = {"backend_addon", "zope-setup"}
 
 # Subtemplates per parent project type (used with `plonecli add`)
 SUBTEMPLATES: dict[str, list[str]] = {
-    "backend_addon": ["behavior", "content_type", "restapi_service"],
+    "backend_addon": ["behavior", "content_type", "restapi_service", "upgrade_step"],
     "project": ["zope_instance"],
 }
 
