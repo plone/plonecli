@@ -48,6 +48,9 @@ packages = ["plonecli"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "integration: end-to-end tests that generate projects and run Plone (slow)",
+]
 
 [tool.ruff]
 line-length = 88
