@@ -95,3 +95,8 @@ USER node
 
 # Install UV package manager
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install Claude Code (native) and OpenCode into ~/.local/bin (persisted in image)
+RUN mkdir -p "$HOME/.local/bin" && \
+  curl -fsSL https://claude.ai/install.sh | bash && \
+  curl -fsSL https://opencode.ai/install | bash
