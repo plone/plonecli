@@ -1,8 +1,8 @@
 History
 =======
 
-2.6 (unreleased)
-----------------
+3.0b1 (2026-04-14)
+------------------
 
 - Support only python 3.11 - 3.14
   [erral]
