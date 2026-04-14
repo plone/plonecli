@@ -48,7 +48,7 @@ def test_find_project(tmp_path):
     _make_project(tmp_path)
     ctx = find_project_root(tmp_path)
     assert ctx is not None
-    assert ctx.project_type == "project"
+    assert ctx.project_type == "zope-setup"
     assert ctx.settings["plone_version"] == "6.1.1"
     assert ctx.settings["distribution"] == "plone.volto"
     assert ctx.settings["project_name"] == "my-project"

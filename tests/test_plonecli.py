@@ -33,14 +33,28 @@ def test_cli_versions(mock_config, mock_project, runner):
             assert "abc123" in result.output
 
 
+def _make_template(tmp_path, name, plonecli_meta):
+    d = tmp_path / name
+    d.mkdir()
+    lines = ["_plonecli:"]
+    for key, value in plonecli_meta.items():
+        if isinstance(value, list):
+            lines.append(f"  {key}:")
+            for v in value:
+                lines.append(f"    - {v}")
+        else:
+            lines.append(f"  {key}: {value}")
+    (d / "copier.yml").write_text("\n".join(lines) + "\n")
+
+
 @patch("plonecli.cli.find_project_root", return_value=None)
 @patch("plonecli.cli.load_config")
 def test_cli_list_templates(mock_config, mock_project, runner, tmp_path):
     # Set up mock templates dir
-    for name in ["backend_addon", "zope-setup", "behavior", "content_type"]:
-        d = tmp_path / name
-        d.mkdir()
-        (d / "copier.yml").touch()
+    _make_template(tmp_path, "backend_addon", {"type": "main", "aliases": ["addon"]})
+    _make_template(tmp_path, "zope-setup", {"type": "main"})
+    _make_template(tmp_path, "behavior", {"type": "sub", "parent": "backend_addon"})
+    _make_template(tmp_path, "content_type", {"type": "sub", "parent": "backend_addon"})
 
     mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
     result = runner.invoke(cli, ["-l"])
@@ -53,10 +67,8 @@ def test_cli_list_templates(mock_config, mock_project, runner, tmp_path):
 @patch("plonecli.cli.run_create")
 @patch("plonecli.cli.ensure_templates_cloned")
 def test_create_command(mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path):
-    for name in ["backend_addon", "zope-setup"]:
-        d = tmp_path / name
-        d.mkdir()
-        (d / "copier.yml").touch()
+    _make_template(tmp_path, "backend_addon", {"type": "main", "aliases": ["addon"]})
+    _make_template(tmp_path, "zope-setup", {"type": "main"})
 
     mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
     result = runner.invoke(cli, ["create", "addon", "my.addon"])
@@ -71,10 +83,7 @@ def test_create_command(mock_ensure, mock_run_create, mock_config, mock_project,
 @patch("plonecli.cli.find_project_root", return_value=None)
 @patch("plonecli.cli.load_config")
 def test_create_unknown_template(mock_config, mock_project, runner, tmp_path):
-    for name in ["backend_addon"]:
-        d = tmp_path / name
-        d.mkdir()
-        (d / "copier.yml").touch()
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
 
     mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
     result = runner.invoke(cli, ["create", "nonexistent", "mypackage"])
@@ -86,10 +95,9 @@ def test_create_unknown_template(mock_config, mock_project, runner, tmp_path):
 @patch("plonecli.cli.run_add")
 @patch("plonecli.cli.ensure_templates_cloned")
 def test_add_command(mock_ensure, mock_run_add, mock_config, mock_project, runner, tmp_path):
-    for name in ["backend_addon", "behavior", "content_type"]:
-        d = tmp_path / name
-        d.mkdir()
-        (d / "copier.yml").touch()
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    _make_template(tmp_path, "behavior", {"type": "sub", "parent": "backend_addon"})
+    _make_template(tmp_path, "content_type", {"type": "sub", "parent": "backend_addon"})
 
     mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
     mock_project.return_value = MagicMock(
@@ -120,7 +128,7 @@ def test_serve_command(mock_call, mock_config, mock_project, runner, tmp_path):
     mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
     mock_project.return_value = MagicMock(
         root_folder=tmp_path,
-        project_type="project",
+        project_type="zope-setup",
         settings={},
     )
 
@@ -172,7 +180,7 @@ def test_debug_command(mock_call, mock_config, mock_project, runner, tmp_path):
     mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
     mock_project.return_value = MagicMock(
         root_folder=tmp_path,
-        project_type="project",
+        project_type="zope-setup",
         settings={},
     )
 

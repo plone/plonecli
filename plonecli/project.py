@@ -11,7 +11,7 @@ from pathlib import Path
 @dataclass
 class ProjectContext:
     root_folder: Path
-    project_type: str  # "backend_addon" or "project"
+    project_type: str  # canonical main template name, e.g. "backend_addon" or "zope-setup"
     settings: dict
     package_name: str | None = None
     package_folder: str | None = None
@@ -115,7 +115,7 @@ def find_project_root(start_dir: Path | None = None) -> ProjectContext | None:
 
     Detection order (first match wins):
     1. pyproject.toml with [tool.plone.backend_addon.settings] -> backend_addon
-    2. pyproject.toml with [tool.plone.project.settings] -> project (zope-setup)
+    2. pyproject.toml with [tool.plone.project.settings] -> zope-setup
     3. bobtemplate.cfg with [main] template -> mapped project type (legacy)
 
     Returns the first match found walking upward, or None.
@@ -141,7 +141,7 @@ def find_project_root(start_dir: Path | None = None) -> ProjectContext | None:
             if project_settings:
                 return ProjectContext(
                     root_folder=current,
-                    project_type="project",
+                    project_type="zope-setup",
                     settings=project_settings,
                 )
 

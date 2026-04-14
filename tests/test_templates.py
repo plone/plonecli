@@ -1,48 +1,16 @@
 """Tests for plonecli.templates module."""
 
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from plonecli.config import PlonecliConfig
-from plonecli.project import ProjectContext
 from plonecli.templates import (
-    MAIN_TEMPLATES,
-    SUBTEMPLATES,
     ensure_templates_cloned,
     get_template_path,
     get_templates_info,
-    resolve_template_name,
     update_templates_clone,
 )
-
-
-def test_resolve_template_name_aliases():
-    assert resolve_template_name("addon") == "backend_addon"
-    assert resolve_template_name("backend_addon") == "backend_addon"
-    assert resolve_template_name("zope-setup") == "zope-setup"
-    assert resolve_template_name("zope_setup") == "zope-setup"
-    assert resolve_template_name("behavior") == "behavior"
-    assert resolve_template_name("content_type") == "content_type"
-    assert resolve_template_name("restapi_service") == "restapi_service"
-    assert resolve_template_name("zope_instance") == "zope_instance"
-
-
-def test_resolve_template_name_unknown():
-    assert resolve_template_name("nonexistent") is None
-
-
-def test_main_templates():
-    assert "backend_addon" in MAIN_TEMPLATES
-    assert "zope-setup" in MAIN_TEMPLATES
-
-
-def test_subtemplates():
-    assert "behavior" in SUBTEMPLATES["backend_addon"]
-    assert "content_type" in SUBTEMPLATES["backend_addon"]
-    assert "restapi_service" in SUBTEMPLATES["backend_addon"]
-    assert "zope_instance" in SUBTEMPLATES["project"]
 
 
 def test_ensure_templates_cloned_existing(tmp_path):
@@ -103,8 +71,9 @@ def test_update_templates_clone(mock_run, tmp_path):
 
 
 def test_get_template_path(tmp_path):
+    (tmp_path / "backend_addon").mkdir()
     config = PlonecliConfig(templates_dir=str(tmp_path))
-    path = get_template_path("addon", config)
+    path = get_template_path("backend_addon", config)
     assert path == tmp_path / "backend_addon"
 
 

@@ -11,41 +11,6 @@ from plonecli.config import PlonecliConfig
 from plonecli.project import ProjectContext
 
 
-# Template alias mapping: user-facing name -> directory in clone
-TEMPLATE_ALIASES: dict[str, str] = {
-    "addon": "backend_addon",
-    "backend_addon": "backend_addon",
-    "zope_setup": "zope-setup",
-    "zope-setup": "zope-setup",
-}
-
-# Main templates (used with `plonecli create`)
-MAIN_TEMPLATES = {"backend_addon", "zope-setup"}
-
-# Subtemplates per parent project type (used with `plonecli add`)
-SUBTEMPLATES: dict[str, list[str]] = {
-    "backend_addon": ["behavior", "content_type", "restapi_service", "upgrade_step"],
-    "project": ["zope_instance"],
-}
-
-
-def resolve_template_name(alias: str) -> str | None:
-    """Resolve a user-provided template alias to the canonical directory name.
-
-    Returns None if the alias is unknown.
-    """
-    # Check aliases first
-    if alias in TEMPLATE_ALIASES:
-        return TEMPLATE_ALIASES[alias]
-    # Check if it's already a valid directory name
-    all_templates = MAIN_TEMPLATES | {
-        t for subs in SUBTEMPLATES.values() for t in subs
-    }
-    if alias in all_templates:
-        return alias
-    return None
-
-
 def ensure_templates_cloned(config: PlonecliConfig) -> Path:
     """Ensure the copier-templates repo is cloned locally.
 
@@ -98,14 +63,17 @@ def update_templates_clone(config: PlonecliConfig) -> str:
 
 
 def get_template_path(template_name: str, config: PlonecliConfig) -> Path:
-    """Get the full filesystem path to a template directory in the clone."""
-    resolved = resolve_template_name(template_name)
-    if resolved is None:
+    """Get the full filesystem path to a template directory in the clone.
+
+    ``template_name`` must already be a canonical directory name (resolve any
+    user-supplied alias via ``TemplateRegistry.resolve_template_name`` first).
+    """
+    templates_dir = Path(config.templates_dir)
+    path = templates_dir / template_name
+    if not path.exists():
         msg = f"Unknown template: {template_name}"
         raise ValueError(msg)
-
-    templates_dir = Path(config.templates_dir)
-    return templates_dir / resolved
+    return path
 
 
 def get_templates_info(config: PlonecliConfig) -> str:

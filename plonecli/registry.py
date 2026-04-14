@@ -8,7 +8,17 @@ import yaml
 
 from plonecli.config import PlonecliConfig
 from plonecli.project import ProjectContext
-from plonecli.templates import MAIN_TEMPLATES, SUBTEMPLATES, TEMPLATE_ALIASES
+
+
+def _normalize_parents(value) -> list[str]:
+    """Coerce a `parent` field to a list of parent project type names."""
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list):
+        return [str(v) for v in value]
+    return []
 
 
 def _read_template_metadata(copier_yml: Path) -> dict:
@@ -16,11 +26,15 @@ def _read_template_metadata(copier_yml: Path) -> dict:
 
     Expected format in copier.yml:
         _plonecli:
-            template_type: main | sub
-            parent_types:
+            type: main | sub
+            parent: backend_addon          # single parent (string)
+            # or:
+            parent:                         # multiple parents (list)
                 - backend_addon
+                - zope-setup
             aliases:
                 - upgrade
+            description: "..."
 
     Returns an empty dict if no _plonecli section is found.
     """
@@ -37,9 +51,8 @@ def _read_template_metadata(copier_yml: Path) -> dict:
 class TemplateRegistry:
     """Discovers available templates by scanning the local clone for copier.yml files.
 
-    Templates can self-register by adding a ``_plonecli`` section to their
-    ``copier.yml``.  This is merged with the hardcoded fallback lists in
-    ``plonecli.templates`` so that new templates work without a plonecli release.
+    Templates self-register via a ``_plonecli`` section in their ``copier.yml``.
+    A template without that section is ignored — there is no hardcoded fallback.
     """
 
     def __init__(
@@ -89,8 +102,8 @@ class TemplateRegistry:
     # ------------------------------------------------------------------
 
     def _build_aliases(self) -> dict[str, str]:
-        """Build alias -> canonical name mapping from hardcoded + dynamic sources."""
-        aliases = dict(TEMPLATE_ALIASES)
+        """Build alias -> canonical name mapping from template metadata."""
+        aliases: dict[str, str] = {}
         for name, meta in self._get_metadata().items():
             for alias in meta.get("aliases", []):
                 aliases[alias] = name
@@ -104,14 +117,9 @@ class TemplateRegistry:
 
     def get_main_templates(self) -> list[str]:
         """List templates available for ``plonecli create``."""
-        discovered = self._discover_templates()
         result = []
-        for name in discovered:
-            meta = self._get_metadata().get(name, {})
-            template_type = meta.get("template_type")
-            if template_type == "main" or (
-                template_type is None and name in MAIN_TEMPLATES
-            ):
+        for name, meta in self._get_metadata().items():
+            if meta.get("type") == "main":
                 result.append(name)
         return result
 
@@ -124,23 +132,7 @@ class TemplateRegistry:
             return []
 
         project_type = self.project.project_type
-        discovered = self._discover_templates()
-        # Hardcoded fallback list for this project type
-        hardcoded = set(SUBTEMPLATES.get(project_type, []))
-
-        result = []
-        for name in discovered:
-            meta = self._get_metadata().get(name, {})
-            template_type = meta.get("template_type")
-            parent_types = meta.get("parent_types", [])
-
-            if template_type == "sub" and project_type in parent_types:
-                # Dynamically registered subtemplate
-                result.append(name)
-            elif template_type is None and name in hardcoded:
-                # Fallback to hardcoded list
-                result.append(name)
-        return result
+        return self._get_subtemplates_for_type(project_type)
 
     def get_available_templates(self) -> list[str]:
         """Context-aware template list.
@@ -167,20 +159,17 @@ class TemplateRegistry:
         if main:
             lines.append("")
             lines.append("  Project templates (plonecli create <template> <name>):")
+            aliases = self._build_aliases()
             for t in main:
                 # Show user-friendly aliases
-                aliases = self._build_aliases()
                 alias_list = [a for a, v in aliases.items() if v == t and a != t]
                 alias_str = f" (alias: {alias_list[0]})" if alias_list else ""
                 lines.append(f"    - {t}{alias_str}")
 
-                # Show subtemplates for this project type
-                project_type = t if t in SUBTEMPLATES else "project"
-                # Also check dynamic subtemplates
-                subs = self._get_subtemplates_for_type(project_type)
-                if subs:
-                    for s in subs:
-                        lines.append(f"        - {s}")
+                # Show subtemplates that declare this main template as a parent
+                subs = self._get_subtemplates_for_type(t)
+                for s in subs:
+                    lines.append(f"        - {s}")
 
         if self.project:
             subs = self.get_subtemplates()
@@ -193,27 +182,16 @@ class TemplateRegistry:
         return "\n".join(lines)
 
     def _get_subtemplates_for_type(self, project_type: str) -> list[str]:
-        """Get all subtemplates for a given project type (for display purposes)."""
-        discovered = self._discover_templates()
-        hardcoded = set(SUBTEMPLATES.get(project_type, []))
+        """Get all subtemplates that declare ``project_type`` as a parent."""
         result = []
-        for name in discovered:
-            meta = self._get_metadata().get(name, {})
-            template_type = meta.get("template_type")
-            parent_types = meta.get("parent_types", [])
-            if template_type == "sub" and project_type in parent_types:
-                result.append(name)
-            elif template_type is None and name in hardcoded:
+        for name, meta in self._get_metadata().items():
+            if meta.get("type") != "sub":
+                continue
+            if project_type in _normalize_parents(meta.get("parent")):
                 result.append(name)
         return result
 
     def resolve_template_name(self, alias: str) -> str | None:
         """Resolve a user-provided alias to a canonical template directory name."""
         aliases = self._build_aliases()
-        if alias in aliases:
-            return aliases[alias]
-        # Check if it's a valid template name directly
-        discovered = self._discover_templates()
-        if alias in discovered:
-            return alias
-        return None
+        return aliases.get(alias)
