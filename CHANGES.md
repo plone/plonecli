@@ -1,8 +1,6 @@
 # History
 
-## 3.0.0a1 (unreleased)
-
-Breaking changes:
+## 7.0 (unreleased)
 
 - Major rewrite: replaced mr.bob/bobtemplates.plone with copier-templates.
   Templates are now managed as a local git clone at
@@ -49,6 +47,11 @@ New features:
 - Requires Python >= 3.11.
   [MrTango]
 
+
+# 3.0b1 (2026-04-14)
+
+- Support only python 3.11 - 3.14
+  [erral]
 
 ## 2.5 (2022-11-03)
 
