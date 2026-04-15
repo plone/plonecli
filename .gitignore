@@ -80,3 +80,4 @@ pyvenv.cfg
 .*project
 /bak_pyproject.toml
 /docs/venv
+/.claude/settings.local.json
