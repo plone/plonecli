@@ -239,7 +239,7 @@ github_user = "yourgithub"
 plone_version = "6.1.1"
 
 [templates]
-repo_url = "https://github.com/derico-de/copier-templates"
+repo_url = "https://github.com/plone/copier-templates"
 branch = "main"
 local_path = "~/.copier-templates/plone-copier-templates"
 ```

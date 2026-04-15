@@ -16,7 +16,7 @@ def test_default_config():
     assert config.author_email == "dev@plone.org"
     assert config.github_user == ""
     assert config.plone_version == ""
-    assert "derico-de/copier-templates" in config.repo_url
+    assert "plone/copier-templates" in config.repo_url
     assert config.repo_branch == "main"
 
 

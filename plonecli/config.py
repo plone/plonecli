@@ -12,7 +12,7 @@ from pathlib import Path
 CONFIG_DIR = Path.home() / ".plonecli"
 CONFIG_FILE = CONFIG_DIR / "config.toml"
 TEMPLATES_DIR = Path.home() / ".copier-templates" / "plone-copier-templates"
-DEFAULT_REPO_URL = "https://github.com/derico-de/copier-templates"
+DEFAULT_REPO_URL = "https://github.com/plone/copier-templates"
 DEFAULT_BRANCH = "main"
 
 # Environment variable overrides
