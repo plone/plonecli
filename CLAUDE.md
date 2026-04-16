@@ -1,2 +1,2 @@
 - use native uv, not uv pi or pip
-- if editing of copier-templates is need, do it in dev path: develop/plone/src/copier-templates, not in the local copy in .copier-templates dir.
+- if editing of copier-templates is need, do it in dev path: develop/plone/src/copier-templates, not in the local copy in .copier-templates dir. When in devcontainer, the directory should be in /home/node/.copier-templates/plone-copier-templates/
