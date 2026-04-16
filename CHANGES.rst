@@ -1,7 +1,7 @@
 History
 =======
 
-3.0 (unreleased)
+3.0 (2026-04-16)
 ----------------
 
 - Nothing changed yet.
