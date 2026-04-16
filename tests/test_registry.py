@@ -217,6 +217,64 @@ def test_is_main_template(tmp_path):
     assert reg.is_main_template("behavior") is False
 
 
+def test_composite_template_in_main_templates(tmp_path):
+    """Composite templates should appear in get_main_templates()."""
+    _write_template(tmp_path, "backend_addon", {"type": "main"})
+    _write_template(tmp_path, "zope-setup", {"type": "main"})
+    _write_template(
+        tmp_path,
+        "addon",
+        {"type": "composite", "templates": ["backend_addon", "zope-setup"], "aliases": ["add-on"]},
+    )
+    config = PlonecliConfig(templates_dir=str(tmp_path))
+    reg = TemplateRegistry(config)
+
+    main = reg.get_main_templates()
+    assert "addon" in main
+    assert "backend_addon" in main
+    assert reg.is_main_template("addon") is True
+
+
+def test_composite_resolve_alias(tmp_path):
+    """Alias on a composite should resolve to the composite name."""
+    _write_template(tmp_path, "backend_addon", {"type": "main"})
+    _write_template(
+        tmp_path,
+        "addon",
+        {"type": "composite", "templates": ["backend_addon", "zope-setup"], "aliases": ["add-on"]},
+    )
+    config = PlonecliConfig(templates_dir=str(tmp_path))
+    reg = TemplateRegistry(config)
+
+    assert reg.resolve_template_name("add-on") == "addon"
+    assert reg.resolve_template_name("addon") == "addon"
+
+
+def test_get_composite_steps(tmp_path):
+    """get_composite_steps returns the ordered template list for composites."""
+    _write_template(tmp_path, "backend_addon", {"type": "main"})
+    _write_template(tmp_path, "zope-setup", {"type": "main"})
+    _write_template(
+        tmp_path,
+        "addon",
+        {"type": "composite", "templates": ["backend_addon", "zope-setup"]},
+    )
+    config = PlonecliConfig(templates_dir=str(tmp_path))
+    reg = TemplateRegistry(config)
+
+    steps = reg.get_composite_steps("addon")
+    assert steps == ["backend_addon", "zope-setup"]
+
+
+def test_get_composite_steps_returns_none_for_non_composite(tmp_path):
+    """get_composite_steps returns None for regular templates."""
+    _write_template(tmp_path, "backend_addon", {"type": "main"})
+    config = PlonecliConfig(templates_dir=str(tmp_path))
+    reg = TemplateRegistry(config)
+
+    assert reg.get_composite_steps("backend_addon") is None
+
+
 def test_is_subtemplate(tmp_path):
     templates_dir = _setup_templates_dir(tmp_path)
     config = PlonecliConfig(templates_dir=str(templates_dir))

@@ -82,6 +82,51 @@ def test_create_command(mock_ensure, mock_run_create, mock_config, mock_project,
 
 @patch("plonecli.cli.find_project_root", return_value=None)
 @patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_create_composite_template(mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    _make_template(tmp_path, "zope-setup", {"type": "main"})
+    _make_template(
+        tmp_path,
+        "addon",
+        {"type": "composite", "templates": ["backend_addon", "zope-setup"], "aliases": ["add-on"]},
+    )
+
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    result = runner.invoke(cli, ["create", "addon", "my.addon"])
+
+    assert result.exit_code == 0
+    assert mock_run_create.call_count == 2
+    calls = mock_run_create.call_args_list
+    assert calls[0][0][0] == "backend_addon"
+    assert calls[0][0][1] == "my.addon"
+    assert calls[1][0][0] == "zope-setup"
+    assert calls[1][0][1] == "my.addon"
+
+
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_create_composite_via_alias(mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    _make_template(tmp_path, "zope-setup", {"type": "main"})
+    _make_template(
+        tmp_path,
+        "addon",
+        {"type": "composite", "templates": ["backend_addon", "zope-setup"], "aliases": ["add-on"]},
+    )
+
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    result = runner.invoke(cli, ["create", "add-on", "my.addon"])
+
+    assert result.exit_code == 0
+    assert mock_run_create.call_count == 2
+
+
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
 def test_create_unknown_template(mock_config, mock_project, runner, tmp_path):
     _make_template(tmp_path, "backend_addon", {"type": "main"})
 

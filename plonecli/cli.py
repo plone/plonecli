@@ -118,8 +118,15 @@ def create(context, template, name):
             possibilities=reg.get_main_templates(),
         )
 
-    echo(f"\nCreating {resolved} project: {name}", fg="green", reverse=True)
-    run_create(resolved, name, config)
+    steps = reg.get_composite_steps(resolved)
+    if steps:
+        echo(f"\nCreating {resolved} project: {name}", fg="green", reverse=True)
+        for step in steps:
+            echo(f"\n  Applying template: {step}", fg="green")
+            run_create(step, name, config)
+    else:
+        echo(f"\nCreating {resolved} project: {name}", fg="green", reverse=True)
+        run_create(resolved, name, config)
     context.obj["target_dir"] = name
 
 

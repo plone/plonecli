@@ -119,7 +119,7 @@ class TemplateRegistry:
         """List templates available for ``plonecli create``."""
         result = []
         for name, meta in self._get_metadata().items():
-            if meta.get("type") == "main":
+            if meta.get("type") in ("main", "composite"):
                 result.append(name)
         return result
 
@@ -190,6 +190,14 @@ class TemplateRegistry:
             if project_type in _normalize_parents(meta.get("parent")):
                 result.append(name)
         return result
+
+    def get_composite_steps(self, resolved_name: str) -> list[str] | None:
+        """Return the ordered list of templates for a composite, or None."""
+        meta = self._get_metadata().get(resolved_name, {})
+        if meta.get("type") != "composite":
+            return None
+        steps = meta.get("templates", [])
+        return steps if steps else None
 
     def resolve_template_name(self, alias: str) -> str | None:
         """Resolve a user-provided alias to a canonical template directory name."""
