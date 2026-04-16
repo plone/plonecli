@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b2 (unreleased)
+## 7.0.0b2 (2026-04-16)
 
 
 - Add composite template type: templates can declare `type: composite` with an

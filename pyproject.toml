@@ -1,6 +1,6 @@
 [project]
 name = "plonecli"
-version = "7.0.0b2.dev0"
+version = "7.0.0b2"
 description = "A Plone CLI for creating Plone packages"
 readme = "README.md"
 requires-python = ">=3.11"
