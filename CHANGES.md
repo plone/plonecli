@@ -1,6 +1,6 @@
 # History
 
-## 7.0 (unreleased)
+## 7.0.0b1 (2026-04-16)
 
 - Major rewrite: replaced mr.bob/bobtemplates.plone with copier-templates.
   Templates are now managed as a local git clone at
