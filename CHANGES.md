@@ -1,5 +1,11 @@
 # History
 
+## 7.0.0b2 (unreleased)
+
+
+- Nothing changed yet.
+
+
 ## 7.0.0b1 (2026-04-16)
 
 - Major rewrite: replaced mr.bob/bobtemplates.plone with copier-templates.
