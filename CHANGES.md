@@ -3,7 +3,11 @@
 ## 7.0.0b2 (unreleased)
 
 
-- Nothing changed yet.
+- Add composite template type: templates can declare `type: composite` with an
+  ordered list of sub-templates to run sequentially during `plonecli create`.
+  This enables `plonecli create addon` to chain backend_addon + zope-setup,
+  restoring the old all-in-one addon creation workflow.
+  [MrTango]
 
 
 ## 7.0.0b1 (2026-04-16)
