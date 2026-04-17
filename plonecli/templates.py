@@ -38,28 +38,53 @@ def ensure_templates_cloned(config: PlonecliConfig) -> Path:
 
 
 def update_templates_clone(config: PlonecliConfig) -> str:
-    """Update the local copier-templates clone via git pull.
+    """Update the local copier-templates clone.
 
-    Returns a status message.
+    Fetches from origin and hard-resets to the configured branch. The clone is
+    plonecli-managed, so divergence (e.g. from an upstream rebase or force-push)
+    is resolved by resetting to ``origin/<branch>`` rather than attempting a
+    merge.
     """
     templates_dir = Path(config.templates_dir)
     if not templates_dir.exists():
         ensure_templates_cloned(config)
         return "Templates cloned successfully."
 
-    result = subprocess.run(
-        ["git", "pull", "--ff-only"],
+    branch = config.repo_branch
+    subprocess.run(
+        ["git", "fetch", "--depth", "1", "origin", branch],
         cwd=str(templates_dir),
+        check=True,
         capture_output=True,
         text=True,
     )
-    if result.returncode != 0:
-        return f"Failed to update templates: {result.stderr.strip()}"
 
-    output = result.stdout.strip()
-    if "Already up to date" in output:
+    before = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=str(templates_dir),
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    after = subprocess.run(
+        ["git", "rev-parse", f"origin/{branch}"],
+        cwd=str(templates_dir),
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    if before == after:
         return "Templates already up to date."
-    return f"Templates updated: {output}"
+
+    subprocess.run(
+        ["git", "reset", "--hard", f"origin/{branch}"],
+        cwd=str(templates_dir),
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return f"Templates updated: {before[:7]} → {after[:7]}"
 
 
 def get_template_path(template_name: str, config: PlonecliConfig) -> Path:

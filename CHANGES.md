@@ -3,7 +3,21 @@
 ## 7.0.0b3 (unreleased)
 
 
-- Nothing changed yet.
+- Fix `plonecli update` failing with "Not possible to fast-forward" when the
+  upstream copier-templates branch was rebased or force-pushed. The local
+  clone is now refreshed by fetching and hard-resetting to
+  `origin/<branch>` instead of attempting a fast-forward merge.
+  [MrTango]
+
+- Show available templates in `plonecli create --help`. The help output
+  now lists each main template with its description and aliases
+  (composite templates render as `composite: a + b`).
+  [MrTango]
+
+- Document the `invoke reconfigure` task in the README, covering the
+  `addon`, `zope-setup`, and `instance` targets and the `--name` flag
+  for named instances.
+  [MrTango]
 
 
 ## 7.0.0b2 (2026-04-16)
