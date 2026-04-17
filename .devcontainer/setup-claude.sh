@@ -1,11 +1,26 @@
 #!/bin/bash
 set -euo pipefail
 
-# Claude Code and OpenCode are installed into the image via the Dockerfile.
-# This script only handles per-container configuration that depends on the
-# mounted ~/.claude volume.
-
+# Ensure ~/.local/bin exists and is on PATH
+mkdir -p "$HOME/.local/bin"
 export PATH="$HOME/.local/bin:$PATH"
+
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
+
+echo "Installing Claude Code (native)..."
+if curl -fsSL -o "$TMPDIR/claude-install.sh" https://claude.ai/install.sh; then
+    bash "$TMPDIR/claude-install.sh"
+else
+    echo "WARNING: Failed to download Claude Code installer, skipping"
+fi
+
+echo "Installing OpenCode..."
+if curl -fsSL -o "$TMPDIR/opencode-install.sh" https://opencode.ai/install; then
+    bash "$TMPDIR/opencode-install.sh"
+else
+    echo "WARNING: Failed to download OpenCode installer, skipping"
+fi
 
 if command -v claude &>/dev/null; then
     echo "Configuring Chrome DevTools MCP server..."

@@ -74,6 +74,8 @@ ARG ZSH_IN_DOCKER_VERSION=1.2.0
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh)" -- \
   -p git \
   -p fzf \
+  -p docker \
+  -p docker-compose \
   -a "source /usr/share/doc/fzf/examples/key-bindings.zsh" \
   -a "source /usr/share/doc/fzf/examples/completion.zsh" \
   -a "export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
@@ -95,8 +97,3 @@ USER node
 
 # Install UV package manager
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Install Claude Code (native) and OpenCode into ~/.local/bin (persisted in image)
-RUN mkdir -p "$HOME/.local/bin" && \
-  curl -fsSL https://claude.ai/install.sh | bash && \
-  curl -fsSL https://opencode.ai/install | bash
