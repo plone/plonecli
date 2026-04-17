@@ -90,16 +90,17 @@ def test_theme_barceloneta_generates_and_tests_pass(tmp_path: Path) -> None:
     # 3. Build the project with uv sync + run its pytest suite. This is the
     #    step that takes minutes on a cold cache.
     env = os.environ.copy()
+    env.pop("VIRTUAL_ENV", None)
     env.setdefault("PIP_DISABLE_PIP_VERSION_CHECK", "1")
     subprocess.run(
-        ["uv", "sync"],
+        ["uv", "sync", "--extra", "test"],
         cwd=project_dir,
         env=env,
         check=True,
     )
 
     result = subprocess.run(
-        ["uv", "run", "pytest", "tests/", "-x", "-q"],
+        ["uv", "run", "--extra", "test", "pytest", "tests/", "-x", "-q"],
         cwd=project_dir,
         env=env,
         capture_output=True,

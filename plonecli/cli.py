@@ -101,7 +101,36 @@ def cli(context, list_templates, versions):
             pass
 
 
-@cli.command()
+class CreateCommand(click.Command):
+    """A Click command that lists available templates in help output."""
+
+    def format_help(self, ctx, formatter):
+        """Override to show available templates as commands."""
+        super().format_help(ctx, formatter)
+        try:
+            config = load_config()
+            reg = TemplateRegistry(config)
+            aliases = reg._build_aliases()
+            templates = sorted(reg.get_main_templates())
+            if templates:
+                with formatter.section("Templates"):
+                    rows = []
+                    for t in templates:
+                        meta = reg._get_metadata().get(t, {})
+                        alias_list = [a for a, v in aliases.items() if v == t and a != t]
+                        desc = meta.get("description", "")
+                        if not desc and meta.get("type") == "composite":
+                            steps = meta.get("templates", [])
+                            desc = f"composite: {' + '.join(steps)}"
+                        if alias_list:
+                            desc = f"(alias: {', '.join(alias_list)}) {desc}".strip()
+                        rows.append((t, desc))
+                    formatter.write_dl(rows)
+        except Exception:  # noqa: BLE001
+            pass
+
+
+@cli.command(cls=CreateCommand)
 @click.argument("template", type=click.STRING, shell_complete=get_templates)
 @click.argument("name")
 @click.pass_context

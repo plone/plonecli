@@ -579,7 +579,7 @@ wheels = [
 
 [[package]]
 name = "plonecli"
-version = "7.0.0b2.dev0"
+version = "7.0.0b3.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },

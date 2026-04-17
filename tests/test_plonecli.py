@@ -64,6 +64,26 @@ def test_cli_list_templates(mock_config, mock_project, runner, tmp_path):
 
 @patch("plonecli.cli.find_project_root", return_value=None)
 @patch("plonecli.cli.load_config")
+def test_create_help_shows_templates(mock_config, mock_project, runner, tmp_path):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    _make_template(tmp_path, "zope-setup", {"type": "main"})
+    _make_template(
+        tmp_path,
+        "addon",
+        {"type": "composite", "templates": ["backend_addon", "zope-setup"], "aliases": ["add-on"]},
+    )
+
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    result = runner.invoke(cli, ["create", "-h"])
+    assert result.exit_code == 0
+    assert "Templates:" in result.output
+    assert "addon" in result.output
+    assert "backend_addon" in result.output
+    assert "zope-setup" in result.output
+
+
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
 @patch("plonecli.cli.run_create")
 @patch("plonecli.cli.ensure_templates_cloned")
 def test_create_command(mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path):
