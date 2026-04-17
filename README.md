@@ -204,6 +204,35 @@ plonecli update
 This pulls the latest copier-templates and checks PyPI for plonecli updates.
 
 
+### Reconfiguring an Existing Project
+
+After initial creation, you can re-run a template's questions to change settings without recreating the project. The zope-setup template provides an `invoke reconfigure` task that wraps `copier recopy --trust --overwrite` and points at the right answers file for each target.
+
+```shell
+# Reconfigure the backend addon (package metadata, author, etc.)
+uv run invoke reconfigure --target=addon
+
+# Reconfigure zope-setup (Plone version, database storage, etc.)
+uv run invoke reconfigure --target=zope-setup
+
+# Reconfigure a Zope instance (port, database connection, etc.)
+uv run invoke reconfigure --target=instance
+
+# Reconfigure a specific named instance
+uv run invoke reconfigure --target=instance --name=instance2
+```
+
+Available targets:
+
+| Target       | What it reconfigures                              | Answers file                                  |
+|--------------|---------------------------------------------------|-----------------------------------------------|
+| `addon`      | Backend addon package settings                    | `.copier-answers.yml`                         |
+| `zope-setup` | Project-level Plone/Zope settings                 | `.copier-answers.zope-setup.yml`              |
+| `instance`   | Zope instance configuration (port, DB, credentials) | `.copier-answers.zope-instance-<name>.yml`  |
+
+Reconfigure overwrites generated config files with the new answers, so review the diff with `git status` afterwards and keep any local edits you want to preserve.
+
+
 ### Listing Templates
 
 ```shell
