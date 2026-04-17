@@ -26,6 +26,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   chromium \
   python3 \
   python3-venv \
+  asciinema \
+  ffmpeg \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Ensure default node user has access to /usr/local/share
@@ -54,6 +56,26 @@ RUN ARCH=$(dpkg --print-architecture) && \
   wget "https://github.com/dandavison/delta/releases/download/${GIT_DELTA_VERSION}/git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
   sudo dpkg -i "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
   rm "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb"
+
+# Terminal recording tools: vhs (scripted demos), agg (cast -> GIF), ttyd (vhs dep)
+ARG VHS_VERSION=0.8.0
+ARG AGG_VERSION=1.5.0
+ARG TTYD_VERSION=1.7.7
+RUN ARCH=$(dpkg --print-architecture) && \
+  case "$ARCH" in \
+    amd64) RUST_ARCH=x86_64-unknown-linux-gnu; TTYD_ARCH=x86_64 ;; \
+    arm64) RUST_ARCH=aarch64-unknown-linux-gnu; TTYD_ARCH=aarch64 ;; \
+    *) echo "Unsupported arch: $ARCH" && exit 1 ;; \
+  esac && \
+  wget "https://github.com/charmbracelet/vhs/releases/download/v${VHS_VERSION}/vhs_${VHS_VERSION}_${ARCH}.deb" && \
+  sudo dpkg -i "vhs_${VHS_VERSION}_${ARCH}.deb" && \
+  rm "vhs_${VHS_VERSION}_${ARCH}.deb" && \
+  wget -O /tmp/agg "https://github.com/asciinema/agg/releases/download/v${AGG_VERSION}/agg-${RUST_ARCH}" && \
+  sudo install -m 0755 /tmp/agg /usr/local/bin/agg && \
+  rm /tmp/agg && \
+  wget -O /tmp/ttyd "https://github.com/tsl0922/ttyd/releases/download/${TTYD_VERSION}/ttyd.${TTYD_ARCH}" && \
+  sudo install -m 0755 /tmp/ttyd /usr/local/bin/ttyd && \
+  rm /tmp/ttyd
 
 # Set up non-root user
 USER node
