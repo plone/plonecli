@@ -5,6 +5,8 @@ from __future__ import annotations
 import importlib.metadata
 import subprocess
 import sys
+from pathlib import Path
+
 
 import click
 from click_aliases import ClickAliasedGroup
@@ -319,7 +321,7 @@ def update(context):
 @click.argument(
     "shell",
     required=False,
-    type=click.Choice(["bash", "zsh", "fish"]),
+    type=click.Choice(["bash", "zsh", "fish", "powershell"]),
 )
 @click.option("--install", is_flag=True, help="Install completion into your shell config")
 def completion(shell, install):
@@ -331,14 +333,18 @@ def completion(shell, install):
     import os
 
     if shell is None:
-        login_shell = os.path.basename(os.environ.get("SHELL", ""))
-        if login_shell in ("bash", "zsh", "fish"):
-            shell = login_shell
+
+        if os.environ.get("PSModulePath"):
+            shell = "powershell"
         else:
-            raise click.UsageError(
-                f"Could not detect shell (SHELL={os.environ.get('SHELL', '')!r}).\n"
-                "Please specify one: plonecli completion bash|zsh|fish"
-            )
+            login_shell = os.path.basename(os.environ.get("SHELL", ""))
+            if login_shell in ("bash", "zsh", "fish"):
+                shell = login_shell
+            else:
+                raise click.UsageError(
+                    f"Could not detect shell (SHELL={os.environ.get('SHELL', '')!r}).\n"
+                    "Please specify one: plonecli completion bash|zsh|fish"
+                )
 
     env_var = "_PLONECLI_COMPLETE"
     source_cmd = f"{env_var}={shell}_source plonecli"
@@ -361,6 +367,7 @@ def completion(shell, install):
         "bash": os.path.expanduser("~/.bashrc"),
         "zsh": os.path.expanduser("~/.zshrc"),
         "fish": os.path.expanduser("~/.config/fish/completions/plonecli.fish"),
+        "powershell": str(Path.home() / "Documents" / "PowerShell" / "Microsoft.PowerShell_profile.ps1"),
     }
     rc_file = rc_files[shell]
 
@@ -368,6 +375,9 @@ def completion(shell, install):
         # Fish uses a completions directory with the script itself
         os.makedirs(os.path.dirname(rc_file), exist_ok=True)
         eval_line = f"env {source_cmd} | source"
+    elif shell == "powershell":
+        os.makedirs(os.path.dirname(rc_file), exist_ok=True)
+        eval_line = f'$env:_PLONECLI_COMPLETE = "powershell_source"\nplonecli | Out-String | Invoke-Expression'
     else:
         eval_line = f'eval "$({source_cmd})"'
 
@@ -383,8 +393,10 @@ def completion(shell, install):
         f.write(f"\n# plonecli shell completion\n{eval_line}\n")
 
     echo(f"Shell completion installed in {rc_file}", fg="green")
-    echo(f"Restart your shell or run: source {rc_file}", fg="green")
-
+    if shell == "powershell":
+        echo("Restart your shell or run: . $PROFILE", fg="green")
+    else:
+        echo(f"Restart your shell or run: source {rc_file}", fg="green")
 
 if __name__ == "__main__":
     cli()
