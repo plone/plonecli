@@ -3,7 +3,10 @@
 ## 7.0.0b3 (unreleased)
 
 
-- Nothing changed yet.
+- Add PowerShell support to the `completion` command: auto-detect PowerShell on Windows,
+  add correct profile path, create directory if missing, and fix success message to use
+  `. $PROFILE` instead of `source`.
+  [Anu13lol]
 
 
 ## 7.0.0b2 (2026-04-16)
@@ -282,3 +285,4 @@ New features:
 
 - initital version with list templates support and bobtemplates.plone integration
   [MrTango, tmassman, Gomez]
+
