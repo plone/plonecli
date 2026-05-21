@@ -2,6 +2,8 @@
 
 Run from **inside** a plonecli-generated project. If you are not in one, the command fails with `NotInPackageError` — `cd` into the project root first.
 
+If you *are* inside an addon but it's an **old/legacy package** (mr.bob/`bobtemplates.plone`, buildout, `setup.py`) where `add` lands files in the wrong place or doesn't register them, the structure doesn't yet fit the templates. Don't hand-write the files and don't re-run the `backend_addon` template — make the minimal structural edits first. See [migrate.md](migrate.md).
+
 ```shell
 cd collective.todo
 plonecli add content_type
