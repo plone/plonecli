@@ -3,7 +3,15 @@
 ## 7.0.0b4 (unreleased)
 
 
-- Nothing changed yet.
+- Broaden the bundled plonecli skill triggers to cover all commands and
+  subtemplates, so AI coding agents load the skill more reliably.
+  [MrTango]
+
+- Bump idna from 3.11 to 3.15.
+  [dependabot]
+
+- Bump urllib3 from 2.6.3 to 2.7.0.
+  [dependabot]
 
 
 ## 7.0.0b3 (2026-05-21)
