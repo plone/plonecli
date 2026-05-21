@@ -10,6 +10,15 @@
 The Plone CLI is meant for developing Plone packages. It uses [copier](https://copier.readthedocs.io/) templates to scaffold Plone backend addons, Zope project setups, and add features like content types, behaviors, and REST API services.
 
 
+## Demo
+
+Scaffolding a backend add-on, adding a content type and behavior, and wiring up a REST API service:
+
+<video src="https://github.com/plone/plonecli/raw/master/docs/demo-backend.webm" controls muted width="100%"></video>
+
+> ▶ If the video does not play inline, [watch `docs/demo-backend.webm`](https://github.com/plone/plonecli/raw/master/docs/demo-backend.webm).
+
+
 ## Installation
 
 ### UV Tool (Recommended)
