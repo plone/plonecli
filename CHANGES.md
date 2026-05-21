@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b6 (unreleased)
+## 7.0.0b6 (2026-05-22)
 
 
 - Add `--defaults`, `-d/--data KEY=VALUE` and `--data-file` options to
