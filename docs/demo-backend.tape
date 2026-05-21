@@ -11,9 +11,9 @@
 # (question fires when global_allow == false). Run `plonecli update` if
 # the second content_type step skips that prompt.
 #
-# Render: vhs docs/demo-backend.tape  →  docs/demo-backend.gif
+# Render: vhs docs/demo-backend.tape  →  docs/demo-backend.webm
 
-Output docs/demo-backend.gif
+Output docs/demo-backend.webm
 
 Set Shell "bash"
 Set FontSize 16
