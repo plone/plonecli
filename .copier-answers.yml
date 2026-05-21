@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: 34bd81d
+_commit: 978185b
 _src_path: /home/maik/develop/src/copier-claude-code-devcontainer/
 enable_docker_in_docker: true
 enable_plone: true
