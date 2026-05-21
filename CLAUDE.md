@@ -2,3 +2,5 @@
 - if editing of copier-templates is need, do it in dev path: develop/plone/src/copier-templates, not in the local copy in .copier-templates dir. When in devcontainer, the directory should be in /home/node/.copier-templates/plone-copier-templates/
 - no claude claude mentioning in commit messages or readme/changelog
 - all test have to pass, don't skip tests!
+- if changes on the devcontainer setup are needed, do it in the copier template "/home/maik/develop/src/copier-claude-code-devcontainer/" and apply the template again.
+- keep commit and changelog messages lean, focus on facts

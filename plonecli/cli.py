@@ -44,7 +44,7 @@ class ClickFilteredAliasedGroup(ClickAliasedGroup):
     def list_commands(self, ctx):
         existing_cmds = super().list_commands(ctx)
         project = find_project_root()
-        global_cmds = ["completion", "create", "config", "update"]
+        global_cmds = ["completion", "create", "config", "update", "skill"]
         global_only_cmds = ["create"]
         if not project:
             cmds = [cmd for cmd in existing_cmds if cmd in global_cmds]
@@ -313,6 +313,67 @@ def update(context):
 
     # Show templates info
     echo(f"\nTemplates: {get_templates_info(config)}", fg="green")
+
+
+@cli.command("skill")
+@click.argument("action", type=click.Choice(["install", "update", "status"]))
+@click.option(
+    "--scope",
+    type=click.Choice(["project", "user"]),
+    default="project",
+    help="Install for this project (default) or globally for the current user.",
+)
+@click.option(
+    "--copy",
+    "copy_only",
+    is_flag=True,
+    help="Copy files for the .claude alias instead of symlinking.",
+)
+@click.option("--force", is_flag=True, help="Overwrite an existing installation.")
+@click.pass_context
+def skill(context, action, scope, copy_only, force):
+    """Install/update the plonecli Agent Skill for AI coding agents.
+
+    Drops the bundled SKILL.md (Agent Skills open standard) into
+    `.agents/skills/plonecli` and links it from `.claude/skills/plonecli`, so
+    Claude Code, Codex, Gemini CLI, Cursor and other compatible agents pick it
+    up. Use --scope user to install into your home directory instead.
+    """
+    from plonecli import skill_installer
+
+    project = context.obj.get("project")
+    project_root = project.root_folder if project else None
+
+    if action == "status":
+        info = skill_installer.skill_status(scope, project_root)
+        echo(f"\nplonecli skill ({scope} scope)", fg="green", reverse=True)
+        echo(f"  base:   {info['base']}")
+        echo(f"  source: {info['source']}")
+        for key in ("agents", "claude"):
+            path, state = info[key]
+            echo(f"  {path}: {state}")
+        return
+
+    try:
+        base, actions = skill_installer.install_skill(
+            scope=scope,
+            project_root=project_root,
+            copy_only=copy_only,
+            force=force,
+            update=(action == "update"),
+        )
+    except FileExistsError as e:
+        raise click.UsageError(str(e)) from e
+    except FileNotFoundError as e:  # pragma: no cover - packaging guard
+        raise click.ClickException(str(e)) from e
+
+    verb = "Updated" if action == "update" else "Installed"
+    echo(f"\n{verb} plonecli skill under {base}", fg="green", reverse=True)
+    for act in actions:
+        if act.kind == "symlink":
+            echo(f"  symlink {act.target} -> {act.points_to}")
+        else:
+            echo(f"  copied  {act.target}")
 
 
 @cli.command()

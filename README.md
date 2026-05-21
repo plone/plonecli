@@ -10,6 +10,15 @@
 The Plone CLI is meant for developing Plone packages. It uses [copier](https://copier.readthedocs.io/) templates to scaffold Plone backend addons, Zope project setups, and add features like content types, behaviors, and REST API services.
 
 
+## Demo
+
+Scaffolding a backend add-on, adding a content type and behavior, and wiring up a REST API service:
+
+<video src="https://github.com/plone/plonecli/raw/master/docs/demo-backend.webm" controls muted width="100%"></video>
+
+> ▶ If the video does not play inline, [watch `docs/demo-backend.webm`](https://github.com/plone/plonecli/raw/master/docs/demo-backend.webm).
+
+
 ## Installation
 
 ### UV Tool (Recommended)
@@ -202,6 +211,27 @@ plonecli update
 ```
 
 This pulls the latest copier-templates and checks PyPI for plonecli updates.
+
+
+### AI Coding Agent Skill
+
+plonecli ships an [Agent Skill](https://www.anthropic.com/news/skills) that teaches AI coding agents how to use it. Because the skill follows the Agent Skills open standard, the same `SKILL.md` is loaded by Claude Code, Codex, Gemini CLI, Cursor and other compatible agents.
+
+```shell
+# install into the current project (.agents/skills + .claude/skills)
+plonecli skill install
+
+# install globally for your user (~/.agents/skills + ~/.claude/skills)
+plonecli skill install --scope user
+
+# refresh after upgrading plonecli
+plonecli skill update
+
+# show where it is installed
+plonecli skill status
+```
+
+The skill is written to `.agents/skills/plonecli` (the open-standard discovery path) and linked from `.claude/skills/plonecli` for Claude Code. Pass `--copy` if your environment cannot create symlinks, and `--force` to overwrite an existing install.
 
 
 ### Reconfiguring an Existing Project
