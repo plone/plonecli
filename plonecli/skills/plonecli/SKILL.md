@@ -35,16 +35,18 @@ On first run, plonecli clones the copier-templates to `~/.copier-templates/plone
 
 1. **New project?** → `create`. Pure backend add-on: `plonecli create backend_addon my.addon`. Add-on **with** a runnable instance in one step: `plonecli create addon my.addon` (composite = `backend_addon` + `zope-setup`). Zope project: `plonecli create zope-setup my-project`. `addon` is **not** an alias of `backend_addon` — they are different templates. Details and template list: [reference/create.md](reference/create.md).
 2. **Add a feature to an existing addon?** → `cd` into the project, then `plonecli add content_type` / `behavior` / `restapi_service`. Field/wiring specifics: [reference/add.md](reference/add.md).
-3. **Need a runnable Plone instance around an addon?** → `plonecli setup` (inside the addon).
-4. **Run / test it?** → `plonecli test` to test. For serving, follow the server rule below.
-5. **Change settings of an already-generated project?** → don't recreate it; use reconfigure. See [reference/maintain.md](reference/maintain.md).
-6. **Templates outdated, or want a different template repo/branch?** → `plonecli update`, or env overrides in [reference/maintain.md](reference/maintain.md).
+3. **Changed GenericSetup profile XML (`profiles/default/*`) that must reach already-installed sites?** → `plonecli add upgrade_step` to scaffold the migration. See the upgrade-step rule below and [reference/add.md](reference/add.md).
+4. **Need a runnable Plone instance around an addon?** → `plonecli setup` (inside the addon).
+5. **Run / test it?** → `plonecli test` to test. For serving, follow the server rule below.
+6. **Change settings of an already-generated project?** → don't recreate it; use reconfigure. See [reference/maintain.md](reference/maintain.md).
+7. **Templates outdated, or want a different template repo/branch?** → `plonecli update`, or env overrides in [reference/maintain.md](reference/maintain.md).
 
 ## Critical rules
 
 - **Never start the dev server yourself.** Do not run `plonecli serve` / `plonecli debug` / `invoke start`. Assume the instance is already running; if it is not, ask the user to start it. (`plonecli test` is fine to run.)
 - **Use native `uv`.** Run things as `uv run <command>`; never `uv pip` or `pip` unless explicitly told.
 - **Tests must pass — never skip them.** After scaffolding or adding a feature, run `plonecli test` and report real results.
+- **Profile XML changes need an upgrade step — scaffold it automatically.** Whenever you edit GenericSetup profile XML under `profiles/default/` (e.g. `catalog.xml`, `types/*.xml`, `types.xml`, `workflows.xml`, `registry.xml`, `rolemap.xml`) in a way that must propagate to already-installed sites, run `plonecli add upgrade_step` as part of the same change — don't leave it to the user to remember. It bumps `profiles/default/metadata.xml` and registers a GS upgrade handler; then fill that handler so existing sites actually get the change (reapply the relevant import step or migrate data). Never hand-edit `metadata.xml`'s version to "do an upgrade" — that bumps the number without a registered step. Details and what does/doesn't need a step: [reference/add.md](reference/add.md).
 - **Don't recreate to change settings.** Re-running `create` over an existing project is wrong; use the reconfigure flow ([reference/maintain.md](reference/maintain.md)).
 - After `create`/`add`/reconfigure, generated files change — review `git status`/diff and preserve intentional local edits.
 
