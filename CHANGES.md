@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b7 (unreleased)
+## 7.0.0b7 (2026-05-22)
 
 
 - Add legacy-package migration guidance to the bundled plonecli skill,
