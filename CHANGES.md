@@ -3,6 +3,13 @@
 ## 7.0.0b3 (unreleased)
 
 
+- Add `plonecli skill install|update|status` to install the bundled AI coding
+  agent skill. The skill follows the Agent Skills open standard and is written
+  to `.agents/skills/plonecli` (project or `--scope user`) and linked from
+  `.claude/skills/plonecli`, so Claude Code, Codex, Gemini CLI, Cursor and other
+  compatible agents load the same `SKILL.md`.
+  [MrTango]
+
 - Fix `plonecli update` failing with "Not possible to fast-forward" when the
   upstream copier-templates branch was rebased or force-pushed. The local
   clone is now refreshed by fetching and hard-resetting to

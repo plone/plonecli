@@ -204,6 +204,27 @@ plonecli update
 This pulls the latest copier-templates and checks PyPI for plonecli updates.
 
 
+### AI Coding Agent Skill
+
+plonecli ships an [Agent Skill](https://www.anthropic.com/news/skills) that teaches AI coding agents how to use it. Because the skill follows the Agent Skills open standard, the same `SKILL.md` is loaded by Claude Code, Codex, Gemini CLI, Cursor and other compatible agents.
+
+```shell
+# install into the current project (.agents/skills + .claude/skills)
+plonecli skill install
+
+# install globally for your user (~/.agents/skills + ~/.claude/skills)
+plonecli skill install --scope user
+
+# refresh after upgrading plonecli
+plonecli skill update
+
+# show where it is installed
+plonecli skill status
+```
+
+The skill is written to `.agents/skills/plonecli` (the open-standard discovery path) and linked from `.claude/skills/plonecli` for Claude Code. Pass `--copy` if your environment cannot create symlinks, and `--force` to overwrite an existing install.
+
+
 ### Reconfiguring an Existing Project
 
 After initial creation, you can re-run a template's questions to change settings without recreating the project. The zope-setup template provides an `invoke reconfigure` task that wraps `copier recopy --trust --overwrite` and points at the right answers file for each target.
