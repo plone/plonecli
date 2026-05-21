@@ -1,6 +1,6 @@
 ---
 name: plonecli
-description: Scaffold and develop Plone packages with plonecli (copier-template based). Use when creating a Plone backend add-on or Zope project, adding features like content types, behaviors, or REST API services, running/testing a Plone instance, or updating/reconfiguring a plonecli-generated project. Triggers on "plonecli", "create a Plone addon", "add a content type/behavior/restapi service", "plone scaffold", "zope-setup".
+description: Scaffold and develop Plone packages with plonecli (copier-template based). Use for any plonecli command (create, add, setup, serve, test, debug, update, config) and whenever working on Plone add-on features: creating a backend add-on or Zope project; adding or creating a content type, behavior, view, viewlet, portlet, vocabulary, indexer, subscriber, control panel, form, theme, REST API service, or any other subtemplate; scaffolding an upgrade step / GenericSetup migration after changing profile XML (catalog.xml, types, workflows, registry, rolemap) so it reaches already-installed sites; running/testing/reconfiguring a generated project. Triggers on "plonecli ...", "create a Plone addon", "add/create a content type / behavior / view / viewlet / portlet / vocabulary / indexer / subscriber / control panel / REST API service", "add upgrade_step / upgrade step for the last change", "bump profile version / metadata.xml", "migrate already-installed Plone sites", "plone scaffold", "zope-setup".
 ---
 
 # plonecli
