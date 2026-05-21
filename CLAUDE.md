@@ -4,3 +4,4 @@
 - all test have to pass, don't skip tests!
 - if changes on the devcontainer setup are needed, do it in the copier template "/home/maik/develop/src/copier-claude-code-devcontainer/" and apply the template again.
 - keep commit and changelog messages lean, focus on facts
+- don't create a manual test plan in PR description, create real test which are run in the CI!
