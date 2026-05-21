@@ -3,7 +3,14 @@
 ## 7.0.0b5 (unreleased)
 
 
-- Nothing changed yet.
+- Fix `plonecli skill install --force` (and other flags) being rejected when
+  passed after the action argument, caused by the chained top-level group.
+  [MrTango]
+
+- Default `plonecli skill install|update` to `--scope user` so the skill lands
+  in `~/.agents/skills` / `~/.claude/skills` instead of the current directory.
+  Use `--scope project` for a project-local install.
+  [MrTango]
 
 
 ## 7.0.0b4 (2026-05-21)

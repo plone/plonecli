@@ -315,13 +315,29 @@ def update(context):
     echo(f"\nTemplates: {get_templates_info(config)}", fg="green")
 
 
-@cli.command("skill")
+class InterspersedCommand(click.Command):
+    """A command that accepts options after its positional arguments.
+
+    The top-level ``cli`` group is chained, which makes Click disable
+    interspersed args for every subcommand, so ``plonecli skill install
+    --force`` leaks ``--force`` back to the parent parser. Re-enabling it on
+    this command's own parser keeps chaining intact while letting flags follow
+    the action argument.
+    """
+
+    def make_parser(self, ctx):
+        parser = super().make_parser(ctx)
+        parser.allow_interspersed_args = True
+        return parser
+
+
+@cli.command("skill", cls=InterspersedCommand)
 @click.argument("action", type=click.Choice(["install", "update", "status"]))
 @click.option(
     "--scope",
     type=click.Choice(["project", "user"]),
-    default="project",
-    help="Install for this project (default) or globally for the current user.",
+    default="user",
+    help="Install globally for the current user (default) or into this project.",
 )
 @click.option(
     "--copy",
@@ -335,9 +351,9 @@ def skill(context, action, scope, copy_only, force):
     """Install/update the plonecli Agent Skill for AI coding agents.
 
     Drops the bundled SKILL.md (Agent Skills open standard) into
-    `.agents/skills/plonecli` and links it from `.claude/skills/plonecli`, so
-    Claude Code, Codex, Gemini CLI, Cursor and other compatible agents pick it
-    up. Use --scope user to install into your home directory instead.
+    `~/.agents/skills/plonecli` and links it from `~/.claude/skills/plonecli`,
+    so Claude Code, Codex, Gemini CLI, Cursor and other compatible agents pick
+    it up. Use --scope project to install into the current project instead.
     """
     from plonecli import skill_installer
 

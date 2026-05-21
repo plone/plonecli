@@ -71,7 +71,7 @@ def test_copy_only_makes_claude_a_copy(tmp_path):
 def test_cli_skill_install(mock_config, mock_project, runner, tmp_path):
     mock_config.return_value = MagicMock(templates_dir="/tmp/nonexistent")
     with runner.isolated_filesystem(temp_dir=tmp_path) as fs:
-        result = runner.invoke(cli, ["skill", "install"])
+        result = runner.invoke(cli, ["skill", "install", "--scope", "project"])
         assert result.exit_code == 0, result.output
         assert "Installed plonecli skill" in result.output
         from pathlib import Path
@@ -81,10 +81,45 @@ def test_cli_skill_install(mock_config, mock_project, runner, tmp_path):
 
 @patch("plonecli.cli.find_project_root", return_value=None)
 @patch("plonecli.cli.load_config")
+def test_cli_skill_install_defaults_to_user_scope(
+    mock_config, mock_project, runner, tmp_path, monkeypatch
+):
+    """No --scope must install into the user home, not the current directory."""
+    from pathlib import Path
+
+    mock_config.return_value = MagicMock(templates_dir="/tmp/nonexistent")
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+    with runner.isolated_filesystem(temp_dir=tmp_path) as fs:
+        result = runner.invoke(cli, ["skill", "install"])
+        assert result.exit_code == 0, result.output
+        assert (tmp_path / ".agents" / "skills" / "plonecli" / "SKILL.md").is_file()
+        assert not (Path(fs) / ".agents").exists()
+
+
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+def test_cli_skill_install_force_after_action(
+    mock_config, mock_project, runner, tmp_path
+):
+    """`--force` must work after the action despite the chained parent group."""
+    mock_config.return_value = MagicMock(templates_dir="/tmp/nonexistent")
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        assert (
+            runner.invoke(cli, ["skill", "install", "--scope", "project"]).exit_code
+            == 0
+        )
+        result = runner.invoke(cli, ["skill", "install", "--scope", "project", "--force"])
+        assert result.exit_code == 0, result.output
+        assert "Installed plonecli skill" in result.output
+
+
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
 def test_cli_skill_install_twice_errors(mock_config, mock_project, runner, tmp_path):
     mock_config.return_value = MagicMock(templates_dir="/tmp/nonexistent")
     with runner.isolated_filesystem(temp_dir=tmp_path):
-        assert runner.invoke(cli, ["skill", "install"]).exit_code == 0
-        result = runner.invoke(cli, ["skill", "install"])
+        first = runner.invoke(cli, ["skill", "install", "--scope", "project"])
+        assert first.exit_code == 0
+        result = runner.invoke(cli, ["skill", "install", "--scope", "project"])
         assert result.exit_code != 0
         assert "already installed" in result.output
