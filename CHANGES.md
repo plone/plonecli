@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b3 (unreleased)
+## 7.0.0b3 (2026-05-21)
 
 
 - Add `plonecli skill install|update|status` to install the bundled AI coding
