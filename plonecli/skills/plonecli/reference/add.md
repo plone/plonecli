@@ -9,6 +9,23 @@ plonecli add behavior
 plonecli add restapi_service
 ```
 
+## Non-interactive use (required in Claude Code / CI)
+
+By default `add` (and `create`) drop into copier's **interactive prompts**, which cannot be driven from a non-tty environment — they will hang or fail. **Never work around this by hand-rolling the files copier would generate.** Instead drive plonecli non-interactively:
+
+- `--defaults` — answer every question from the template's defaults (no prompts).
+- `-d/--data KEY=VALUE` — pre-fill a specific answer (repeatable); overrides the default and skips that prompt.
+- `--data-file PATH` — load answers from a YAML/JSON file (handy for many answers); inline `-d` overrides matching keys.
+
+```shell
+# fully non-interactive: defaults for everything, override the few you care about
+plonecli add content_type --defaults -d content_type_name="Talk" -d content_type_description="A conference talk"
+plonecli add behavior --defaults -d behavior_name="IFeatured"
+plonecli add restapi_service --defaults -d service_name="@todos"
+```
+
+Pass `-d` for every answer the user has specified; `--defaults` covers the rest. Required answers that have no default (e.g. `content_type_name`, `behavior_name`, `service_name`, `upgrade_step_title`) **must** be supplied with `-d` or copier still has to prompt. Don't invent values the user hasn't given — ask first, then pass them via `-d`. The per-template question/answer keys are listed below and shown by the prompts themselves.
+
 ## Subtemplates are gated by project type
 
 plonecli detects the project type from `pyproject.toml` (e.g. `backend_addon`, `project`). Only subtemplates whose `parent` matches that type are offered. So:
@@ -26,7 +43,7 @@ Always confirm what is actually available here with `plonecli -l` (run inside th
 | `behavior` | A behavior (reusable schema/marker applied to content types). | Wire the behavior onto a content type; add tests. |
 | `restapi_service` | A `plone.restapi` service (endpoint, adapter, registration). | Add tests exercising the endpoint. |
 
-copier will prompt interactively for the specifics (names, fields, options) — answer per the user's requirements. Do not invent answers; if the user hasn't specified e.g. field names, ask.
+copier asks for the specifics (names, fields, options). In Claude Code / CI you cannot answer prompts, so run non-interactively with `--defaults` and pass the user's choices via `-d KEY=VALUE` (see "Non-interactive use" above). Do not invent answers; if the user hasn't specified e.g. field names, ask, then pass them via `-d`.
 
 ## After adding
 
@@ -40,10 +57,11 @@ When you change GenericSetup profile XML under `profiles/default/` in a way that
 
 ```shell
 cd collective.todo
-plonecli add upgrade_step
+# non-interactive: title is required, the rest default from the addon
+plonecli add upgrade_step --defaults -d upgrade_step_title="Reimport viewlets"
 ```
 
-It prompts for (defaults injected from the addon):
+Questions (defaults injected from the addon — pass `-d` to override any):
 
 | Question | Default | Meaning |
 |---|---|---|
@@ -51,6 +69,8 @@ It prompts for (defaults injected from the addon):
 | `upgrade_step_description` | "A custom upgrade step" | What the step does. |
 | `source_version` | current `metadata.xml` version | Version being upgraded **from**. |
 | `destination_version` | `source + 1` | Version being upgraded **to**. |
+
+`upgrade_step_title` has no default, so it **must** be passed with `-d` — otherwise copier still prompts. Do not skip the command and hand-write the upgrade step files yourself; run it non-interactively as above.
 
 What it does (so you don't do it by hand):
 

@@ -43,10 +43,11 @@ On first run, plonecli clones the copier-templates to `~/.copier-templates/plone
 
 ## Critical rules
 
+- **`create`/`add` are interactive by default — always run them non-interactively here.** copier opens prompts you cannot answer in Claude Code / CI (they hang or fail). Pass `--defaults` (use template defaults for unasked questions) plus `-d/--data KEY=VALUE` (repeatable) for each answer the user specified — or `--data-file PATH` for a YAML/JSON file of answers (`-d` overrides matching keys). Required answers without a default (`content_type_name`, `behavior_name`, `service_name`, `upgrade_step_title`) **must** be given via `-d`. Example: `plonecli add upgrade_step --defaults -d upgrade_step_title="Reimport viewlets"`. **Never give up on a prompt and hand-write the files the subtemplate would generate** — drive plonecli non-interactively instead. Don't invoke `copier` directly. See [reference/add.md](reference/add.md).
 - **Never start the dev server yourself.** Do not run `plonecli serve` / `plonecli debug` / `invoke start`. Assume the instance is already running; if it is not, ask the user to start it. (`plonecli test` is fine to run.)
 - **Use native `uv`.** Run things as `uv run <command>`; never `uv pip` or `pip` unless explicitly told.
 - **Tests must pass — never skip them.** After scaffolding or adding a feature, run `plonecli test` and report real results.
-- **Profile XML changes need an upgrade step — scaffold it automatically.** Whenever you edit GenericSetup profile XML under `profiles/default/` (e.g. `catalog.xml`, `types/*.xml`, `types.xml`, `workflows.xml`, `registry.xml`, `rolemap.xml`) in a way that must propagate to already-installed sites, run `plonecli add upgrade_step` as part of the same change — don't leave it to the user to remember. It bumps `profiles/default/metadata.xml` and registers a GS upgrade handler; then fill that handler so existing sites actually get the change (reapply the relevant import step or migrate data). Never hand-edit `metadata.xml`'s version to "do an upgrade" — that bumps the number without a registered step. Details and what does/doesn't need a step: [reference/add.md](reference/add.md).
+- **Profile XML changes need an upgrade step — scaffold it automatically.** Whenever you edit GenericSetup profile XML under `profiles/default/` (e.g. `catalog.xml`, `types/*.xml`, `types.xml`, `workflows.xml`, `registry.xml`, `rolemap.xml`) in a way that must propagate to already-installed sites, run `plonecli add upgrade_step --defaults -d upgrade_step_title="<what changed>"` as part of the same change — don't leave it to the user to remember. It bumps `profiles/default/metadata.xml` and registers a GS upgrade handler; then fill that handler so existing sites actually get the change (reapply the relevant import step or migrate data). Never hand-edit `metadata.xml`'s version to "do an upgrade" — that bumps the number without a registered step. Details and what does/doesn't need a step: [reference/add.md](reference/add.md).
 - **Don't recreate to change settings.** Re-running `create` over an existing project is wrong; use the reconfigure flow ([reference/maintain.md](reference/maintain.md)).
 - After `create`/`add`/reconfigure, generated files change — review `git status`/diff and preserve intentional local edits.
 
@@ -57,10 +58,10 @@ On first run, plonecli clones the copier-templates to `~/.copier-templates/plone
 plonecli create backend_addon collective.todo
 cd collective.todo
 
-# add features
-plonecli add content_type
-plonecli add behavior
-plonecli add restapi_service
+# add features (non-interactive: --defaults + -d for each answer)
+plonecli add content_type --defaults -d content_type_name="Talk"
+plonecli add behavior --defaults -d behavior_name="IFeatured"
+plonecli add restapi_service --defaults -d service_name="@todos"
 
 # wrap it in a runnable Plone instance (adds the zope-setup / invoke harness)
 plonecli setup
