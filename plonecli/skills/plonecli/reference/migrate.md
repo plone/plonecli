@@ -95,6 +95,46 @@ Check the package against this list and fix only what's missing:
    `setuphandlers.py` already exist, keep them — only extend. This is exactly why
    we migrate by hand rather than re-running the template.
 
+## The invoke task harness (`tasks.py`)
+
+A migrated package should end up with the **same complete, working `tasks.py`**
+that a freshly generated project has — the one that drives `serve`/`test`/
+`debug`/`reconfigure` (`uv run invoke <task>`). The current template ships these
+tasks: `install`, `start`, `debug`, `shell`, `test`, `create_instance`,
+`reconfigure`, `create_site`, `format`, `lint`. A legacy package usually has
+*no* `tasks.py`, or an old buildout/mr.bob-era one missing most of these.
+
+**`tasks.py` belongs to the `zope-setup` layer, not to `backend_addon`** — it is
+rendered from `zope-setup/template/tasks.py.jinja` with the project's own
+variables (`project_name`, `base_path`, `distribution_name`, …), so it
+automatically fits the package structure. **Never hand-write or hand-patch
+`tasks.py`** — a hand-rolled file won't match the template (stale task set, wrong
+paths) and drifts on the next update.
+
+The rule, by state of the package:
+
+- **No compatible `zope-setup` yet** (no `.copier-answers.zope-setup.yml`, no
+  runnable instance, `tasks.py` absent or legacy) → the invoke tasks don't apply
+  yet, so **don't add them**. First create the zope-setup layer with
+  `plonecli setup` (run inside the `backend_addon` — it applies `zope-setup` in
+  place). That lays down the complete, package-fitting `tasks.py` as a side
+  effect. Only *after* the zope-setup exists do `serve`/`test`/`debug`/
+  `reconfigure` make sense. `tasks.py` is **not** in zope-setup's
+  `_skip_if_exists` (only `pyproject.toml` and `README.md` are), so `setup`
+  overwrites a legacy `tasks.py` with the fresh one — which is what we want.
+  Still review the diff; the build/dev harness is meant to be replaced, but
+  confirm nothing project-specific was lost.
+
+- **A `zope-setup` already exists** but its `tasks.py` is stale or incomplete
+  (missing tasks compared to the list above, or pointing at old paths) →
+  regenerate it from the current template with
+  `uv run invoke reconfigure --target=zope-setup` ([maintain.md](maintain.md)),
+  which overwrites `tasks.py` with the up-to-date version. Don't edit it by hand.
+
+Do **not** run `plonecli setup` just to get `tasks.py` if the user only wants the
+add-on package and no runnable instance — `setup` brings the whole zope-setup
+layer. Confirm a runnable instance is wanted before adding it.
+
 ## Workflow
 
 1. **Start from a clean git state** so every change is a reviewable diff.
@@ -109,9 +149,15 @@ Check the package against this list and fix only what's missing:
    `plonecli add behavior --defaults -d behavior_name="IFeatured"`, then review
    the diff to confirm files landed under `src/<package_folder>/…` and the
    include/registration were added.
-6. **Run `plonecli test`** and report real results (add the zope-setup layer via
-   `plonecli setup` first if there's no `tasks.py`; see [maintain.md](maintain.md)).
-   Never skip tests.
+6. **Ensure a complete `tasks.py`** if the package should be runnable/testable.
+   If there's no compatible zope-setup yet, run `plonecli setup` to create it —
+   that supplies the full, package-fitting `tasks.py`; don't hand-write one. If a
+   zope-setup exists with a stale `tasks.py`, regenerate via
+   `uv run invoke reconfigure --target=zope-setup`. See the invoke-task-harness
+   section above.
+7. **Run `plonecli test`** and report real results (this needs the zope-setup
+   layer / `tasks.py` from step 6; see [maintain.md](maintain.md)). Never skip
+   tests.
 
 ## What to recommend but not force
 
