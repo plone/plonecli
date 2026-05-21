@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b5 (unreleased)
+## 7.0.0b5 (2026-05-22)
 
 
 - Fix `plonecli skill install --force` (and other flags) being rejected when
