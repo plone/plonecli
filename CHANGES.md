@@ -3,7 +3,10 @@
 ## 7.0.0b7 (unreleased)
 
 
-- Nothing changed yet.
+- Add legacy-package migration guidance to the bundled plonecli skill,
+  documenting how to adapt old mr.bob/buildout/setup.py packages so plonecli
+  subtemplates wire in correctly.
+  [MrTango]
 
 
 ## 7.0.0b6 (2026-05-22)
