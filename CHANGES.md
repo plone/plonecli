@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b4 (unreleased)
+## 7.0.0b4 (2026-05-21)
 
 
 - Broaden the bundled plonecli skill triggers to cover all commands and
