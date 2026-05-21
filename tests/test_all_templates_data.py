@@ -45,17 +45,31 @@ SPECIAL_VALUES = {
 }
 
 
-def _templates_dir() -> Path:
+def _find_templates_dir() -> Path | None:
     if DEV_TEMPLATES_DIR.exists():
         return DEV_TEMPLATES_DIR
     if FALLBACK_TEMPLATES_DIR.exists():
         return FALLBACK_TEMPLATES_DIR
-    pytest.skip("No copier-templates checkout available")
+    return None
+
+
+def _templates_dir() -> Path:
+    templates_dir = _find_templates_dir()
+    if templates_dir is None:
+        pytest.skip("No copier-templates checkout available")
+    return templates_dir
 
 
 def _all_templates():
-    """Yield (name, copier.yml-dict) for every real (non-composite) template."""
-    templates_dir = _templates_dir()
+    """Yield (name, copier.yml-dict) for every real (non-composite) template.
+
+    Evaluated at collection time, so it must not call ``pytest.skip`` (that is
+    only valid inside a test). When no templates checkout is available it yields
+    nothing, leaving the parametrized tests with an empty parameter set.
+    """
+    templates_dir = _find_templates_dir()
+    if templates_dir is None:
+        return
     for cfg in sorted(templates_dir.glob("*/copier.yml")):
         data = yaml.safe_load(cfg.read_text())
         meta = data.get("_plonecli", {})
