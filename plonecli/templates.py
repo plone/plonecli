@@ -134,6 +134,7 @@ def run_create(
     target_name: str,
     config: PlonecliConfig,
     data: dict | None = None,
+    defaults: bool = False,
 ) -> None:
     """Run copier to create a new project from a main template.
 
@@ -142,6 +143,8 @@ def run_create(
         target_name: Output directory name.
         config: Global plonecli configuration.
         data: Optional answers to pre-fill (skips interactive prompts for these).
+        defaults: Use template defaults for unanswered questions instead of
+            prompting (non-interactive mode).
     """
     ensure_templates_cloned(config)
     src = str(get_template_path(template_name, config))
@@ -151,6 +154,7 @@ def run_create(
         dst_path=target_name,
         data=data or {},
         user_defaults=_build_user_defaults(config),
+        defaults=defaults,
         unsafe=True,
     )
 
@@ -160,6 +164,7 @@ def run_add(
     project: ProjectContext,
     config: PlonecliConfig,
     data: dict | None = None,
+    defaults: bool = False,
 ) -> None:
     """Run copier to add a subtemplate to an existing project.
 
@@ -168,6 +173,8 @@ def run_add(
         project: Detected project context.
         config: Global plonecli configuration.
         data: Optional extra answers.
+        defaults: Use template defaults for unanswered questions instead of
+            prompting (non-interactive mode).
     """
     ensure_templates_cloned(config)
     src = str(get_template_path(template_name, config))
@@ -186,5 +193,6 @@ def run_add(
         dst_path=str(project.root_folder),
         data=template_data,
         user_defaults=_build_user_defaults(config),
+        defaults=defaults,
         unsafe=True,
     )

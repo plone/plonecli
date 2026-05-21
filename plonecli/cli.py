@@ -26,6 +26,63 @@ def echo(msg, fg="green", reverse=False):
     click.echo(click.style(msg, fg=fg, reverse=reverse))
 
 
+def _parse_data(pairs):
+    """Parse ``KEY=VALUE`` strings into a dict of copier answers.
+
+    Raises ``click.BadParameter`` if a pair is missing the ``=`` separator.
+    """
+    data = {}
+    for pair in pairs:
+        key, sep, value = pair.partition("=")
+        if not sep or not key:
+            raise click.BadParameter(
+                f"expected KEY=VALUE, got {pair!r}", param_hint="-d/--data"
+            )
+        data[key] = value
+    return data
+
+
+def _load_data_file(path):
+    """Load copier answers from a YAML or JSON file into a dict.
+
+    YAML is a superset of JSON, so a single ``yaml.safe_load`` covers both.
+    Raises ``click.BadParameter`` if the file is not a mapping.
+    """
+    import yaml
+
+    with open(path, encoding="utf-8") as fh:
+        loaded = yaml.safe_load(fh) or {}
+    if not isinstance(loaded, dict):
+        raise click.BadParameter(
+            f"{path}: expected a mapping of answers, got {type(loaded).__name__}",
+            param_hint="--data-file",
+        )
+    return loaded
+
+
+def _collect_data(data_file, data):
+    """Merge ``--data-file`` answers with inline ``-d`` ones (``-d`` wins)."""
+    answers = _load_data_file(data_file) if data_file else {}
+    answers.update(_parse_data(data))
+    return answers
+
+
+class InterspersedCommand(click.Command):
+    """A command that accepts options after its positional arguments.
+
+    The top-level ``cli`` group is chained, which makes Click disable
+    interspersed args for every subcommand, so e.g. ``plonecli add upgrade_step
+    --defaults`` would otherwise leak ``--defaults`` back to the parent parser.
+    Re-enabling it on this command's own parser keeps chaining intact while
+    letting flags follow the action argument.
+    """
+
+    def make_parser(self, ctx):
+        parser = super().make_parser(ctx)
+        parser.allow_interspersed_args = True
+        return parser
+
+
 def _get_registry():
     """Create a TemplateRegistry with current context."""
     config = load_config()
@@ -101,7 +158,7 @@ def cli(context, list_templates, versions):
             pass
 
 
-class CreateCommand(click.Command):
+class CreateCommand(InterspersedCommand):
     """A Click command that lists available templates in help output."""
 
     def format_help(self, ctx, formatter):
@@ -133,8 +190,28 @@ class CreateCommand(click.Command):
 @cli.command(cls=CreateCommand)
 @click.argument("template", type=click.STRING, shell_complete=get_templates)
 @click.argument("name")
+@click.option(
+    "-d",
+    "--data",
+    "data",
+    multiple=True,
+    metavar="KEY=VALUE",
+    help="Pre-fill a template answer (repeatable). Skips its prompt.",
+)
+@click.option(
+    "--data-file",
+    "data_file",
+    type=click.Path(exists=True, dir_okay=False),
+    help="Load answers from a YAML/JSON file. Overridden by -d.",
+)
+@click.option(
+    "--defaults",
+    is_flag=True,
+    help="Use template defaults for unanswered questions instead of prompting "
+    "(non-interactive).",
+)
 @click.pass_context
-def create(context, template, name):
+def create(context, template, name, data, data_file, defaults):
     """Create a new Plone package"""
     config = context.obj["config"]
     reg = TemplateRegistry(config)
@@ -147,22 +224,43 @@ def create(context, template, name):
             possibilities=reg.get_main_templates(),
         )
 
+    answers = _collect_data(data_file, data)
     steps = reg.get_composite_steps(resolved)
     if steps:
         echo(f"\nCreating {resolved} project: {name}", fg="green", reverse=True)
         for step in steps:
             echo(f"\n  Applying template: {step}", fg="green")
-            run_create(step, name, config)
+            run_create(step, name, config, data=answers, defaults=defaults)
     else:
         echo(f"\nCreating {resolved} project: {name}", fg="green", reverse=True)
-        run_create(resolved, name, config)
+        run_create(resolved, name, config, data=answers, defaults=defaults)
     context.obj["target_dir"] = name
 
 
-@cli.command()
+@cli.command(cls=InterspersedCommand)
 @click.argument("template", type=click.STRING, shell_complete=get_templates)
+@click.option(
+    "-d",
+    "--data",
+    "data",
+    multiple=True,
+    metavar="KEY=VALUE",
+    help="Pre-fill a template answer (repeatable). Skips its prompt.",
+)
+@click.option(
+    "--data-file",
+    "data_file",
+    type=click.Path(exists=True, dir_okay=False),
+    help="Load answers from a YAML/JSON file. Overridden by -d.",
+)
+@click.option(
+    "--defaults",
+    is_flag=True,
+    help="Use template defaults for unanswered questions instead of prompting "
+    "(non-interactive).",
+)
 @click.pass_context
-def add(context, template):
+def add(context, template, data, data_file, defaults):
     """Add features to your existing Plone package"""
     project = context.obj.get("project")
     if project is None:
@@ -179,8 +277,9 @@ def add(context, template):
             possibilities=reg.get_subtemplates(),
         )
 
+    answers = _collect_data(data_file, data)
     echo(f"\nAdding {resolved} to {project.root_folder.name}", fg="green", reverse=True)
-    run_add(resolved, project, config)
+    run_add(resolved, project, config, data=answers, defaults=defaults)
 
 
 @cli.command()
@@ -313,22 +412,6 @@ def update(context):
 
     # Show templates info
     echo(f"\nTemplates: {get_templates_info(config)}", fg="green")
-
-
-class InterspersedCommand(click.Command):
-    """A command that accepts options after its positional arguments.
-
-    The top-level ``cli`` group is chained, which makes Click disable
-    interspersed args for every subcommand, so ``plonecli skill install
-    --force`` leaks ``--force`` back to the parent parser. Re-enabling it on
-    this command's own parser keeps chaining intact while letting flags follow
-    the action argument.
-    """
-
-    def make_parser(self, ctx):
-        parser = super().make_parser(ctx)
-        parser.allow_interspersed_args = True
-        return parser
 
 
 @cli.command("skill", cls=InterspersedCommand)

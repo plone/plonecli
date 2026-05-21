@@ -178,6 +178,163 @@ def test_add_command(mock_ensure, mock_run_add, mock_config, mock_project, runne
     mock_run_add.assert_called_once()
 
 
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_non_interactive(
+    mock_ensure, mock_run_add, mock_config, mock_project, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    _make_template(tmp_path, "upgrade_step", {"type": "sub", "parent": "backend_addon"})
+
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="backend_addon",
+        package_name="test.addon",
+        package_folder="test/addon",
+        settings={},
+    )
+
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "upgrade_step",
+            "--defaults",
+            "-d",
+            "upgrade_step_title=Reimport viewlets",
+            "--data",
+            "destination_version=1002",
+        ],
+    )
+    assert result.exit_code == 0
+    mock_run_add.assert_called_once()
+    kwargs = mock_run_add.call_args.kwargs
+    assert kwargs["defaults"] is True
+    assert kwargs["data"] == {
+        "upgrade_step_title": "Reimport viewlets",
+        "destination_version": "1002",
+    }
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_data_file_merges_with_inline_data(
+    mock_ensure, mock_run_add, mock_config, mock_project, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    _make_template(tmp_path, "upgrade_step", {"type": "sub", "parent": "backend_addon"})
+
+    data_file = tmp_path / "answers.yml"
+    data_file.write_text(
+        "upgrade_step_title: From file\nupgrade_step_description: From file\n"
+    )
+
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="backend_addon",
+        package_name="test.addon",
+        package_folder="test/addon",
+        settings={},
+    )
+
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "upgrade_step",
+            "--data-file",
+            str(data_file),
+            # inline -d overrides the same key from the file
+            "-d",
+            "upgrade_step_title=Inline wins",
+        ],
+    )
+    assert result.exit_code == 0
+    kwargs = mock_run_add.call_args.kwargs
+    assert kwargs["data"] == {
+        "upgrade_step_title": "Inline wins",
+        "upgrade_step_description": "From file",
+    }
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_data_file_missing_fails(
+    mock_ensure, mock_run_add, mock_config, mock_project, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    _make_template(tmp_path, "upgrade_step", {"type": "sub", "parent": "backend_addon"})
+
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="backend_addon",
+        package_name="test.addon",
+        package_folder="test/addon",
+        settings={},
+    )
+
+    result = runner.invoke(
+        cli, ["add", "upgrade_step", "--data-file", str(tmp_path / "nope.yml")]
+    )
+    assert result.exit_code != 0
+    mock_run_add.assert_not_called()
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_data_without_separator_fails(
+    mock_ensure, mock_run_add, mock_config, mock_project, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    _make_template(tmp_path, "upgrade_step", {"type": "sub", "parent": "backend_addon"})
+
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="backend_addon",
+        package_name="test.addon",
+        package_folder="test/addon",
+        settings={},
+    )
+
+    result = runner.invoke(cli, ["add", "upgrade_step", "-d", "no_separator"])
+    assert result.exit_code != 0
+    mock_run_add.assert_not_called()
+
+
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_create_non_interactive(
+    mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    result = runner.invoke(
+        cli,
+        ["create", "backend_addon", "my.addon", "--defaults", "-d", "description=Demo"],
+    )
+
+    assert result.exit_code == 0
+    mock_run_create.assert_called_once()
+    kwargs = mock_run_create.call_args.kwargs
+    assert kwargs["defaults"] is True
+    assert kwargs["data"] == {"description": "Demo"}
+
+
 @patch("plonecli.cli.find_project_root", return_value=None)
 @patch("plonecli.cli.load_config")
 def test_add_outside_project(mock_config, mock_project, runner, tmp_path):

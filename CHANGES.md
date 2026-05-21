@@ -3,7 +3,10 @@
 ## 7.0.0b6 (unreleased)
 
 
-- Nothing changed yet.
+- Add `--defaults`, `-d/--data KEY=VALUE` and `--data-file` options to
+  `plonecli create` and `plonecli add` for non-interactive use (Claude Code /
+  CI), driving copier without prompts. Update the bundled skill to use them.
+  [MrTango]
 
 
 ## 7.0.0b5 (2026-05-22)

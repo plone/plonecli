@@ -6,6 +6,8 @@ plonecli create addon collective.todo            # backend add-on + zope-setup (
 plonecli create zope-setup my-project            # Zope project setup
 ```
 
+Like `add`, `create` is interactive by default. In Claude Code / CI run it non-interactively with `--defaults` (use template defaults) plus `-d/--data KEY=VALUE` for any answer you want to set, e.g. `plonecli create backend_addon collective.todo --defaults -d package_description="Todo manager"`. Do not call `copier` directly.
+
 ## Project templates
 
 Discover them live with `plonecli -l` (this is authoritative — the registry scans `copier.yml` files in the templates clone, so available templates depend on the configured template repo/branch).
