@@ -3,7 +3,17 @@
 ## 7.0.0b8 (unreleased)
 
 
-- Nothing changed yet.
+- Auto-commit by default: `plonecli create` initialises a git repo and commits
+  the generated package, and `plonecli add` commits each subtemplate run. Opt
+  out per run with `--no-git` or globally via `auto_commit = false` in the
+  `[git]` section of `~/.plonecli/config.toml`.
+  [MrTango]
+
+
+- Warn and prompt before running `create`/`add`/`setup` on a git repository
+  with uncommitted changes; the prompt defaults to cancel. Non-interactive runs
+  (`--defaults` or no tty) print the warning but proceed.
+  [MrTango]
 
 
 ## 7.0.0b7 (2026-05-22)

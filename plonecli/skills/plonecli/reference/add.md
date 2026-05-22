@@ -18,6 +18,7 @@ By default `add` (and `create`) drop into copier's **interactive prompts**, whic
 - `--defaults` — answer every question from the template's defaults (no prompts).
 - `-d/--data KEY=VALUE` — pre-fill a specific answer (repeatable); overrides the default and skips that prompt.
 - `--data-file PATH` — load answers from a YAML/JSON file (handy for many answers); inline `-d` overrides matching keys.
+- `--no-git` — skip the automatic commit (see "After adding"). By default `add` commits the subtemplate's changes.
 
 ```shell
 # fully non-interactive: defaults for everything, override the few you care about
@@ -49,7 +50,7 @@ copier asks for the specifics (names, fields, options). In Claude Code / CI you 
 
 ## After adding
 
-1. Review `git status`/diff — `add` writes new files and may touch existing ones (e.g. `configure.zcml`, `profiles`). Preserve intentional local edits.
+1. `add` auto-commits its changes (new files plus edits to existing ones like `configure.zcml`, `profiles`). Review the commit with `git show`/`git log`. Note: any *uncommitted* local edits in the package are swept into that commit too — so if the repo is dirty, `add` first **warns and prompts to continue (default: cancel)**; commit or stash your own work first, or pass `--no-git` to leave everything staged for manual review. With `--defaults` (or no tty) the prompt is skipped and the run proceeds after the warning.
 2. Run `plonecli test` and report real results. Never skip tests.
 3. If a running instance is needed to see the change, ask the user to (re)start it — do not start the server yourself.
 

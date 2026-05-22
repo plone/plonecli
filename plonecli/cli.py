@@ -26,6 +26,36 @@ def echo(msg, fg="green", reverse=False):
     click.echo(click.style(msg, fg=fg, reverse=reverse))
 
 
+def _is_interactive():
+    """Whether we can prompt the user (stdin is a terminal)."""
+    return sys.stdin.isatty()
+
+
+def confirm_clean_git(target_dir, defaults: bool) -> bool:
+    """Warn and ask to continue if the target repo has uncommitted changes.
+
+    Returns True to proceed, False if the user cancels. The prompt defaults to
+    *cancel* so an accidental Enter is safe. In non-interactive mode (``--defaults``
+    or no tty) the warning is printed but the run proceeds without prompting.
+    """
+    from plonecli.git import dirty_files
+
+    modified, untracked = dirty_files(target_dir)
+    if not modified and not untracked:
+        return True
+
+    echo("\nWARNING: the git repository has uncommitted changes:", fg="yellow")
+    for f in modified:
+        echo(f"  modified:  {f}", fg="yellow")
+    for f in untracked:
+        echo(f"  untracked: {f}", fg="yellow")
+    echo("", fg="yellow")
+
+    if defaults or not _is_interactive():
+        return True
+    return click.confirm("Continue anyway?", default=False)
+
+
 def _parse_data(pairs):
     """Parse ``KEY=VALUE`` strings into a dict of copier answers.
 
@@ -210,8 +240,14 @@ class CreateCommand(InterspersedCommand):
     help="Use template defaults for unanswered questions instead of prompting "
     "(non-interactive).",
 )
+@click.option(
+    "--no-git",
+    "no_git",
+    is_flag=True,
+    help="Do not initialise git or auto-commit the generated package.",
+)
 @click.pass_context
-def create(context, template, name, data, data_file, defaults):
+def create(context, template, name, data, data_file, defaults, no_git):
     """Create a new Plone package"""
     config = context.obj["config"]
     reg = TemplateRegistry(config)
@@ -224,16 +260,31 @@ def create(context, template, name, data, data_file, defaults):
             possibilities=reg.get_main_templates(),
         )
 
+    if not confirm_clean_git(name, defaults):
+        echo("Aborted.", fg="yellow")
+        return
+
+    git_commit = config.auto_commit and not no_git
     answers = _collect_data(data_file, data)
     steps = reg.get_composite_steps(resolved)
     if steps:
         echo(f"\nCreating {resolved} project: {name}", fg="green", reverse=True)
         for step in steps:
             echo(f"\n  Applying template: {step}", fg="green")
-            run_create(step, name, config, data=answers, defaults=defaults)
+            committed = run_create(
+                step, name, config, data=answers, defaults=defaults,
+                git_commit=git_commit,
+            )
+            if committed:
+                echo(f"  Committed: {committed}", fg="green")
     else:
         echo(f"\nCreating {resolved} project: {name}", fg="green", reverse=True)
-        run_create(resolved, name, config, data=answers, defaults=defaults)
+        committed = run_create(
+            resolved, name, config, data=answers, defaults=defaults,
+            git_commit=git_commit,
+        )
+        if committed:
+            echo(f"  Committed: {committed}", fg="green")
     context.obj["target_dir"] = name
 
 
@@ -259,8 +310,14 @@ def create(context, template, name, data, data_file, defaults):
     help="Use template defaults for unanswered questions instead of prompting "
     "(non-interactive).",
 )
+@click.option(
+    "--no-git",
+    "no_git",
+    is_flag=True,
+    help="Do not auto-commit the changes made by this subtemplate.",
+)
 @click.pass_context
-def add(context, template, data, data_file, defaults):
+def add(context, template, data, data_file, defaults, no_git):
     """Add features to your existing Plone package"""
     project = context.obj.get("project")
     if project is None:
@@ -277,9 +334,19 @@ def add(context, template, data, data_file, defaults):
             possibilities=reg.get_subtemplates(),
         )
 
+    if not confirm_clean_git(project.root_folder, defaults):
+        echo("Aborted.", fg="yellow")
+        return
+
+    git_commit = config.auto_commit and not no_git
     answers = _collect_data(data_file, data)
     echo(f"\nAdding {resolved} to {project.root_folder.name}", fg="green", reverse=True)
-    run_add(resolved, project, config, data=answers, defaults=defaults)
+    committed = run_add(
+        resolved, project, config, data=answers, defaults=defaults,
+        git_commit=git_commit,
+    )
+    if committed:
+        echo(f"  Committed: {committed}", fg="green")
 
 
 @cli.command()
@@ -293,6 +360,10 @@ def setup(context):
         raise click.UsageError(
             "The 'setup' command can only be run inside a backend_addon project."
         )
+
+    if not confirm_clean_git(project.root_folder, defaults=False):
+        echo("Aborted.", fg="yellow")
+        return
 
     config = context.obj["config"]
     echo("\nRunning zope-setup...", fg="green", reverse=True)

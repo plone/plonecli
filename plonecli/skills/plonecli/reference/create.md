@@ -40,7 +40,7 @@ The `tasks.py` for `invoke` (which drives `serve`/`test`/`debug`/`reconfigure`) 
 1. `cd` into the new project directory.
 2. Add features with `plonecli add ...` ([add.md](add.md)).
 3. Run `plonecli test` and report results — do not skip tests.
-4. Review `git status` to see everything that was generated.
+4. `create` initialises a git repo and commits the generated package (one commit per template; the `addon` composite makes two). Review it with `git log`/`git show`. Pass `--no-git` to skip both the init and the commit.
 5. Do **not** auto-start the server; if a running instance is needed, ask the user.
 
 ## Adding a Zope instance to an existing addon

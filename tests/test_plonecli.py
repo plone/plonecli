@@ -1,5 +1,6 @@
 """Tests for plonecli CLI commands."""
 
+import subprocess
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -333,6 +334,160 @@ def test_create_non_interactive(
     kwargs = mock_run_create.call_args.kwargs
     assert kwargs["defaults"] is True
     assert kwargs["data"] == {"description": "Demo"}
+
+
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_create_commits_by_default(
+    mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path), auto_commit=True)
+
+    result = runner.invoke(cli, ["create", "backend_addon", "my.addon"])
+
+    assert result.exit_code == 0
+    assert mock_run_create.call_args.kwargs["git_commit"] is True
+
+
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_create_no_git_flag(
+    mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path), auto_commit=True)
+
+    result = runner.invoke(cli, ["create", "backend_addon", "my.addon", "--no-git"])
+
+    assert result.exit_code == 0
+    assert mock_run_create.call_args.kwargs["git_commit"] is False
+
+
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_create_respects_auto_commit_config(
+    mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path), auto_commit=False)
+
+    result = runner.invoke(cli, ["create", "backend_addon", "my.addon"])
+
+    assert result.exit_code == 0
+    assert mock_run_create.call_args.kwargs["git_commit"] is False
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_no_git_flag(
+    mock_ensure, mock_run_add, mock_config, mock_project, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    _make_template(tmp_path, "behavior", {"type": "sub", "parent": "backend_addon"})
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path), auto_commit=True)
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="backend_addon",
+        package_name="test.addon",
+        package_folder="test/addon",
+        settings={},
+    )
+
+    result = runner.invoke(cli, ["add", "behavior", "--no-git"])
+
+    assert result.exit_code == 0
+    assert mock_run_add.call_args.kwargs["git_commit"] is False
+
+
+def _dirty_repo(path):
+    """Init a git repo at ``path`` with an uncommitted (untracked) file."""
+    subprocess.run(["git", "init"], cwd=str(path), check=True, capture_output=True)
+    (path / "wip.txt").write_text("work in progress\n")
+
+
+def _project_at(path):
+    return MagicMock(
+        root_folder=path,
+        project_type="backend_addon",
+        package_name="test.addon",
+        package_folder="test/addon",
+        settings={},
+    )
+
+
+@patch("plonecli.cli._is_interactive", return_value=True)
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_aborts_on_dirty_repo(
+    mock_ensure, mock_run_add, mock_config, mock_project, mock_tty, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    _make_template(tmp_path, "behavior", {"type": "sub", "parent": "backend_addon"})
+    _dirty_repo(tmp_path)
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path), auto_commit=True)
+    mock_project.return_value = _project_at(tmp_path)
+
+    result = runner.invoke(cli, ["add", "behavior"], input="n\n")
+
+    assert result.exit_code == 0
+    assert "uncommitted changes" in result.output
+    assert "Aborted" in result.output
+    mock_run_add.assert_not_called()
+
+
+@patch("plonecli.cli._is_interactive", return_value=True)
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_proceeds_when_confirmed_on_dirty_repo(
+    mock_ensure, mock_run_add, mock_config, mock_project, mock_tty, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    _make_template(tmp_path, "behavior", {"type": "sub", "parent": "backend_addon"})
+    _dirty_repo(tmp_path)
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path), auto_commit=True)
+    mock_project.return_value = _project_at(tmp_path)
+
+    result = runner.invoke(cli, ["add", "behavior"], input="y\n")
+
+    assert result.exit_code == 0
+    mock_run_add.assert_called_once()
+
+
+@patch("plonecli.cli._is_interactive", return_value=True)
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_dirty_repo_bypassed_by_defaults(
+    mock_ensure, mock_run_add, mock_config, mock_project, mock_tty, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    _make_template(tmp_path, "upgrade_step", {"type": "sub", "parent": "backend_addon"})
+    _dirty_repo(tmp_path)
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path), auto_commit=True)
+    mock_project.return_value = _project_at(tmp_path)
+
+    result = runner.invoke(
+        cli, ["add", "upgrade_step", "--defaults", "-d", "upgrade_step_title=X"]
+    )
+
+    assert result.exit_code == 0
+    # Warning still shown, but no prompt and the run proceeds.
+    assert "uncommitted changes" in result.output
+    mock_run_add.assert_called_once()
 
 
 @patch("plonecli.cli.find_project_root", return_value=None)

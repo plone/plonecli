@@ -18,6 +18,18 @@ def test_default_config():
     assert config.plone_version == ""
     assert "plone/copier-templates" in config.repo_url
     assert config.repo_branch == "main"
+    assert config.auto_commit is True
+
+
+def test_auto_commit_load_save_roundtrip(tmp_path, monkeypatch):
+    config_dir = tmp_path / ".plonecli"
+    config_file = config_dir / "config.toml"
+    monkeypatch.setattr("plonecli.config.CONFIG_DIR", config_dir)
+    monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+
+    save_config(PlonecliConfig(auto_commit=False))
+    assert "auto_commit = false" in config_file.read_text()
+    assert load_config().auto_commit is False
 
 
 def test_load_config_missing_file(tmp_path, monkeypatch):

@@ -30,6 +30,7 @@ class PlonecliConfig:
     repo_url: str = DEFAULT_REPO_URL
     repo_branch: str = DEFAULT_BRANCH
     templates_dir: str = str(TEMPLATES_DIR)
+    auto_commit: bool = True
 
 
 def load_config() -> PlonecliConfig:
@@ -50,6 +51,7 @@ def load_config() -> PlonecliConfig:
         author = data.get("author", {})
         defaults = data.get("defaults", {})
         templates = data.get("templates", {})
+        git = data.get("git", {})
 
         config.author_name = author.get("name", config.author_name)
         config.author_email = author.get("email", config.author_email)
@@ -58,6 +60,7 @@ def load_config() -> PlonecliConfig:
         config.repo_url = templates.get("repo_url", config.repo_url)
         config.repo_branch = templates.get("branch", config.repo_branch)
         config.templates_dir = templates.get("local_path", config.templates_dir)
+        config.auto_commit = git.get("auto_commit", config.auto_commit)
 
     # Environment variables override config file
     if os.environ.get(ENV_REPO_URL):
@@ -90,6 +93,9 @@ plone_version = "{config.plone_version}"
 repo_url = "{config.repo_url}"
 branch = "{config.repo_branch}"
 local_path = "{config.templates_dir}"
+
+[git]
+auto_commit = {str(config.auto_commit).lower()}
 """
     CONFIG_FILE.write_text(content)
 
