@@ -9,10 +9,16 @@
   `[git]` section of `~/.plonecli/config.toml`.
   [MrTango]
 
-
 - Warn and prompt before running `create`/`add`/`setup` on a git repository
   with uncommitted changes; the prompt defaults to cancel. Non-interactive runs
-  (`--defaults` or no tty) print the warning but proceed.
+  (`--defaults` or no tty) print the warning but proceed.  
+  [MrTango]
+  
+- Add `reference/templates.md` to the bundled plonecli skill, cataloguing every
+  copier-template question (keys, defaults, choices, conditional and computed
+  answers, required keys) so the skill builds non-interactive `--defaults -d`
+  invocations without guessing or hitting prompts. Strengthen the skill
+  description and add a scaffold-don't-hand-write rule.
   [MrTango]
 
 

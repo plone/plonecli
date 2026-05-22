@@ -6,7 +6,7 @@ plonecli create addon collective.todo            # backend add-on + zope-setup (
 plonecli create zope-setup my-project            # Zope project setup
 ```
 
-Like `add`, `create` is interactive by default. In Claude Code / CI run it non-interactively with `--defaults` (use template defaults) plus `-d/--data KEY=VALUE` for any answer you want to set, e.g. `plonecli create backend_addon collective.todo --defaults -d package_description="Todo manager"`. Do not call `copier` directly.
+Like `add`, `create` is interactive by default. In Claude Code / CI run it non-interactively with `--defaults` (use template defaults) plus `-d/--data KEY=VALUE` for any answer you want to set, e.g. `plonecli create backend_addon collective.todo --defaults -d package_description="Todo manager"`. Do not call `copier` directly. The `-d` keys each project template accepts (`backend_addon`, `zope-setup`, the `addon` composite) — defaults, choices, and conditional questions like `db_storage`/`distribution` — are catalogued in [templates.md](templates.md).
 
 ## Project templates
 
