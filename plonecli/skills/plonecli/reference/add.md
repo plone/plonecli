@@ -26,7 +26,9 @@ plonecli add behavior --defaults -d behavior_name="IFeatured"
 plonecli add restapi_service --defaults -d service_name="@todos"
 ```
 
-Pass `-d` for every answer the user has specified; `--defaults` covers the rest. Required answers that have no default (e.g. `content_type_name`, `behavior_name`, `service_name`, `upgrade_step_title`) **must** be supplied with `-d` or copier still has to prompt. Don't invent values the user hasn't given — ask first, then pass them via `-d`. The per-template question/answer keys are listed below and shown by the prompts themselves.
+Pass `-d` for every answer the user has specified; `--defaults` covers the rest. Required answers that have no default (e.g. `content_type_name`, `behavior_name`, `service_name`, `upgrade_step_title`) **must** be supplied with `-d` or copier still has to prompt. Don't invent values the user hasn't given — ask first, then pass them via `-d`.
+
+**The complete `-d KEY=VALUE` reference for every template — keys, defaults, choices, conditional `when` questions, computed/hidden keys you must not pass, and which answers are required — is [templates.md](templates.md).** Use it to assemble the command up front; the prompts also echo the same keys.
 
 ## Subtemplates are gated by project type
 
