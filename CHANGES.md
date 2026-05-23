@@ -8,12 +8,10 @@
   update` first.
   [MrTango]
 
-
 - Store the templates `local_path` home-relative (`~/...`) in `config.toml` so
   the same config works across machines and containers with a different
   `$HOME`. Paths outside the home directory stay absolute.
   [MrTango]
-
 
 - Auto-commit by default: `plonecli create` initialises a git repo and commits
   the generated package, and `plonecli add` commits each subtemplate run. Opt
@@ -21,17 +19,10 @@
   `[git]` section of `~/.plonecli/config.toml`.
   [MrTango]
 
-
 - Warn and prompt before running `create`/`add`/`setup` on a git repository
   with uncommitted changes; the prompt defaults to cancel. Non-interactive runs
-  (`--defaults` or no tty) print the warning but proceed.
-- Add `reference/fields.md` to the bundled plonecli skill: a per-field question
-  flow (name, type, required, default) plus a full Plone field/widget/autoform
-  catalogue (sourced from plone-vs-snippets), so the agent writes correct schema
-  fields when adding them to a content type or behavior. Wire it into the skill
-  triggers, decision flow and `add.md`.
+  (`--defaults` or no tty) print the warning but proceed.  
   [MrTango]
-
 
 - Add `reference/templates.md` to the bundled plonecli skill, cataloguing every
   copier-template question (keys, defaults, choices, conditional and computed
