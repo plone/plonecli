@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b8 (unreleased)
+## 7.0.0b8 (2026-05-24)
 
 
 - Clone copier-templates automatically on first use of `create`, `add` and
