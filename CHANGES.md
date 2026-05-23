@@ -24,6 +24,13 @@
   (`--defaults` or no tty) print the warning but proceed.  
   [MrTango]
 
+- Add `reference/fields.md` to the bundled plonecli skill: a per-field question
+  flow (name, type, required, default) plus a full Plone field/widget/autoform
+  catalogue, so the agent writes correct schema fields when adding them to a
+  content type or behavior. Wire it into the skill triggers, decision flow and
+  `add.md`.
+  [MrTango]
+
 - Add `reference/templates.md` to the bundled plonecli skill, cataloguing every
   copier-template question (keys, defaults, choices, conditional and computed
   answers, required keys) so the skill builds non-interactive `--defaults -d`
