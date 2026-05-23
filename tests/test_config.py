@@ -86,6 +86,57 @@ def test_save_config(tmp_path, monkeypatch):
     assert 'plone_version = "6.0.13"' in content
 
 
+def test_save_collapses_home_in_templates_path(tmp_path, monkeypatch):
+    """The default templates_dir is stored home-relative, not as an absolute path.
+
+    Regression: an absolute ``/home/<user>/...`` baked into config.toml broke
+    when the same config was read under a different ``$HOME`` (host vs.
+    devcontainer).
+    """
+    home = tmp_path / "home"
+    monkeypatch.setenv("HOME", str(home))
+    config_dir = home / ".plonecli"
+    config_file = config_dir / "config.toml"
+    monkeypatch.setattr("plonecli.config.CONFIG_DIR", config_dir)
+    monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+
+    save_config(PlonecliConfig(templates_dir=str(home / ".copier-templates" / "x")))
+
+    content = config_file.read_text()
+    assert 'local_path = "~/.copier-templates/x"' in content
+    assert str(home) not in content
+
+
+def test_save_keeps_paths_outside_home_absolute(tmp_path, monkeypatch):
+    home = tmp_path / "home"
+    monkeypatch.setenv("HOME", str(home))
+    config_dir = home / ".plonecli"
+    config_file = config_dir / "config.toml"
+    monkeypatch.setattr("plonecli.config.CONFIG_DIR", config_dir)
+    monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+
+    save_config(PlonecliConfig(templates_dir="/opt/templates"))
+
+    assert 'local_path = "/opt/templates"' in config_file.read_text()
+
+
+def test_templates_path_reloads_under_different_home(tmp_path, monkeypatch):
+    """A config saved under one $HOME expands correctly under another."""
+    config_dir = tmp_path / ".plonecli"
+    config_file = config_dir / "config.toml"
+    monkeypatch.setattr("plonecli.config.CONFIG_DIR", config_dir)
+    monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+
+    home_a = tmp_path / "home_a"
+    monkeypatch.setenv("HOME", str(home_a))
+    save_config(PlonecliConfig(templates_dir=str(home_a / ".copier-templates" / "x")))
+
+    home_b = tmp_path / "home_b"
+    monkeypatch.setenv("HOME", str(home_b))
+    loaded = load_config()
+    assert loaded.templates_dir == str(home_b / ".copier-templates" / "x")
+
+
 def test_save_and_reload(tmp_path, monkeypatch):
     config_dir = tmp_path / ".plonecli"
     config_file = config_dir / "config.toml"

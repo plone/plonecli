@@ -51,7 +51,8 @@ def _make_template(tmp_path, name, plonecli_meta):
 @patch("plonecli.cli.find_project_root", return_value=None)
 @patch("plonecli.cli.load_config")
 def test_cli_list_templates(mock_config, mock_project, runner, tmp_path):
-    # Set up mock templates dir
+    # Set up mock templates dir as an existing clone (has .git)
+    (tmp_path / ".git").mkdir()
     _make_template(tmp_path, "backend_addon", {"type": "main", "aliases": ["addon"]})
     _make_template(tmp_path, "zope-setup", {"type": "main"})
     _make_template(tmp_path, "behavior", {"type": "sub", "parent": "backend_addon"})
@@ -154,6 +155,36 @@ def test_create_unknown_template(mock_config, mock_project, runner, tmp_path):
     mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
     result = runner.invoke(cli, ["create", "nonexistent", "mypackage"])
     assert result.exit_code != 0
+
+
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_create_clones_templates_on_first_run(
+    mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path
+):
+    """A fresh install must clone before resolving the template, not fail.
+
+    Regression: template resolution reads the local clone, so it has to run
+    *after* the clone. Without the auto-clone, ``create`` raised NoSuchValue
+    on an empty templates dir and forced a manual ``plonecli update``.
+    """
+    templates_dir = tmp_path / "clone"
+    mock_config.return_value = MagicMock(templates_dir=str(templates_dir))
+
+    # Simulate the first-run clone populating the templates dir.
+    def fake_clone(config):
+        templates_dir.mkdir(parents=True, exist_ok=True)
+        _make_template(templates_dir, "backend_addon", {"type": "main"})
+
+    mock_ensure.side_effect = fake_clone
+
+    result = runner.invoke(cli, ["create", "backend_addon", "my.addon"])
+
+    assert result.exit_code == 0, result.output
+    mock_ensure.assert_called_once()
+    mock_run_create.assert_called_once()
 
 
 @patch("plonecli.cli.find_project_root")

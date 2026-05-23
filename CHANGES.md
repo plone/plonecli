@@ -3,6 +3,18 @@
 ## 7.0.0b8 (unreleased)
 
 
+- Clone copier-templates automatically on first use of `create`, `add` and
+  `-l`. A freshly installed plonecli now works without a manual `plonecli
+  update` first.
+  [MrTango]
+
+
+- Store the templates `local_path` home-relative (`~/...`) in `config.toml` so
+  the same config works across machines and containers with a different
+  `$HOME`. Paths outside the home directory stay absolute.
+  [MrTango]
+
+
 - Auto-commit by default: `plonecli create` initialises a git repo and commits
   the generated package, and `plonecli add` commits each subtemplate run. Opt
   out per run with `--no-git` or globally via `auto_commit = false` in the
