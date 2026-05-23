@@ -8,6 +8,7 @@ from pathlib import Path
 from copier import run_copy
 
 from plonecli.config import PlonecliConfig
+from plonecli.git import commit_template_changes
 from plonecli.project import ProjectContext
 
 
@@ -135,7 +136,8 @@ def run_create(
     config: PlonecliConfig,
     data: dict | None = None,
     defaults: bool = False,
-) -> None:
+    git_commit: bool = True,
+) -> str | None:
     """Run copier to create a new project from a main template.
 
     Args:
@@ -145,6 +147,10 @@ def run_create(
         data: Optional answers to pre-fill (skips interactive prompts for these).
         defaults: Use template defaults for unanswered questions instead of
             prompting (non-interactive mode).
+        git_commit: Initialise git (if needed) and commit the result.
+
+    Returns:
+        The commit message if a commit was made, otherwise ``None``.
     """
     ensure_templates_cloned(config)
     src = str(get_template_path(template_name, config))
@@ -158,6 +164,12 @@ def run_create(
         unsafe=True,
     )
 
+    if git_commit:
+        return commit_template_changes(
+            target_name, template_name, config, is_subtemplate=False
+        )
+    return None
+
 
 def run_add(
     template_name: str,
@@ -165,7 +177,8 @@ def run_add(
     config: PlonecliConfig,
     data: dict | None = None,
     defaults: bool = False,
-) -> None:
+    git_commit: bool = True,
+) -> str | None:
     """Run copier to add a subtemplate to an existing project.
 
     Args:
@@ -175,6 +188,10 @@ def run_add(
         data: Optional extra answers.
         defaults: Use template defaults for unanswered questions instead of
             prompting (non-interactive mode).
+        git_commit: Initialise git (if needed) and commit the result.
+
+    Returns:
+        The commit message if a commit was made, otherwise ``None``.
     """
     ensure_templates_cloned(config)
     src = str(get_template_path(template_name, config))
@@ -196,3 +213,9 @@ def run_add(
         defaults=defaults,
         unsafe=True,
     )
+
+    if git_commit:
+        return commit_template_changes(
+            project.root_folder, template_name, config, is_subtemplate=True
+        )
+    return None
