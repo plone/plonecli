@@ -3,7 +3,12 @@
 ## 7.0.0b8 (unreleased)
 
 
-- Nothing changed yet.
+- Add `reference/templates.md` to the bundled plonecli skill, cataloguing every
+  copier-template question (keys, defaults, choices, conditional and computed
+  answers, required keys) so the skill builds non-interactive `--defaults -d`
+  invocations without guessing or hitting prompts. Strengthen the skill
+  description and add a scaffold-don't-hand-write rule.
+  [MrTango]
 
 
 ## 7.0.0b7 (2026-05-22)
