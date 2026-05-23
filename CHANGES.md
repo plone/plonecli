@@ -3,6 +3,16 @@
 ## 7.0.0b8 (unreleased)
 
 
+- Clone copier-templates automatically on first use of `create`, `add` and
+  `-l`. A freshly installed plonecli now works without a manual `plonecli
+  update` first.
+  [MrTango]
+
+- Store the templates `local_path` home-relative (`~/...`) in `config.toml` so
+  the same config works across machines and containers with a different
+  `$HOME`. Paths outside the home directory stay absolute.
+  [MrTango]
+
 - Auto-commit by default: `plonecli create` initialises a git repo and commits
   the generated package, and `plonecli add` commits each subtemplate run. Opt
   out per run with `--no-git` or globally via `auto_commit = false` in the
@@ -13,7 +23,7 @@
   with uncommitted changes; the prompt defaults to cancel. Non-interactive runs
   (`--defaults` or no tty) print the warning but proceed.  
   [MrTango]
-  
+
 - Add `reference/templates.md` to the bundled plonecli skill, cataloguing every
   copier-template question (keys, defaults, choices, conditional and computed
   answers, required keys) so the skill builds non-interactive `--defaults -d`

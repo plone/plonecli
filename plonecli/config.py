@@ -76,6 +76,23 @@ def load_config() -> PlonecliConfig:
     return config
 
 
+def _portable_path(path_str: str) -> str:
+    """Collapse a leading home directory to ``~`` for portability.
+
+    ``load_config`` expands ``~`` per-environment, so storing the home-relative
+    form keeps the config working across machines and containers with different
+    ``$HOME`` (e.g. host vs. devcontainer). Paths outside home are left absolute.
+    """
+    path = Path(path_str)
+    home = Path.home()
+    if path == home:
+        return "~"
+    try:
+        return "~/" + str(path.relative_to(home))
+    except ValueError:
+        return path_str
+
+
 def save_config(config: PlonecliConfig) -> None:
     """Save config to ~/.plonecli/config.toml."""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -92,7 +109,7 @@ plone_version = "{config.plone_version}"
 [templates]
 repo_url = "{config.repo_url}"
 branch = "{config.repo_branch}"
-local_path = "{config.templates_dir}"
+local_path = "{_portable_path(config.templates_dir)}"
 
 [git]
 auto_commit = {str(config.auto_commit).lower()}

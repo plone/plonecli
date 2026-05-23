@@ -26,6 +26,22 @@ def echo(msg, fg="green", reverse=False):
     click.echo(click.style(msg, fg=fg, reverse=reverse))
 
 
+def ensure_templates(config):
+    """Clone the copier-templates on first use.
+
+    Template discovery, resolution and listing all read from the local clone, so
+    they must run *after* it exists. Calling this before using the registry means
+    a freshly installed plonecli works without a manual ``plonecli update``.
+    Idempotent: a no-op once the clone is present.
+    """
+    from pathlib import Path
+
+    templates_dir = Path(config.templates_dir)
+    if not (templates_dir / ".git").exists():
+        echo("\nFetching copier-templates (first run)...", fg="green")
+    ensure_templates_cloned(config)
+
+
 def _is_interactive():
     """Whether we can prompt the user (stdin is a terminal)."""
     return sys.stdin.isatty()
@@ -160,6 +176,7 @@ def cli(context, list_templates, versions):
     }
 
     if list_templates:
+        ensure_templates(config)
         reg = TemplateRegistry(config, project)
         click.echo(reg.list_templates())
 
@@ -250,6 +267,7 @@ class CreateCommand(InterspersedCommand):
 def create(context, template, name, data, data_file, defaults, no_git):
     """Create a new Plone package"""
     config = context.obj["config"]
+    ensure_templates(config)
     reg = TemplateRegistry(config)
 
     resolved = reg.resolve_template_name(template)
@@ -324,6 +342,7 @@ def add(context, template, data, data_file, defaults, no_git):
         raise NotInPackageError(context.command.name)
 
     config = context.obj["config"]
+    ensure_templates(config)
     reg = TemplateRegistry(config, project)
 
     resolved = reg.resolve_template_name(template)
