@@ -27,7 +27,9 @@ plonecli add behavior --defaults -d behavior_name="IFeatured"
 plonecli add restapi_service --defaults -d service_name="@todos"
 ```
 
-Pass `-d` for every answer the user has specified; `--defaults` covers the rest. Required answers that have no default (e.g. `content_type_name`, `behavior_name`, `service_name`, `upgrade_step_title`) **must** be supplied with `-d` or copier still has to prompt. Don't invent values the user hasn't given — ask first, then pass them via `-d`. The per-template question/answer keys are listed below and shown by the prompts themselves.
+Pass `-d` for every answer the user has specified; `--defaults` covers the rest. Required answers that have no default (e.g. `content_type_name`, `behavior_name`, `service_name`, `upgrade_step_title`) **must** be supplied with `-d` or copier still has to prompt. Don't invent values the user hasn't given — ask first, then pass them via `-d`.
+
+**The complete `-d KEY=VALUE` reference for every template — keys, defaults, choices, conditional `when` questions, computed/hidden keys you must not pass, and which answers are required — is [templates.md](templates.md).** Use it to assemble the command up front; the prompts also echo the same keys.
 
 ## Subtemplates are gated by project type
 
@@ -42,11 +44,13 @@ Always confirm what is actually available here with `plonecli -l` (run inside th
 
 | Subtemplate | Adds | Typical follow-up |
 |---|---|---|
-| `content_type` | A Dexterity content type (schema, FTI, registration). | Restart/reinstall the addon so the new type is registered; add tests for the type. |
-| `behavior` | A behavior (reusable schema/marker applied to content types). | Wire the behavior onto a content type; add tests. |
+| `content_type` | A Dexterity content type (schema, FTI, registration). | Add schema fields ([fields.md](fields.md)); restart/reinstall so the new type is registered; add tests. |
+| `behavior` | A behavior (reusable schema/marker applied to content types). | Add schema fields ([fields.md](fields.md)); wire the behavior onto a content type; add tests. |
 | `restapi_service` | A `plone.restapi` service (endpoint, adapter, registration). | Add tests exercising the endpoint. |
 
-copier asks for the specifics (names, fields, options). In Claude Code / CI you cannot answer prompts, so run non-interactively with `--defaults` and pass the user's choices via `-d KEY=VALUE` (see "Non-interactive use" above). Do not invent answers; if the user hasn't specified e.g. field names, ask, then pass them via `-d`.
+copier asks for the specifics (names, options). In Claude Code / CI you cannot answer prompts, so run non-interactively with `--defaults` and pass the user's choices via `-d KEY=VALUE` (see "Non-interactive use" above). Do not invent answers; if the user hasn't specified e.g. the content type name, ask, then pass it via `-d`.
+
+**Schema fields are not a copier `-d` answer.** `content_type` and `behavior` scaffold an empty `model.Schema` class; fields are added afterward by editing that `.py` file. To add fields, gather name/type/required/default per field and follow the catalogue and question flow in [fields.md](fields.md) — don't try to pass fields via `-d`.
 
 ## After adding
 

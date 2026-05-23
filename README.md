@@ -18,6 +18,15 @@ Scaffolding a backend add-on, adding a content type and behavior, and wiring up 
 
 > ▶ If the video does not play inline, [watch `docs/demo-backend.webm`](https://github.com/plone/plonecli/raw/master/docs/demo-backend.webm).
 
+## Compatibility
+
+Starting from version 7.x, we use copier templates instead of bobtemplates.plone or cookiecutter templates.
+This brings some UX advantages and flexibility to the templates and is future-proof.
+
+- Versions >= 7.x use the new copier templates (UV/pyproject.toml instead of buildout) and support Plone >= 6.x.
+- Versions == 3.x **(current stable version)** use bobtemplates.plone and some cookieplone templates and also support Plone >= 6.x.
+    - When using bobtemplates.plone for Plone 5.x and Python 3, you can use plonecli together with bobtemplates.plone == 6.x. They support Plone 5 and Plone 6, except for the theming templates, which are made for Plone 6. If you really need to create a theming package for Plone 5.x, use bobtemplates.plone < 6.x.
+
 
 ## Installation
 
