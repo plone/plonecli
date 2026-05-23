@@ -119,3 +119,6 @@ USER node
 
 # Install UV package manager
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install plonecli (Plone scaffolding CLI) as a global uv tool
+RUN $HOME/.local/bin/uv tool install plonecli
