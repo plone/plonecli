@@ -23,7 +23,9 @@ guess them. For **each** field the user wants, gather these four answers, then
 write the field. Ask the user with whatever question mechanism the host agent
 provides (Claude Code: `AskUserQuestion`; other agents: their own UI).
 
-1. **Field name** — Python identifier in `snake_case`, e.g. `start_date`.
+1. **Field name** — Python identifier in `snake_case`, e.g. `start_date`. Check
+   it against [Reserved field names from default behaviors](#reserved-field-names-from-default-behaviors)
+   first; if it collides, warn the user and recommend an alternative before writing.
 2. **Field type** — pick from the catalogue below (TextLine, Text, RichText,
    Bool, Int, Float, Choice, Multi-Choice, Date, Datetime, Email, URI,
    NamedBlobImage, NamedBlobFile, RelationChoice, RelationList, …).
@@ -40,6 +42,49 @@ Conditional follow-ups — ask only when the chosen type needs it:
   `plone.app.vocabularies.Catalog` or a `CatalogSource`.
 - **DataGrid** → the row schema interface and the `collective.z3cform.datagridfield`
   dependency.
+
+## Reserved field names from default behaviors
+
+Plone's standard behaviors already define the field names below. If a CT (or
+behavior) **enables** a behavior, defining your own field with the same name
+shadows or clashes with the behavior's field — same name, different schema —
+which causes confusing form/catalog/serialization bugs that are hard to trace.
+
+So when a requested field name appears in this list: **warn the user and
+recommend a distinct name** (e.g. `event_location` instead of `location`,
+`lead_text` instead of `text`, `tags` instead of `subjects`). This is advice,
+not a hard block — **the user may keep the conflicting name if their CT does not
+enable that behavior.** Only the behaviors actually enabled on the type create a
+real conflict; an unused behavior's names are free. State which behavior owns the
+name so the user can make that call, then proceed with their decision.
+
+| Field name | Owning behavior (short name) |
+|---|---|
+| `title`, `description` | `plone.basic` (also in `plone.dublincore`) |
+| `subjects`, `language` | `plone.categorization` (also in `plone.dublincore`) |
+| `effective`, `expires` | `plone.publication` (also in `plone.dublincore`) |
+| `creators`, `contributors`, `rights` | `plone.ownership` (also in `plone.dublincore`) |
+| `allow_discussion` | `plone.allowdiscussion` |
+| `exclude_from_nav` | `plone.excludefromnavigation` |
+| `id` | `plone.shortname` |
+| `nextPreviousEnabled` | `plone.nextprevious` |
+| `relatedItems` | `plone.relateditems` |
+| `changeNote` | `plone.versioning` |
+| `text` | `plone.richtext` |
+| `image`, `image_caption` | `plone.leadimage` |
+| `table_of_contents` | `plone.tableofcontents` |
+| `thumb_scale_list`, `thumb_scale_table`, `thumb_scale_summary`, `suppress_icons`, `suppress_thumbs` | `plone.thumb_icon` |
+| `query`, `sort_on`, `sort_reversed`, `limit`, `item_count`, `customViewFields` | `plone.collection` |
+| `start`, `end`, `whole_day`, `open_end`, `sync_uid` | `plone.eventbasic` |
+| `recurrence` | `plone.eventrecurrence` |
+| `location` | `plone.eventlocation` |
+| `attendees` | `plone.eventattendees` |
+| `contact_name`, `contact_email`, `contact_phone`, `event_url` | `plone.eventcontact` |
+
+`plone.dublincore` bundles `plone.basic` + `plone.categorization` +
+`plone.publication` + `plone.ownership`, so enabling it reserves all their names
+at once. The `plone.app.contenttypes` default types (Document, News Item, Event,
+…) enable `plone.dublincore` plus several of the behaviors above out of the box.
 
 ## Field catalogue
 
