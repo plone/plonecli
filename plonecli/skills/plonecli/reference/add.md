@@ -44,7 +44,7 @@ Always confirm what is actually available here with `plonecli -l` (run inside th
 
 | Subtemplate | Adds | Typical follow-up |
 |---|---|---|
-| `content_type` | A Dexterity content type (schema, FTI, registration). | Add schema fields ([fields.md](fields.md)); restart/reinstall so the new type is registered; add tests. |
+| `content_type` | A Dexterity content type (schema, FTI, registration). For containment, also wires the new type into the parent's `allowed_content_types`. | Add schema fields ([fields.md](fields.md)); restart/reinstall so the new type is registered; add tests. |
 | `behavior` | A behavior (reusable schema/marker applied to content types). | Add schema fields ([fields.md](fields.md)); wire the behavior onto a content type; add tests. |
 | `restapi_service` | A `plone.restapi` service (endpoint, adapter, registration). | Add tests exercising the endpoint. |
 

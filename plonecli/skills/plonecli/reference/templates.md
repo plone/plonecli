@@ -118,6 +118,13 @@ Example: `plonecli add behavior --defaults -d behavior_name="IFeatured"`
 Hidden/computed: `content_type_class`, `content_type_module`, `content_type_interface`,
 `content_type_portal_type`, `parent_content_type_resolved`.
 
+**Containment is fully wired by the template — do not edit the parent FTI yourself.** When you
+pass `global_allow=false` + `parent_content_type`, the post-copy hook adds the new type to that
+parent's `allowed_content_types`: it edits the parent FTI's `types/*.xml` if the parent lives in
+this package, or creates a minimal `purge="False"` FTI override (e.g. for stock Plone `Folder`) that
+only appends the new type. So just answer `parent_content_type` (and `parent_content_type_manual`
+for a type not in the choices) — never hand-edit allowed types in any `types/*.xml` before or after.
+
 Example (containment): `plonecli add content_type --defaults -d content_type_name="Talk" -d global_allow=false -d parent_content_type="Folder"`
 
 ### `restapi_service` — `plone.restapi` endpoint
