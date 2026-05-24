@@ -137,6 +137,7 @@ def run_create(
     data: dict | None = None,
     defaults: bool = False,
     git_commit: bool = True,
+    overwrite: bool = False,
 ) -> str | None:
     """Run copier to create a new project from a main template.
 
@@ -148,6 +149,10 @@ def run_create(
         defaults: Use template defaults for unanswered questions instead of
             prompting (non-interactive mode).
         git_commit: Initialise git (if needed) and commit the result.
+        overwrite: Overwrite existing files without prompting. Needed when a
+            template is layered onto an existing project (composite steps after
+            the first, ``plonecli setup``); copier otherwise raises an
+            interactive-conflict error in non-interactive mode.
 
     Returns:
         The commit message if a commit was made, otherwise ``None``.
@@ -161,6 +166,7 @@ def run_create(
         data=data or {},
         user_defaults=_build_user_defaults(config),
         defaults=defaults,
+        overwrite=overwrite,
         unsafe=True,
     )
 
