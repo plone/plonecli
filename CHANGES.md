@@ -3,7 +3,10 @@
 ## 7.0.0b10 (unreleased)
 
 
-- Nothing changed yet.
+- Skill: list field names reserved by Plone's default behaviors so naming
+  conflicts are caught early and an alternative is recommended; keeping a
+  conflicting name is allowed when the type does not enable that behavior.
+  [MrTango]
 
 
 ## 7.0.0b9 (2026-05-24)
