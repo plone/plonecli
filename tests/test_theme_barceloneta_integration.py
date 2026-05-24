@@ -33,6 +33,9 @@ FALLBACK_TEMPLATES_DIR = Path(
 
 
 def _templates_dir() -> Path:
+    env_dir = os.environ.get("PLONECLI_TEMPLATES_DIR")
+    if env_dir and Path(env_dir).exists():
+        return Path(env_dir)
     if DEV_TEMPLATES_DIR.exists():
         return DEV_TEMPLATES_DIR
     if FALLBACK_TEMPLATES_DIR.exists():
