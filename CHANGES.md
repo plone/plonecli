@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b10 (unreleased)
+## 7.0.0b10 (2026-05-24)
 
 
 - Install `plonecli` in the devcontainer image via `uv tool` and drop the
