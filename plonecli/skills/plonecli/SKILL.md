@@ -9,7 +9,8 @@ description: Scaffold and develop Plone packages with plonecli (copier-template 
 
 ## How to invoke it
 
-- **End users:** `uvx plonecli <command>` (no install needed).
+- **Installed (preferred):** `plonecli <command>` — if `plonecli` is on `PATH` (e.g. via `uv tool install plonecli`), always use the bare command so the user's installed/pinned version runs.
+- **Not installed / one-off:** `uvx plonecli <command>` (no install needed). Only fall back to this when `plonecli` is not on `PATH`.
 - **Inside this repo (plonecli's own source):** it is not on `PATH` — use `uv run plonecli <command>`.
 
 On first run, plonecli clones the copier-templates to `~/.copier-templates/plone-copier-templates`. If a command complains about missing templates, run `plonecli update` first.

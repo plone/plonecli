@@ -3,7 +3,11 @@
 ## 7.0.0b9 (unreleased)
 
 
-- Nothing changed yet.
+- Prefer the installed `plonecli` (on `PATH`, e.g. via `uv tool install
+  plonecli`) over `uvx` in the skill's invoke docs, so the user's
+  installed/pinned version runs instead of a separate PyPI-resolved copy.
+  `uvx` is now documented as a no-install fallback.
+  [MrTango]
 
 
 ## 7.0.0b8 (2026-05-24)
