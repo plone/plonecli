@@ -1,6 +1,6 @@
 # plone todos
 
-Note: use plonecli>=7.0.b8, not the current stable version!
+Note: use plonecli>=7.0.b10, not the current stable version!
 
 Create a new plone addon "derico.todos", with the following features:
 
@@ -21,7 +21,7 @@ Create a new plone addon "derico.todos", with the following features:
 - parent: Todos
 - no default behaviors activated
 - fields:
-    - name: priority, type: choice field (hight, normal, low), default: normal
+    - name: priority, type: choice field with vocabulary (hight, normal, low), default: normal
     - name: done, type: boolean, default: False
     - name: description, type: RichText, required: False
 
@@ -39,3 +39,8 @@ name: view
 registration for CT: Todo
 purpose: shows Todo details
 
+The addon has to be translated into german.
+
+## Restapi
+
+create a restapi service to show all todo infos on the todos list without calling single todos.
