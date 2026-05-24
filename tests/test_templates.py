@@ -9,6 +9,7 @@ from plonecli.templates import (
     ensure_templates_cloned,
     get_template_path,
     get_templates_info,
+    run_create,
     update_templates_clone,
 )
 
@@ -130,3 +131,26 @@ def test_get_templates_info_not_cloned(tmp_path):
     config = PlonecliConfig(templates_dir=str(tmp_path / "nonexistent"))
     info = get_templates_info(config)
     assert info == "not cloned"
+
+
+@patch("plonecli.templates.run_copy")
+def test_run_create_overwrite_default_false(mock_run_copy, tmp_path):
+    """run_create does not overwrite by default."""
+    (tmp_path / ".git").mkdir()
+    (tmp_path / "backend_addon").mkdir()
+    config = PlonecliConfig(templates_dir=str(tmp_path))
+    run_create("backend_addon", "out", config, defaults=True, git_commit=False)
+    assert mock_run_copy.call_args.kwargs["overwrite"] is False
+
+
+@patch("plonecli.templates.run_copy")
+def test_run_create_overwrite_forwarded(mock_run_copy, tmp_path):
+    """overwrite=True is forwarded to copier (layering onto existing files)."""
+    (tmp_path / ".git").mkdir()
+    (tmp_path / "zope-setup").mkdir()
+    config = PlonecliConfig(templates_dir=str(tmp_path))
+    run_create(
+        "zope-setup", "out", config, defaults=True, git_commit=False,
+        overwrite=True,
+    )
+    assert mock_run_copy.call_args.kwargs["overwrite"] is True

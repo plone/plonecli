@@ -125,6 +125,9 @@ def test_create_composite_template(mock_ensure, mock_run_create, mock_config, mo
     assert calls[0][0][1] == "my.addon"
     assert calls[1][0][0] == "zope-setup"
     assert calls[1][0][1] == "my.addon"
+    # First layer creates fresh files; later layers overlay and must overwrite.
+    assert calls[0].kwargs["overwrite"] is False
+    assert calls[1].kwargs["overwrite"] is True
 
 
 @patch("plonecli.cli.find_project_root", return_value=None)
