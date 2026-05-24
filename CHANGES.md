@@ -1,5 +1,11 @@
 # History
 
+## 7.0.0b10 (unreleased)
+
+
+- Nothing changed yet.
+
+
 ## 7.0.0b9 (2026-05-24)
 
 
