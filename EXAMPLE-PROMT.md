@@ -1,5 +1,7 @@
 # plone todos
 
+Note: use plonecli>=7.0.b8, not the current stable version!
+
 Create a new plone addon "derico.todos", with the following features:
 
 ## content types (CT's)
