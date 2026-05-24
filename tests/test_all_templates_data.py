@@ -19,6 +19,7 @@ Two layers:
 
 from __future__ import annotations
 
+import os
 import shutil
 from pathlib import Path
 
@@ -46,6 +47,9 @@ SPECIAL_VALUES = {
 
 
 def _find_templates_dir() -> Path | None:
+    env_dir = os.environ.get("PLONECLI_TEMPLATES_DIR")
+    if env_dir and Path(env_dir).exists():
+        return Path(env_dir)
     if DEV_TEMPLATES_DIR.exists():
         return DEV_TEMPLATES_DIR
     if FALLBACK_TEMPLATES_DIR.exists():

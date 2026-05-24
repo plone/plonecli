@@ -126,6 +126,7 @@ def test_templates_path_reloads_under_different_home(tmp_path, monkeypatch):
     config_file = config_dir / "config.toml"
     monkeypatch.setattr("plonecli.config.CONFIG_DIR", config_dir)
     monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+    monkeypatch.delenv("PLONECLI_TEMPLATES_DIR", raising=False)
 
     home_a = tmp_path / "home_a"
     monkeypatch.setenv("HOME", str(home_a))
