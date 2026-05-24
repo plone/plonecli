@@ -3,6 +3,9 @@
 ## 7.0.0b9 (unreleased)
 
 
+- Add plonecli version note to `EXAMPLE-PROMT.md`.
+  [MrTango]
+
 - Prefer the installed `plonecli` (on `PATH`, e.g. via `uv tool install
   plonecli`) over `uvx` in the skill's invoke docs, so the user's
   installed/pinned version runs instead of a separate PyPI-resolved copy.
