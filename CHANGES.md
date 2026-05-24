@@ -3,7 +3,9 @@
 ## 7.0.0b10 (unreleased)
 
 
-- Nothing changed yet.
+- Install `plonecli` in the devcontainer image via `uv tool` and drop the
+  read-only `~/.plonecli` host mount; the CLI configures itself on first use.
+  [MrTango]
 
 
 ## 7.0.0b9 (2026-05-24)
