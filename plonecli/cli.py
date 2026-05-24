@@ -287,11 +287,11 @@ def create(context, template, name, data, data_file, defaults, no_git):
     steps = reg.get_composite_steps(resolved)
     if steps:
         echo(f"\nCreating {resolved} project: {name}", fg="green", reverse=True)
-        for step in steps:
+        for index, step in enumerate(steps):
             echo(f"\n  Applying template: {step}", fg="green")
             committed = run_create(
                 step, name, config, data=answers, defaults=defaults,
-                git_commit=git_commit,
+                git_commit=git_commit, overwrite=index > 0,
             )
             if committed:
                 echo(f"  Committed: {committed}", fg="green")
@@ -386,7 +386,7 @@ def setup(context):
 
     config = context.obj["config"]
     echo("\nRunning zope-setup...", fg="green", reverse=True)
-    run_create("zope-setup", str(project.root_folder), config)
+    run_create("zope-setup", str(project.root_folder), config, overwrite=True)
 
 
 @cli.command("serve")
