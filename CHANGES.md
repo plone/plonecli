@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b9 (unreleased)
+## 7.0.0b9 (2026-05-24)
 
 
 - Add plonecli version note to `EXAMPLE-PROMT.md`.
