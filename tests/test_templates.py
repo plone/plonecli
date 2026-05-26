@@ -6,12 +6,32 @@ import pytest
 
 from plonecli.config import PlonecliConfig
 from plonecli.templates import (
+    _build_user_defaults,
     ensure_templates_cloned,
     get_template_path,
     get_templates_info,
     run_create,
     update_templates_clone,
 )
+
+
+def test_build_user_defaults_backend_addon_uses_minor_version():
+    config = PlonecliConfig(plone_version="6.1.1", github_user="acme")
+    defaults = _build_user_defaults(config, "backend_addon")
+    assert defaults["plone_version"] == "6.1"
+    assert defaults["github_organization"] == "acme"
+
+
+def test_build_user_defaults_zope_setup_omits_plone_version():
+    config = PlonecliConfig(plone_version="6.1.1")
+    defaults = _build_user_defaults(config, "zope-setup")
+    assert "plone_version" not in defaults
+
+
+def test_build_user_defaults_no_version_when_unset():
+    config = PlonecliConfig()
+    defaults = _build_user_defaults(config, "backend_addon")
+    assert "plone_version" not in defaults
 
 
 def test_ensure_templates_cloned_existing(tmp_path):

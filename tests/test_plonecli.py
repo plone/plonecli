@@ -532,10 +532,18 @@ def test_add_outside_project(mock_config, mock_project, runner, tmp_path):
     assert result.exit_code != 0
 
 
+def _make_zope_ini(tmp_path):
+    ini = tmp_path / "var" / "instance" / "etc" / "zope.ini"
+    ini.parent.mkdir(parents=True, exist_ok=True)
+    ini.write_text("[server:main]\n")
+    return ini
+
+
 @patch("plonecli.cli.find_project_root")
 @patch("plonecli.cli.load_config")
 @patch("plonecli.cli.subprocess.call", return_value=0)
 def test_serve_command(mock_call, mock_config, mock_project, runner, tmp_path):
+    _make_zope_ini(tmp_path)
     mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
     mock_project.return_value = MagicMock(
         root_folder=tmp_path,
@@ -547,7 +555,28 @@ def test_serve_command(mock_call, mock_config, mock_project, runner, tmp_path):
     assert result.exit_code == 0
     mock_call.assert_called_once()
     call_args = mock_call.call_args[0][0]
-    assert call_args == ["uv", "run", "invoke", "start"]
+    assert call_args == [
+        "uv",
+        "run",
+        "runwsgi",
+        "var/instance/etc/zope.ini",
+    ]
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.subprocess.call", return_value=0)
+def test_serve_command_no_instance(mock_call, mock_config, mock_project, runner, tmp_path):
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="zope-setup",
+        settings={},
+    )
+
+    result = runner.invoke(cli, ["serve"])
+    assert result.exit_code != 0
+    mock_call.assert_not_called()
 
 
 @patch("plonecli.cli.find_project_root")
@@ -564,7 +593,7 @@ def test_test_command(mock_call, mock_config, mock_project, runner, tmp_path):
     result = runner.invoke(cli, ["test"])
     assert result.exit_code == 0
     call_args = mock_call.call_args[0][0]
-    assert call_args == ["uv", "run", "invoke", "test"]
+    assert call_args == ["uv", "run", "--extra", "test", "pytest"]
 
 
 @patch("plonecli.cli.find_project_root")
@@ -581,13 +610,52 @@ def test_test_command_verbose(mock_call, mock_config, mock_project, runner, tmp_
     result = runner.invoke(cli, ["test", "--verbose"])
     assert result.exit_code == 0
     call_args = mock_call.call_args[0][0]
-    assert "--verbose" in call_args
+    assert "-v" in call_args
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.subprocess.call", return_value=0)
+def test_check_command(mock_call, mock_config, mock_project, runner, tmp_path):
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="backend_addon",
+        settings={},
+    )
+
+    result = runner.invoke(cli, ["check"])
+    assert result.exit_code == 0
+    assert mock_call.call_count == 2
+    first = mock_call.call_args_list[0][0][0]
+    second = mock_call.call_args_list[1][0][0]
+    assert first == ["uv", "run", "ruff", "check", "."]
+    assert second == ["uv", "run", "--extra", "test", "pytest"]
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.subprocess.call", return_value=1)
+def test_check_command_ruff_fail_stops(
+    mock_call, mock_config, mock_project, runner, tmp_path
+):
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
+    mock_project.return_value = MagicMock(
+        root_folder=tmp_path,
+        project_type="backend_addon",
+        settings={},
+    )
+
+    result = runner.invoke(cli, ["check"])
+    assert result.exit_code != 0
+    mock_call.assert_called_once()
 
 
 @patch("plonecli.cli.find_project_root")
 @patch("plonecli.cli.load_config")
 @patch("plonecli.cli.subprocess.call", return_value=0)
 def test_debug_command(mock_call, mock_config, mock_project, runner, tmp_path):
+    _make_zope_ini(tmp_path)
     mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
     mock_project.return_value = MagicMock(
         root_folder=tmp_path,
@@ -598,4 +666,10 @@ def test_debug_command(mock_call, mock_config, mock_project, runner, tmp_path):
     result = runner.invoke(cli, ["debug"])
     assert result.exit_code == 0
     call_args = mock_call.call_args[0][0]
-    assert call_args == ["uv", "run", "invoke", "debug"]
+    assert call_args == [
+        "uv",
+        "run",
+        "runwsgi",
+        "-d",
+        "var/instance/etc/zope.ini",
+    ]

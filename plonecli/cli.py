@@ -147,8 +147,8 @@ class ClickFilteredAliasedGroup(ClickAliasedGroup):
     def list_commands(self, ctx):
         existing_cmds = super().list_commands(ctx)
         project = find_project_root()
-        global_cmds = ["completion", "create", "config", "update", "skill"]
-        global_only_cmds = ["create"]
+        global_cmds = ["completion", "create", "apply", "config", "update", "skill"]
+        global_only_cmds = ["create", "apply"]
         if not project:
             cmds = [cmd for cmd in existing_cmds if cmd in global_cmds]
         else:
@@ -368,6 +368,87 @@ def add(context, template, data, data_file, defaults, no_git):
         echo(f"  Committed: {committed}", fg="green")
 
 
+@cli.command("apply")
+@click.argument("spec_file", type=click.Path(exists=True, dir_okay=False))
+@click.option(
+    "--check",
+    is_flag=True,
+    help="Validate the spec and print the plan without generating anything.",
+)
+@click.option(
+    "--no-git",
+    "no_git",
+    is_flag=True,
+    help="Do not initialise git or auto-commit generated output.",
+)
+@click.pass_context
+def apply(context, spec_file, check, no_git):
+    """Scaffold a complete addon from a declarative spec file"""
+    from pathlib import Path
+
+    from plonecli.spec import SpecError, describe_plan, load_spec, validate_spec
+
+    config = context.obj["config"]
+    ensure_templates(config)
+
+    try:
+        spec = load_spec(spec_file)
+    except SpecError as exc:
+        raise click.ClickException(
+            "Invalid spec:\n  " + "\n  ".join(exc.errors)
+        ) from exc
+
+    errors = validate_spec(spec, config)
+    if errors:
+        raise click.ClickException(
+            "Spec validation failed:\n  " + "\n  ".join(errors)
+        )
+
+    echo(describe_plan(spec, config), fg="green")
+    if check:
+        echo("\nSpec is valid (dry-run, nothing generated).", fg="green")
+        return
+
+    reg = TemplateRegistry(config)
+    resolved = reg.resolve_template_name(spec.template)
+
+    if not confirm_clean_git(spec.name, defaults=True):
+        echo("Aborted.", fg="yellow")
+        return
+
+    git_commit = config.auto_commit and not no_git
+    echo(f"\nCreating {resolved} project: {spec.name}", fg="green", reverse=True)
+    steps = reg.get_composite_steps(resolved)
+    if steps:
+        for index, step in enumerate(steps):
+            echo(f"\n  Applying template: {step}", fg="green")
+            run_create(
+                step, spec.name, config, data=spec.data, defaults=True,
+                git_commit=git_commit, overwrite=index > 0,
+            )
+    else:
+        run_create(
+            resolved, spec.name, config, data=spec.data, defaults=True,
+            git_commit=git_commit,
+        )
+
+    project = find_project_root(Path(spec.name).resolve())
+    if project is None:
+        raise click.ClickException(
+            f"Generated project not detected at {spec.name!r}"
+        )
+
+    for feat in spec.features:
+        sub = reg.resolve_template_name(feat.template)
+        echo(f"\n  Adding {sub}", fg="green")
+        run_add(
+            sub, project, config, data=feat.data, defaults=True,
+            git_commit=git_commit,
+        )
+
+    echo("\nDone.", fg="green")
+
+
 @cli.command()
 @click.pass_context
 def setup(context):
@@ -389,14 +470,32 @@ def setup(context):
     run_create("zope-setup", str(project.root_folder), config, overwrite=True)
 
 
+def _find_zope_ini(root_folder):
+    """Locate the instance zope.ini, preferring var/instance/etc/zope.ini."""
+    from pathlib import Path
+
+    root = Path(root_folder)
+    default = root / "var" / "instance" / "etc" / "zope.ini"
+    if default.exists():
+        return default
+    matches = sorted(root.glob("*/*/etc/zope.ini"))
+    return matches[0] if matches else None
+
+
 @cli.command("serve")
 @click.pass_context
 def run_serve(context):
-    """Start the Plone instance (delegates to invoke start)"""
+    """Start the Plone instance"""
     project = context.obj.get("project")
     if project is None:
         raise NotInPackageError(context.command.name)
-    params = ["uv", "run", "invoke", "start"]
+    zope_ini = _find_zope_ini(project.root_folder)
+    if zope_ini is None:
+        raise click.UsageError(
+            "No instance found. Run 'plonecli setup' (zope-setup) first."
+        )
+    rel_ini = zope_ini.relative_to(project.root_folder)
+    params = ["uv", "run", "runwsgi", str(rel_ini)]
     echo(f"\nRUN: {' '.join(params)}", fg="green", reverse=True)
     echo("\nINFO: Open this in a Web Browser: http://localhost:8080")
     echo("INFO: You can stop it by pressing CTRL + c\n")
@@ -407,25 +506,51 @@ def run_serve(context):
 @click.option("-v", "--verbose", is_flag=True, help="Verbose test output")
 @click.pass_context
 def run_test(context, verbose):
-    """Run the tests in your package (delegates to invoke test)"""
+    """Run the tests in your package"""
     project = context.obj.get("project")
     if project is None:
         raise NotInPackageError(context.command.name)
-    params = ["uv", "run", "invoke", "test"]
+    params = ["uv", "run", "--extra", "test", "pytest"]
     if verbose:
-        params.append("--verbose")
+        params.append("-v")
     echo(f"\nRUN: {' '.join(params)}", fg="green", reverse=True)
     subprocess.call(params, cwd=str(project.root_folder))
+
+
+@cli.command("check")
+@click.pass_context
+def run_check(context):
+    """Run ruff and the test suite"""
+    project = context.obj.get("project")
+    if project is None:
+        raise NotInPackageError(context.command.name)
+    cwd = str(project.root_folder)
+    ruff = ["uv", "run", "ruff", "check", "."]
+    echo(f"\nRUN: {' '.join(ruff)}", fg="green", reverse=True)
+    rc = subprocess.call(ruff, cwd=cwd)
+    if rc != 0:
+        raise SystemExit(rc)
+    pytest = ["uv", "run", "--extra", "test", "pytest"]
+    echo(f"\nRUN: {' '.join(pytest)}", fg="green", reverse=True)
+    rc = subprocess.call(pytest, cwd=cwd)
+    if rc != 0:
+        raise SystemExit(rc)
 
 
 @cli.command("debug")
 @click.pass_context
 def run_debug(context):
-    """Start the Plone instance in debug mode (delegates to invoke debug)"""
+    """Start the Plone instance in debug mode"""
     project = context.obj.get("project")
     if project is None:
         raise NotInPackageError(context.command.name)
-    params = ["uv", "run", "invoke", "debug"]
+    zope_ini = _find_zope_ini(project.root_folder)
+    if zope_ini is None:
+        raise click.UsageError(
+            "No instance found. Run 'plonecli setup' (zope-setup) first."
+        )
+    rel_ini = zope_ini.relative_to(project.root_folder)
+    params = ["uv", "run", "runwsgi", "-d", str(rel_ini)]
     echo(f"\nRUN: {' '.join(params)}", fg="green", reverse=True)
     echo("INFO: You can stop it by pressing CTRL + c\n")
     subprocess.call(params, cwd=str(project.root_folder))

@@ -1,6 +1,6 @@
 ---
 name: plonecli
-description: Scaffold and develop Plone packages with plonecli (copier-template based). Use this BEFORE hand-writing any Plone add-on code — including when a plan or task step decides to create/implement a Plone feature such as a behavior, content type, view, viewlet, portlet, vocabulary, indexer, subscriber, control panel, form, REST API service, theme, or upgrade step. Scaffold these with plonecli subtemplates instead of writing files by hand. Also for any plonecli command (create, add, setup, serve, test, debug, update, config); creating a backend add-on or Zope project; scaffolding a GenericSetup upgrade step after profile XML changes so they reach installed sites; adapting an old/legacy package (mr.bob, buildout, setup.py) to plonecli's structure. Triggers on "plonecli ...", "create a Plone addon", "add/create/implement a behavior (or content type / restapi service / ...)", "add a field / add fields to a content type or behavior", "add upgrade_step", "migrate installed Plone sites", "zope-setup". The -d KEY=VALUE answers each template accepts are in reference/templates.md; the per-field question flow and the Plone field/widget catalogue are in reference/fields.md.
+description: Scaffold and develop Plone packages with plonecli (copier-template based). Use this BEFORE hand-writing any Plone add-on code — including when a plan or task step decides to create/implement a Plone feature such as a behavior, content type, view, viewlet, portlet, vocabulary, indexer, subscriber, control panel, form, REST API service, theme, language/translation, or upgrade step. Scaffold these with plonecli subtemplates instead of writing files by hand. To scaffold a whole addon plus several features from one declarative YAML file, use `plonecli apply spec.yaml`. Also for any plonecli command (apply, create, add, setup, serve, test, check, debug, update, config); creating a backend add-on or Zope project; scaffolding a GenericSetup upgrade step after profile XML changes so they reach installed sites; adapting an old/legacy package (mr.bob, buildout, setup.py) to plonecli's structure. Triggers on "plonecli ...", "create a Plone addon", "add/create/implement a behavior (or content type / restapi service / language / ...)", "add a field / add fields to a content type or behavior", "add upgrade_step", "migrate installed Plone sites", "zope-setup". The declarative spec format is in reference/spec.md; the -d KEY=VALUE answers each template accepts are in reference/templates.md; the per-field question flow and the Plone field/widget catalogue are in reference/fields.md.
 ---
 
 # plonecli
@@ -19,21 +19,24 @@ On first run, plonecli clones the copier-templates to `~/.copier-templates/plone
 
 | Command | Scope | What it does |
 |---|---|---|
+| `apply <spec.yaml>` | anywhere | Scaffold a whole addon + features from one declarative spec, non-interactively. `--check` validates only. See [reference/spec.md](reference/spec.md). |
 | `create <template> <name>` | anywhere | Scaffold a new project (`backend_addon`, `addon` = backend_addon+zope-setup, or `zope-setup`). See [reference/create.md](reference/create.md). |
 | `add <subtemplate>` | inside a project | Add a feature. Gated by project type. See [reference/add.md](reference/add.md). |
 | `setup` | inside a `backend_addon` | Apply `zope-setup` in place (run a Plone instance around the addon). |
-| `serve` | inside a project | `uv run invoke start` → http://localhost:8080. **See server rule below.** |
-| `test [-v]` | inside a project | `uv run invoke test`. |
-| `debug` | inside a project | `uv run invoke debug`. |
+| `serve` | inside a project | `uv run runwsgi <instance>/etc/zope.ini` → http://localhost:8080. Needs an instance (run `setup` first). **See server rule below.** |
+| `test [-v]` | inside a project | `uv run --extra test pytest`. |
+| `check` | inside a project | `uv run ruff check .` then `uv run --extra test pytest`. |
+| `debug` | inside a project | `uv run runwsgi -d <instance>/etc/zope.ini`. |
 | `update` | anywhere | Pull latest copier-templates + check PyPI for plonecli updates. |
 | `config` | anywhere | Interactive global settings → `~/.plonecli/config.toml`. |
 
-`add`, `setup`, `serve`, `test`, `debug` require being inside a plonecli-generated project (detected from `pyproject.toml`); otherwise they fail with `NotInPackageError`. Subtemplates are filtered by the project's type, so `plonecli -l` shows different options depending on where you are.
+`add`, `setup`, `serve`, `test`, `check`, `debug` require being inside a plonecli-generated project (detected from `pyproject.toml`); otherwise they fail with `NotInPackageError`. Subtemplates are filtered by the project's type, so `plonecli -l` shows different options depending on where you are.
 
-`serve`, `test`, `debug` additionally need the `invoke` harness (`tasks.py`), which only the **`zope-setup`** layer provides. A project made with `create backend_addon` alone has no `tasks.py` — run `plonecli setup` first (or scaffold with the `addon` composite / `zope-setup`) before these commands work.
+`test` and `check` run directly via `uv run` and work in any addon. `serve`/`debug` need a runnable instance (`var/instance/etc/zope.ini`), which the **`zope-setup`** layer creates — run `plonecli setup` first (or scaffold with the `addon` composite / `zope-setup`).
 
 ## Decision flow
 
+0. **Whole addon with several features in one shot?** → write a spec file and run `plonecli apply spec.yaml` (validate first with `--check`). One declarative file → addon + all features, non-interactive, ruff-clean, tests passing. Best for an agent scaffolding from a feature list. Format and rules: [reference/spec.md](reference/spec.md). For single steps, use `create`/`add` below.
 1. **New project?** → `create`. Pure backend add-on: `plonecli create backend_addon my.addon`. Add-on **with** a runnable instance in one step: `plonecli create addon my.addon` (composite = `backend_addon` + `zope-setup`). Zope project: `plonecli create zope-setup my-project`. `addon` is **not** an alias of `backend_addon` — they are different templates. Details and template list: [reference/create.md](reference/create.md).
 2. **Add a feature to an existing addon?** → `cd` into the project, then `plonecli add content_type` / `behavior` / `restapi_service`. Wiring specifics: [reference/add.md](reference/add.md). **Adding fields to a content type or behavior** has no subtemplate — gather name/type/required/default per field and edit the schema by hand following [reference/fields.md](reference/fields.md). **Old/legacy package that doesn't fit the templates?** (no `[tool.plone.backend_addon.settings]`, `setup.py`/`bobtemplate.cfg`/buildout layout, `plonecli -l` lists nothing, or `add` lands files/registrations wrong) → don't hand-write subtemplate files, and don't re-run the `backend_addon` template (it overwrites `__init__.py` and real code). Inspect the structure and make the minimal edits the subtemplate hooks need. See the legacy rule below and [reference/migrate.md](reference/migrate.md).
 3. **Changed GenericSetup profile XML (`profiles/default/*`) that must reach already-installed sites?** → `plonecli add upgrade_step` to scaffold the migration. See the upgrade-step rule below and [reference/add.md](reference/add.md).
@@ -65,14 +68,18 @@ cd collective.todo
 plonecli add content_type --defaults -d content_type_name="Talk"
 plonecli add behavior --defaults -d behavior_name="IFeatured"
 plonecli add restapi_service --defaults -d service_name="@todos"
+plonecli add language --defaults -d language_code="de" -d language_name="German"
 
-# wrap it in a runnable Plone instance (adds the zope-setup / invoke harness)
+# wrap it in a runnable Plone instance (adds the zope-setup layer)
 plonecli setup
 
-# verify (needs the zope-setup layer added above)
-plonecli test
+# verify — works in any addon, no instance needed
+plonecli test          # uv run --extra test pytest
+plonecli check         # ruff check + pytest
 ```
 
 Shortcut: `plonecli create addon collective.todo` scaffolds `backend_addon` **and** `zope-setup` in one step — use it instead of `create backend_addon` + `setup`. Do not run both; that applies zope-setup twice.
+
+To scaffold an addon **and** all its features from one declarative file, use `plonecli apply spec.yaml` — see [reference/spec.md](reference/spec.md).
 
 For anything beyond this happy path, read the matching file in `reference/`.

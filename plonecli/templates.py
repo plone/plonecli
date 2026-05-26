@@ -119,13 +119,30 @@ def get_templates_info(config: PlonecliConfig) -> str:
     return "unknown"
 
 
-def _build_user_defaults(config: PlonecliConfig) -> dict:
-    """Build user_defaults dict from global config for copier."""
+def _minor_version(version: str) -> str:
+    """Reduce a full Plone version (e.g. ``6.1.1``) to its minor (``6.1``)."""
+    return ".".join(version.split(".")[:2])
+
+
+def _build_user_defaults(
+    config: PlonecliConfig, template_name: str | None = None
+) -> dict:
+    """Build user_defaults dict from global config for copier.
+
+    ``plone_version`` is template-aware: ``backend_addon`` asks for the minor
+    series (e.g. ``6.1``), so the configured full version is reduced. ``zope-setup``
+    asks for a full version and derives it from the addon minor inside the
+    composite, so no default is injected here.
+    """
     defaults = {}
     if config.author_name and config.author_name != "Plone Developer":
         defaults["author_name"] = config.author_name
     if config.author_email and config.author_email != "dev@plone.org":
         defaults["author_email"] = config.author_email
+    if config.github_user:
+        defaults["github_organization"] = config.github_user
+    if config.plone_version and template_name == "backend_addon":
+        defaults["plone_version"] = _minor_version(config.plone_version)
 
     return defaults
 
@@ -164,7 +181,7 @@ def run_create(
         src_path=src,
         dst_path=target_name,
         data=data or {},
-        user_defaults=_build_user_defaults(config),
+        user_defaults=_build_user_defaults(config, template_name),
         defaults=defaults,
         overwrite=overwrite,
         unsafe=True,
@@ -215,7 +232,7 @@ def run_add(
         src_path=src,
         dst_path=str(project.root_folder),
         data=template_data,
-        user_defaults=_build_user_defaults(config),
+        user_defaults=_build_user_defaults(config, template_name),
         defaults=defaults,
         unsafe=True,
     )

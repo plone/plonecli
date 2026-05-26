@@ -43,6 +43,7 @@ SPECIAL_VALUES = {
     "content_type_name": "Article",
     "service_name": "myservice",
     "upgrade_step_title": "Reimport viewlets",
+    "language_code": "de",
 }
 
 

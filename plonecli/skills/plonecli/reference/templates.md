@@ -138,9 +138,10 @@ Example (containment): `plonecli add content_type --defaults -d content_type_nam
 | `http_post` | `false` | |
 | `http_patch` | `false` | |
 | `http_delete` | `false` | |
-| `service_for` | `plone.dexterity.interfaces.IDexterityContainer` | choices: `…IDexterityContainer`, `…IDexterityContent`, `Products.CMFPlone.interfaces.IPloneSiteRoot`, `zope.interface.Interface`. |
+| `service_for` | `plone.dexterity.interfaces.IDexterityContainer` | choices: default Plone content-type interfaces **plus the addon's own content-type interfaces** (scanned) **plus `<enter manually>`**. |
+| `service_for_manual` | "" | only asked when `service_for=<enter manually>`; must be non-empty. |
 
-Hidden/computed: `service_module`, `service_class`, `service_endpoint`.
+Hidden/computed: `service_module`, `service_class`, `service_endpoint`, `service_for_resolved`.
 
 ### `view` — BrowserView (optional page template)
 
@@ -243,6 +244,18 @@ See [add.md](add.md) for the full upgrade-step workflow (fill the handler, add a
 |---|---|---|
 | `site_name` | `New Plone Site` (name†) | site title in header/tab. |
 | `language` | `en` | ISO 639-1 two-letter code. |
+
+### `language` — translation locale (`.po` catalog)
+
+| Key | Default | Notes |
+|---|---|---|
+| `language_code` | **required** | ISO 639-1 code, e.g. `de`, `fr`, `es`. |
+| `language_name` | `<language_code>` | human-readable name, e.g. `German`. |
+
+Creates `src/<pkg>/locales/<code>/LC_MESSAGES/<pkg>.po`. The addon already ships
+an empty `<pkg>.pot` and a `_` MessageFactory in `src/<pkg>/i18n.py`; fill the
+`.po`, then the dev instance/tests compile `.mo` automatically
+(`zope_i18n_compile_mo_files`). Hidden/computed: `current_date`.
 
 ### `mockup_pattern` — Mockup JS pattern scaffold
 
