@@ -3,7 +3,14 @@
 ## 7.0.0b11 (unreleased)
 
 
-- Nothing changed yet.
+- Add declarative `plonecli apply <spec.yaml>` to scaffold an addon and its
+  features from a single spec, with `validate_spec`/`describe_plan` helpers and
+  direct dev commands.
+  [MrTango]
+
+- CI: check out the copier-templates branch matching the PR branch (falling back
+  to the default branch) so coordinated cross-repo changes are tested together.
+  [MrTango]
 
 
 ## 7.0.0b10 (2026-05-24)

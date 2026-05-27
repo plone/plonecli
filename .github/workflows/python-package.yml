@@ -20,10 +20,15 @@ jobs:
         steps:
             - uses: actions/checkout@v2
             - name: Checkout copier-templates
-              uses: actions/checkout@v2
-              with:
-                  repository: plone/copier-templates
-                  path: copier-templates
+              env:
+                  TEMPLATES_BRANCH: ${{ github.head_ref || github.ref_name }}
+              run: |
+                  # Use a copier-templates branch matching this PR's branch when it
+                  # exists (coordinated cross-repo changes), else the default branch.
+                  git clone --depth 1 --branch "$TEMPLATES_BRANCH" \
+                      https://github.com/plone/copier-templates copier-templates \
+                      || git clone --depth 1 \
+                      https://github.com/plone/copier-templates copier-templates
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v2
               with:
