@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b11 (unreleased)
+## 7.0.0b11 (2026-05-27)
 
 
 - Devcontainer: bind the host copier-templates dev clone read-write into the
