@@ -3,7 +3,15 @@
 ## 7.0.0b11 (unreleased)
 
 
-- Nothing changed yet.
+- Devcontainer: bind the host copier-templates dev clone read-write into the
+  path plonecli reads (`~/.copier-templates/plone-copier-templates`), replacing
+  the broken non-existent and redundant read-only mounts; use an explicit
+  `/home/node` PATH in the Dockerfile to silence the `$HOME` build warning.
+  [MrTango]
+
+- Skill: document that the `content_type` template wires the parent's
+  `allowed_content_types` itself.
+  [MrTango]
 
 
 ## 7.0.0b10 (2026-05-24)
