@@ -111,9 +111,16 @@ Example: `plonecli add behavior --defaults -d behavior_name="IFeatured"`
 | `parent_content_type` | `Folder` | choices come from the addon's known portal types plus `<enter manually>`; only when `global_allow=false`. |
 | `parent_content_type_manual` | "" | only when `global_allow=false` **and** `parent_content_type=<enter manually>`. |
 | `filter_content_types` | `true` | only when `content_type_base=Container`. |
-| `activate_default_behaviors` | `true` | standard Plone behaviors bundle. |
-| `enable_dublin_core` | `true` | only when `activate_default_behaviors=false`. |
-| `enable_navigation` | `true` | only when `activate_default_behaviors=false`. |
+| `activate_default_behaviors` | `true` | enable the full standard Plone behaviors bundle (see below). |
+| `enable_dublin_core` | `true` | only asked when `activate_default_behaviors=false`; adds `plone.dublincore`. |
+| `enable_navigation` | `true` | only asked when `activate_default_behaviors=false`; adds `plone.excludefromnavigation`. |
+
+**Which behaviors get enabled.** The FTI's `behaviors` list depends on `activate_default_behaviors`:
+
+- **`activate_default_behaviors=true` (default) — full bundle:** `plone.basic`, `plone.namefromtitle`, `plone.allowdiscussion`, `plone.excludefromnavigation`, `plone.shortname`, `plone.dublincore`, `plone.ownership`, `plone.publication`, `plone.categorization`, `plone.locking`, `plone.textindexer`, `plone.relateditems`, `plone.versioning`. When `content_type_base=Container`, also: `plone.constraintypes`, `plone.nextprevioustoggle`, `plone.nextpreviousenabled`, `plone.navigationroot`. (`enable_dublin_core`/`enable_navigation` are not asked in this case — those behaviors are already in the bundle.)
+- **`activate_default_behaviors=false` — minimal set:** `plone.namefromtitle` is **always** enabled (no way to opt out — a content type needs it to derive its id/title). On top of that, `plone.dublincore` is added when `enable_dublin_core=true` (default) and `plone.excludefromnavigation` when `enable_navigation=true` (default). Set both to `false` to get the bare minimum of just `plone.namefromtitle`.
+
+So even with all behavior toggles off, every content type ends up with at least `plone.namefromtitle`. That behavior provides the required `title` field **and** derives the object id from it (`plone.basic`/`plone.dublincore` also supply a title when enabled), so the bare-minimum type still has a working title.
 
 Hidden/computed: `content_type_class`, `content_type_module`, `content_type_interface`,
 `content_type_portal_type`, `parent_content_type_resolved`.
