@@ -27,11 +27,14 @@ Create a new plone addon "derico.todos", with the following features:
 
 ## views
 
-### Todos view
+### Todos
 
 name: view
 registration for CT: Todos
 purpose: lists todos and there status (done yes/no), allows filtering by status, show only open by default.
+
+- use pat-inject to update the todos when filter changes
+- allow adding todos from this view, use pat-modal for the add view without leaving the current context.
 
 ### Todo
 
