@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b12 (unreleased)
+## 7.0.0b12 (2026-06-30)
 
 
 - Add integration test for addon composite flow, driving `create addon` end-to-end and asserting the zope-setup step generates the initial Zope instance.
