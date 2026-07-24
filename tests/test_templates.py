@@ -42,7 +42,7 @@ def test_ensure_templates_cloned_new(mock_run, tmp_path):
         return MagicMock(returncode=0)
 
     mock_run.side_effect = side_effect
-    result = ensure_templates_cloned(config)
+    ensure_templates_cloned(config)
 
     mock_run.assert_called_once()
     call_args = mock_run.call_args[0][0]
@@ -150,7 +150,11 @@ def test_run_create_overwrite_forwarded(mock_run_copy, tmp_path):
     (tmp_path / "zope-setup").mkdir()
     config = PlonecliConfig(templates_dir=str(tmp_path))
     run_create(
-        "zope-setup", "out", config, defaults=True, git_commit=False,
+        "zope-setup",
+        "out",
+        config,
+        defaults=True,
+        git_commit=False,
         overwrite=True,
     )
     assert mock_run_copy.call_args.kwargs["overwrite"] is True

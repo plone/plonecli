@@ -1,7 +1,5 @@
 """Tests for plonecli.config module."""
 
-from pathlib import Path
-
 from plonecli.config import (
     PlonecliConfig,
     load_config,
@@ -197,7 +195,9 @@ branch = "main"
 local_path = "/original/path"
 """)
     monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
-    monkeypatch.setenv("PLONECLI_TEMPLATES_REPO_URL", "https://github.com/override/repo")
+    monkeypatch.setenv(
+        "PLONECLI_TEMPLATES_REPO_URL", "https://github.com/override/repo"
+    )
     monkeypatch.setenv("PLONECLI_TEMPLATES_BRANCH", "develop")
     monkeypatch.setenv("PLONECLI_TEMPLATES_DIR", "/override/path")
 

@@ -148,7 +148,7 @@ class TemplateRegistry:
         return resolved_name in self.get_main_templates()
 
     def is_subtemplate(self, resolved_name: str) -> bool:
-        """Check if a resolved template name is a valid subtemplate for the current project."""
+        """Check if a resolved name is a valid subtemplate for this project."""
         return resolved_name in self.get_subtemplates()
 
     def list_templates(self) -> str:

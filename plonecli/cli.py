@@ -221,7 +221,9 @@ class CreateCommand(InterspersedCommand):
                     rows = []
                     for t in templates:
                         meta = reg._get_metadata().get(t, {})
-                        alias_list = [a for a, v in aliases.items() if v == t and a != t]
+                        alias_list = [
+                            a for a, v in aliases.items() if v == t and a != t
+                        ]
                         desc = meta.get("description", "")
                         if not desc and meta.get("type") == "composite":
                             steps = meta.get("templates", [])
@@ -290,15 +292,24 @@ def create(context, template, name, data, data_file, defaults, no_git):
         for index, step in enumerate(steps):
             echo(f"\n  Applying template: {step}", fg="green")
             committed = run_create(
-                step, name, config, data=answers, defaults=defaults,
-                git_commit=git_commit, overwrite=index > 0,
+                step,
+                name,
+                config,
+                data=answers,
+                defaults=defaults,
+                git_commit=git_commit,
+                overwrite=index > 0,
             )
             if committed:
                 echo(f"  Committed: {committed}", fg="green")
     else:
         echo(f"\nCreating {resolved} project: {name}", fg="green", reverse=True)
         committed = run_create(
-            resolved, name, config, data=answers, defaults=defaults,
+            resolved,
+            name,
+            config,
+            data=answers,
+            defaults=defaults,
             git_commit=git_commit,
         )
         if committed:
@@ -361,7 +372,11 @@ def add(context, template, data, data_file, defaults, no_git):
     answers = _collect_data(data_file, data)
     echo(f"\nAdding {resolved} to {project.root_folder.name}", fg="green", reverse=True)
     committed = run_add(
-        resolved, project, config, data=answers, defaults=defaults,
+        resolved,
+        project,
+        config,
+        data=answers,
+        defaults=defaults,
         git_commit=git_commit,
     )
     if committed:
@@ -456,9 +471,7 @@ def config(context):
     from plonecli.plone_versions import get_latest_stable_version
 
     default_version = cfg.plone_version or get_latest_stable_version()
-    cfg.plone_version = click.prompt(
-        "Default Plone version", default=default_version
-    )
+    cfg.plone_version = click.prompt("Default Plone version", default=default_version)
 
     cfg.repo_url = click.prompt("Templates repo URL", default=cfg.repo_url)
     cfg.repo_branch = click.prompt("Templates branch", default=cfg.repo_branch)
@@ -521,10 +534,10 @@ def update(context):
 @click.option("--force", is_flag=True, help="Overwrite an existing installation.")
 @click.pass_context
 def skill(context, action, scope, copy_only, force):
-    """Install/update the plonecli Agent Skill for AI coding agents.
+    """Install/update the bundled Agent Skills for AI coding agents.
 
-    Drops the bundled SKILL.md (Agent Skills open standard) into
-    `~/.agents/skills/plonecli` and links it from `~/.claude/skills/plonecli`,
+    Drops each bundled skill (Agent Skills open standard) into
+    `~/.agents/skills/<name>` and links it from `~/.claude/skills/<name>`,
     so Claude Code, Codex, Gemini CLI, Cursor and other compatible agents pick
     it up. Use --scope project to install into the current project instead.
     """
@@ -535,12 +548,14 @@ def skill(context, action, scope, copy_only, force):
 
     if action == "status":
         info = skill_installer.skill_status(scope, project_root)
-        echo(f"\nplonecli skill ({scope} scope)", fg="green", reverse=True)
+        echo(f"\nplonecli skills ({scope} scope)", fg="green", reverse=True)
         echo(f"  base:   {info['base']}")
         echo(f"  source: {info['source']}")
-        for key in ("agents", "claude"):
-            path, state = info[key]
-            echo(f"  {path}: {state}")
+        for name, entries in info["skills"].items():
+            echo(f"  [{name}]")
+            for key in ("agents", "claude"):
+                path, state = entries[key]
+                echo(f"    {path}: {state}")
         return
 
     try:
@@ -557,7 +572,7 @@ def skill(context, action, scope, copy_only, force):
         raise click.ClickException(str(e)) from e
 
     verb = "Updated" if action == "update" else "Installed"
-    echo(f"\n{verb} plonecli skill under {base}", fg="green", reverse=True)
+    echo(f"\n{verb} plonecli skills under {base}", fg="green", reverse=True)
     for act in actions:
         if act.kind == "symlink":
             echo(f"  symlink {act.target} -> {act.points_to}")
@@ -571,7 +586,9 @@ def skill(context, action, scope, copy_only, force):
     required=False,
     type=click.Choice(["bash", "zsh", "fish"]),
 )
-@click.option("--install", is_flag=True, help="Install completion into your shell config")
+@click.option(
+    "--install", is_flag=True, help="Install completion into your shell config"
+)
 def completion(shell, install):
     """Show or install shell completion.
 

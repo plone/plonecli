@@ -56,6 +56,7 @@ packages = ["plonecli"]
 testpaths = ["tests"]
 markers = [
     "integration: end-to-end tests that generate projects and run Plone (slow)",
+    "evals: behavioral skill evals running headless Claude Code; bill model usage, gated by RUN_SKILL_EVALS=1",
 ]
 
 [tool.ruff]

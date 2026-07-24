@@ -4,13 +4,11 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
+from datetime import UTC, datetime, timedelta
 from urllib.error import URLError
 from urllib.request import urlopen
 
 from plonecli.config import CONFIG_DIR
-
 
 PLONE_VERSIONS_URL = "https://dist.plone.org/release/"
 VERSIONS_CACHE_FILE = CONFIG_DIR / ".plone_versions_cache.json"
@@ -52,7 +50,7 @@ def _read_cache() -> dict | None:
     try:
         data = json.loads(VERSIONS_CACHE_FILE.read_text())
         last_check = datetime.fromisoformat(data["last_check"])
-        if datetime.now(timezone.utc) - last_check > CACHE_MAX_AGE:
+        if datetime.now(UTC) - last_check > CACHE_MAX_AGE:
             return None
         return data
     except (json.JSONDecodeError, KeyError, ValueError):
@@ -63,7 +61,7 @@ def _write_cache(versions: list[str], latest: str) -> None:
     """Write the versions cache file."""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     data = {
-        "last_check": datetime.now(timezone.utc).isoformat(),
+        "last_check": datetime.now(UTC).isoformat(),
         "versions": versions,
         "latest": latest,
     }

@@ -4,13 +4,11 @@ from __future__ import annotations
 
 import importlib.metadata
 import json
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
+from datetime import UTC, datetime, timedelta
 from urllib.error import URLError
 from urllib.request import urlopen
 
 from plonecli.config import CONFIG_DIR
-
 
 PYPI_URL = "https://pypi.org/pypi/plonecli/json"
 UPDATE_CACHE_FILE = CONFIG_DIR / ".update_cache.json"
@@ -40,7 +38,7 @@ def _read_cache() -> dict | None:
     try:
         data = json.loads(UPDATE_CACHE_FILE.read_text())
         last_check = datetime.fromisoformat(data["last_check"])
-        if datetime.now(timezone.utc) - last_check > CACHE_MAX_AGE:
+        if datetime.now(UTC) - last_check > CACHE_MAX_AGE:
             return None
         return data
     except (json.JSONDecodeError, KeyError, ValueError):
@@ -51,7 +49,7 @@ def _write_cache(latest_version: str) -> None:
     """Write the update cache."""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     data = {
-        "last_check": datetime.now(timezone.utc).isoformat(),
+        "last_check": datetime.now(UTC).isoformat(),
         "latest_version": latest_version,
     }
     UPDATE_CACHE_FILE.write_text(json.dumps(data))

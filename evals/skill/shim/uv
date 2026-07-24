@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Eval shim for `uv`: intercepts `uv run invoke ...` (the plonecli project
+# harness) so it gets logged and faked; everything else passes through to the
+# real uv.
+set -u
+if [ "${1:-}" = "run" ] && [ "${2:-}" = "invoke" ]; then
+  LOG="${PLONECLI_EVAL_LOG:-/tmp/plonecli-eval.log}"
+  printf '%s :: uv %s\n' "$PWD" "$*" >> "$LOG"
+  task="${3:-}"
+  case "$task" in
+    test)        echo "Ran 12 tests in 0.42s"; echo "OK" ;;
+    start|debug) echo "(eval shim) would start a long-running instance." ;;
+    reconfigure) echo "(eval shim) re-ran template questions and recopied config (copier recopy --trust --overwrite)." ;;
+    *)           echo "(eval shim) invoke task '$task' simulated." ;;
+  esac
+  exit 0
+fi
+SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
+REAL="$(which -a uv 2>/dev/null | grep -vF "$SELF_DIR" | head -1)"
+[ -n "$REAL" ] || { echo "uv shim: real uv not found" >&2; exit 127; }
+exec "$REAL" "$@"

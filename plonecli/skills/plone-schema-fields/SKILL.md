@@ -1,4 +1,8 @@
-# Adding fields to a content type or behavior
+---
+name: plone-schema-fields
+description: Add or change fields on Plone Dexterity content types and behaviors by hand-editing the model.Schema class (plonecli has no field subtemplate). Field-type catalogue with imports (TextLine, RichText, Choice, Date, relations, images, DataGrid), widgets and autoform directives, reserved field names from Plone default behaviors. Triggers on adding/changing a field on a content type or behavior, picking a field type or widget, editing a Dexterity schema, fieldsets, field visibility/permissions.
+---
+
 
 plonecli has **no field-adding subtemplate**. `plonecli add content_type` (and
 `plonecli add behavior`) scaffold a `model.Schema` class with only commented
@@ -218,10 +222,12 @@ For inline `values=` on a Choice you may also build a vocabulary explicitly:
 from zope.schema.vocabulary import SimpleTerm
 from zope.schema.vocabulary import SimpleVocabulary
 
-LEVELS = SimpleVocabulary([
-    SimpleTerm(value="beginner", title="Beginner"),
-    SimpleTerm(value="advanced", title="Advanced"),
-])
+LEVELS = SimpleVocabulary(
+    [
+        SimpleTerm(value="beginner", title="Beginner"),
+        SimpleTerm(value="advanced", title="Advanced"),
+    ]
+)
 ```
 
 **i18n:** to make titles translatable, define a message factory once in the
@@ -278,6 +284,6 @@ Common widgets (import from `plone.app.z3cform.widgets`; see
   report real results.
 - An upgrade step **is** needed only if the same change also edits profile XML —
   e.g. you add a catalog index/metadata for the field (`catalog.xml`) or change
-  `types/*.xml`. Then follow the upgrade-step rule in
-  [add.md](add.md#upgrade_step--required-after-profile-xml-changes).
+  `types/*.xml`. Then follow the upgrade-step rule in the `plonecli` skill
+  (`plonecli add upgrade_step`).
 - Review `git status`/diff and preserve intentional local edits.

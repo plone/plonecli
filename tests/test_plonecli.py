@@ -27,11 +27,13 @@ def test_cli_help(mock_config, mock_project, runner):
 @patch("plonecli.cli.load_config")
 def test_cli_versions(mock_config, mock_project, runner):
     mock_config.return_value = MagicMock(templates_dir="/tmp/nonexistent")
-    with patch("plonecli.cli.importlib.metadata.version", return_value="3.0.0a1"):
-        with patch("plonecli.cli.get_templates_info", return_value="abc123 2026-04-07"):
-            result = runner.invoke(cli, ["-V"])
-            assert "3.0.0a1" in result.output
-            assert "abc123" in result.output
+    with (
+        patch("plonecli.cli.importlib.metadata.version", return_value="3.0.0a1"),
+        patch("plonecli.cli.get_templates_info", return_value="abc123 2026-04-07"),
+    ):
+        result = runner.invoke(cli, ["-V"])
+        assert "3.0.0a1" in result.output
+        assert "abc123" in result.output
 
 
 def _make_template(tmp_path, name, plonecli_meta):
@@ -72,7 +74,11 @@ def test_create_help_shows_templates(mock_config, mock_project, runner, tmp_path
     _make_template(
         tmp_path,
         "addon",
-        {"type": "composite", "templates": ["backend_addon", "zope-setup"], "aliases": ["add-on"]},
+        {
+            "type": "composite",
+            "templates": ["backend_addon", "zope-setup"],
+            "aliases": ["add-on"],
+        },
     )
 
     mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
@@ -88,7 +94,9 @@ def test_create_help_shows_templates(mock_config, mock_project, runner, tmp_path
 @patch("plonecli.cli.load_config")
 @patch("plonecli.cli.run_create")
 @patch("plonecli.cli.ensure_templates_cloned")
-def test_create_command(mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path):
+def test_create_command(
+    mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path
+):
     _make_template(tmp_path, "backend_addon", {"type": "main", "aliases": ["addon"]})
     _make_template(tmp_path, "zope-setup", {"type": "main"})
 
@@ -106,13 +114,19 @@ def test_create_command(mock_ensure, mock_run_create, mock_config, mock_project,
 @patch("plonecli.cli.load_config")
 @patch("plonecli.cli.run_create")
 @patch("plonecli.cli.ensure_templates_cloned")
-def test_create_composite_template(mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path):
+def test_create_composite_template(
+    mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path
+):
     _make_template(tmp_path, "backend_addon", {"type": "main"})
     _make_template(tmp_path, "zope-setup", {"type": "main"})
     _make_template(
         tmp_path,
         "addon",
-        {"type": "composite", "templates": ["backend_addon", "zope-setup"], "aliases": ["add-on"]},
+        {
+            "type": "composite",
+            "templates": ["backend_addon", "zope-setup"],
+            "aliases": ["add-on"],
+        },
     )
 
     mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
@@ -134,13 +148,19 @@ def test_create_composite_template(mock_ensure, mock_run_create, mock_config, mo
 @patch("plonecli.cli.load_config")
 @patch("plonecli.cli.run_create")
 @patch("plonecli.cli.ensure_templates_cloned")
-def test_create_composite_via_alias(mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path):
+def test_create_composite_via_alias(
+    mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path
+):
     _make_template(tmp_path, "backend_addon", {"type": "main"})
     _make_template(tmp_path, "zope-setup", {"type": "main"})
     _make_template(
         tmp_path,
         "addon",
-        {"type": "composite", "templates": ["backend_addon", "zope-setup"], "aliases": ["add-on"]},
+        {
+            "type": "composite",
+            "templates": ["backend_addon", "zope-setup"],
+            "aliases": ["add-on"],
+        },
     )
 
     mock_config.return_value = MagicMock(templates_dir=str(tmp_path))
@@ -194,7 +214,9 @@ def test_create_clones_templates_on_first_run(
 @patch("plonecli.cli.load_config")
 @patch("plonecli.cli.run_add")
 @patch("plonecli.cli.ensure_templates_cloned")
-def test_add_command(mock_ensure, mock_run_add, mock_config, mock_project, runner, tmp_path):
+def test_add_command(
+    mock_ensure, mock_run_add, mock_config, mock_project, runner, tmp_path
+):
     _make_template(tmp_path, "backend_addon", {"type": "main"})
     _make_template(tmp_path, "behavior", {"type": "sub", "parent": "backend_addon"})
     _make_template(tmp_path, "content_type", {"type": "sub", "parent": "backend_addon"})

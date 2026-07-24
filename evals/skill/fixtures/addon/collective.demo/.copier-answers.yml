@@ -1,0 +1,3 @@
+_src_path: gh:plone/copier-templates
+package_name: collective.demo
+package_description: Demo add-on

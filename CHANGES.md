@@ -3,7 +3,11 @@
 ## 7.0.0b13 (unreleased)
 
 
-- Nothing changed yet.
+- Split the schema-fields part of the plonecli skill into an own `plone-schema-fields` skill; shorten the plonecli skill description under 500 chars. `plonecli skill` now installs all bundled skills.
+  [MrTango]
+
+- Add behavioral evals for the bundled skills under `evals/skill/` (headless Claude Code runs against a logging plonecli shim), also runnable as pytest via `-m evals`, gated by `RUN_SKILL_EVALS=1`.
+  [MrTango]
 
 
 ## 7.0.0b12 (2026-06-30)

@@ -8,7 +8,6 @@ import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 
-
 CONFIG_DIR = Path.home() / ".plonecli"
 CONFIG_FILE = CONFIG_DIR / "config.toml"
 TEMPLATES_DIR = Path.home() / ".copier-templates" / "plone-copier-templates"
@@ -137,14 +136,10 @@ def migrate_from_mrbob() -> PlonecliConfig | None:
         variables = dict(parser.items("variables"))
         config.author_name = variables.get("author.name", config.author_name)
         config.author_email = variables.get("author.email", config.author_email)
-        config.github_user = variables.get(
-            "author.github.user", config.github_user
-        )
+        config.github_user = variables.get("author.github.user", config.github_user)
 
     if parser.has_section("defaults"):
         defaults = dict(parser.items("defaults"))
-        config.plone_version = defaults.get(
-            "plone.version", config.plone_version
-        )
+        config.plone_version = defaults.get("plone.version", config.plone_version)
 
     return config

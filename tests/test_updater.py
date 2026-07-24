@@ -1,7 +1,7 @@
 """Tests for plonecli.updater module."""
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 from plonecli.updater import (
@@ -37,7 +37,7 @@ def test_read_cache_expired(tmp_path, monkeypatch):
     monkeypatch.setattr("plonecli.updater.UPDATE_CACHE_FILE", cache_file)
 
     # Write an expired cache
-    old_time = (datetime.now(timezone.utc) - timedelta(hours=25)).isoformat()
+    old_time = (datetime.now(UTC) - timedelta(hours=25)).isoformat()
     cache_file.write_text(
         json.dumps({"last_check": old_time, "latest_version": "3.0.0"})
     )
@@ -53,7 +53,9 @@ def test_read_cache_missing(tmp_path, monkeypatch):
 
 @patch("plonecli.updater._fetch_latest_version", return_value="3.1.0")
 @patch("plonecli.updater._get_current_version", return_value="3.0.0")
-def test_check_for_updates_new_available(mock_current, mock_fetch, tmp_path, monkeypatch):
+def test_check_for_updates_new_available(
+    mock_current, mock_fetch, tmp_path, monkeypatch
+):
     monkeypatch.setattr("plonecli.updater.UPDATE_CACHE_FILE", tmp_path / "cache.json")
     monkeypatch.setattr("plonecli.updater.CONFIG_DIR", tmp_path)
 
@@ -73,7 +75,9 @@ def test_check_for_updates_up_to_date(mock_current, mock_fetch, tmp_path, monkey
 
 @patch("plonecli.updater._fetch_latest_version", return_value=None)
 @patch("plonecli.updater._get_current_version", return_value="3.0.0")
-def test_check_for_updates_network_failure(mock_current, mock_fetch, tmp_path, monkeypatch):
+def test_check_for_updates_network_failure(
+    mock_current, mock_fetch, tmp_path, monkeypatch
+):
     monkeypatch.setattr("plonecli.updater.UPDATE_CACHE_FILE", tmp_path / "cache.json")
     monkeypatch.setattr("plonecli.updater.CONFIG_DIR", tmp_path)
 

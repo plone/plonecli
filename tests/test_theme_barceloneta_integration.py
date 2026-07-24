@@ -25,11 +25,8 @@ from plonecli.config import PlonecliConfig
 from plonecli.project import find_project_root
 from plonecli.templates import run_add, run_create
 
-
 DEV_TEMPLATES_DIR = Path("/home/node/develop/plone/src/copier-templates")
-FALLBACK_TEMPLATES_DIR = Path(
-    "/home/node/.copier-templates/plone-copier-templates"
-)
+FALLBACK_TEMPLATES_DIR = Path("/home/node/.copier-templates/plone-copier-templates")
 
 
 def _templates_dir() -> Path:

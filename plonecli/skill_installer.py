@@ -1,12 +1,12 @@
-"""Install the bundled plonecli Agent Skill into a project or user config.
+"""Install the bundled plonecli Agent Skills into a project or user config.
 
-The skill ships inside this package at ``plonecli/skills/plonecli`` and follows
-the Agent Skills open standard, so the exact same ``SKILL.md`` is loaded by
-Claude Code, Codex, Gemini CLI, Cursor and other compatible agents.
+The skills ship inside this package under ``plonecli/skills/<name>`` and follow
+the Agent Skills open standard, so the exact same ``SKILL.md`` files are loaded
+by Claude Code, Codex, Gemini CLI, Cursor and other compatible agents.
 
-Installation places one real copy at ``<base>/.agents/skills/plonecli`` (the
-open-standard discovery path) and exposes it to Claude Code via a relative
-symlink at ``<base>/.claude/skills/plonecli``. ``base`` is the project root for
+Installation places one real copy per skill at ``<base>/.agents/skills/<name>``
+(the open-standard discovery path) and exposes it to Claude Code via a relative
+symlink at ``<base>/.claude/skills/<name>``. ``base`` is the project root for
 ``project`` scope or the user's home for ``user`` scope.
 """
 
@@ -17,9 +17,8 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
-SKILL_NAME = "plonecli"
-AGENTS_REL = Path(".agents") / "skills" / SKILL_NAME
-CLAUDE_REL = Path(".claude") / "skills" / SKILL_NAME
+AGENTS_DIR = Path(".agents") / "skills"
+CLAUDE_DIR = Path(".claude") / "skills"
 
 
 @dataclass
@@ -29,13 +28,21 @@ class Action:
     points_to: str | None = None
 
 
-def get_source_skill_dir() -> Path:
-    """Path to the skill bundled inside the installed plonecli package."""
-    return Path(__file__).resolve().parent / "skills" / SKILL_NAME
+def get_source_skills_root() -> Path:
+    """Path to the skills bundled inside the installed plonecli package."""
+    return Path(__file__).resolve().parent / "skills"
+
+
+def bundled_skill_names() -> list[str]:
+    """Names of all bundled skills (directories containing a SKILL.md)."""
+    root = get_source_skills_root()
+    if not root.is_dir():
+        return []
+    return sorted(p.name for p in root.iterdir() if (p / "SKILL.md").is_file())
 
 
 def resolve_base(scope: str, project_root: Path | None) -> Path:
-    """Resolve the base directory the skill is installed under."""
+    """Resolve the base directory the skills are installed under."""
     if scope == "user":
         return Path.home()
     if project_root is not None:
@@ -78,34 +85,40 @@ def install_skill(
     force: bool = False,
     update: bool = False,
 ) -> tuple[Path, list[Action]]:
-    """Install or refresh the skill under the resolved base directory.
+    """Install or refresh all bundled skills under the resolved base directory.
 
     Returns the base dir and the list of filesystem actions performed.
     """
-    source = get_source_skill_dir()
-    if not source.is_dir():
-        raise FileNotFoundError(f"Bundled skill not found at {source}")
-
-    base = resolve_base(scope, project_root)
-    agents_target = base / AGENTS_REL
-    claude_target = base / CLAUDE_REL
-
-    if agents_target.exists() and not (force or update):
-        raise FileExistsError(
-            f"Skill already installed at {agents_target}. "
-            "Run 'plonecli skill update' or pass --force to overwrite."
+    names = bundled_skill_names()
+    if not names:
+        raise FileNotFoundError(
+            f"No bundled skills found under {get_source_skills_root()}"
         )
 
-    actions = [_copy_tree(source, agents_target)]
-    actions.append(_link_or_copy(agents_target, claude_target, copy_only))
+    base = resolve_base(scope, project_root)
+
+    if not (force or update):
+        for name in names:
+            target = base / AGENTS_DIR / name
+            if target.exists():
+                raise FileExistsError(
+                    f"Skill already installed at {target}. "
+                    "Run 'plonecli skill update' or pass --force to overwrite."
+                )
+
+    actions = []
+    for name in names:
+        source = get_source_skills_root() / name
+        agents_target = base / AGENTS_DIR / name
+        claude_target = base / CLAUDE_DIR / name
+        actions.append(_copy_tree(source, agents_target))
+        actions.append(_link_or_copy(agents_target, claude_target, copy_only))
     return base, actions
 
 
 def skill_status(scope: str, project_root: Path | None) -> dict:
-    """Report where the skill is installed under the resolved base."""
+    """Report where the bundled skills are installed under the resolved base."""
     base = resolve_base(scope, project_root)
-    agents_target = base / AGENTS_REL
-    claude_target = base / CLAUDE_REL
 
     def describe(path: Path) -> str:
         if path.is_symlink():
@@ -114,9 +127,16 @@ def skill_status(scope: str, project_root: Path | None) -> dict:
             return "copy"
         return "not installed"
 
+    skills = {}
+    for name in bundled_skill_names():
+        agents_target = base / AGENTS_DIR / name
+        claude_target = base / CLAUDE_DIR / name
+        skills[name] = {
+            "agents": (agents_target, describe(agents_target)),
+            "claude": (claude_target, describe(claude_target)),
+        }
     return {
         "base": base,
-        "source": get_source_skill_dir(),
-        "agents": (agents_target, describe(agents_target)),
-        "claude": (claude_target, describe(claude_target)),
+        "source": get_source_skills_root(),
+        "skills": skills,
     }

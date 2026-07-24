@@ -7,12 +7,16 @@ from plonecli.git import commit_template_changes, dirty_files, is_git_repo
 
 
 def _log(path):
-    return subprocess.run(
-        ["git", "log", "--pretty=%s"],
-        cwd=str(path),
-        capture_output=True,
-        text=True,
-    ).stdout.strip().splitlines()
+    return (
+        subprocess.run(
+            ["git", "log", "--pretty=%s"],
+            cwd=str(path),
+            capture_output=True,
+            text=True,
+        )
+        .stdout.strip()
+        .splitlines()
+    )
 
 
 def test_commit_initializes_repo_and_commits(tmp_path):
@@ -30,7 +34,7 @@ def test_commit_initializes_repo_and_commits(tmp_path):
 
 
 def test_commit_subtemplate_message(tmp_path):
-    """Adding a subtemplate to an existing repo uses the 'Add ... subtemplate' message."""
+    """Adding a subtemplate to a repo uses the 'Add ... subtemplate' message."""
     config = PlonecliConfig()
     (tmp_path / "a.py").write_text("a\n")
     commit_template_changes(tmp_path, "backend_addon", config, is_subtemplate=False)

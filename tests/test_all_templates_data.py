@@ -30,7 +30,6 @@ from plonecli.config import PlonecliConfig
 from plonecli.project import find_project_root
 from plonecli.templates import run_add, run_create
 
-
 DEV_TEMPLATES_DIR = Path("/home/node/develop/plone/src/copier-templates")
 FALLBACK_TEMPLATES_DIR = Path("/home/node/.copier-templates/plone-copier-templates")
 
@@ -159,7 +158,9 @@ def _copier_data(template_data: dict) -> dict:
 
 
 @pytest.mark.parametrize(
-    "name,template_data", list(_all_templates()), ids=lambda v: v if isinstance(v, str) else ""
+    "name,template_data",
+    list(_all_templates()),
+    ids=lambda v: v if isinstance(v, str) else "",
 )
 def test_data_covers_all_questions(name, template_data):
     """Every user-facing question of every template gets a concrete answer."""
@@ -177,7 +178,9 @@ def test_data_covers_all_questions(name, template_data):
         elif qtype == "int":
             assert isinstance(value, int), f"{name}: {qname} must be int"
         else:
-            assert isinstance(value, str) and value, f"{name}: {qname} must be non-empty str"
+            assert isinstance(value, str) and value, (
+                f"{name}: {qname} must be non-empty str"
+            )
 
 
 def _generate_main(name, template_data, config, tmp_path) -> Path:
@@ -209,7 +212,9 @@ def _parents(tmp_path_factory):
 
 @pytest.mark.integration
 @pytest.mark.parametrize(
-    "name,template_data", list(_all_templates()), ids=lambda v: v if isinstance(v, str) else ""
+    "name,template_data",
+    list(_all_templates()),
+    ids=lambda v: v if isinstance(v, str) else "",
 )
 def test_template_generates_non_interactively(name, template_data, _parents, tmp_path):
     """Each template generates non-interactively — mirroring ``--defaults``.

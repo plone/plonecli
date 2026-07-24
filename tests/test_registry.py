@@ -224,7 +224,11 @@ def test_composite_template_in_main_templates(tmp_path):
     _write_template(
         tmp_path,
         "addon",
-        {"type": "composite", "templates": ["backend_addon", "zope-setup"], "aliases": ["add-on"]},
+        {
+            "type": "composite",
+            "templates": ["backend_addon", "zope-setup"],
+            "aliases": ["add-on"],
+        },
     )
     config = PlonecliConfig(templates_dir=str(tmp_path))
     reg = TemplateRegistry(config)
@@ -241,7 +245,11 @@ def test_composite_resolve_alias(tmp_path):
     _write_template(
         tmp_path,
         "addon",
-        {"type": "composite", "templates": ["backend_addon", "zope-setup"], "aliases": ["add-on"]},
+        {
+            "type": "composite",
+            "templates": ["backend_addon", "zope-setup"],
+            "aliases": ["add-on"],
+        },
     )
     config = PlonecliConfig(templates_dir=str(tmp_path))
     reg = TemplateRegistry(config)

@@ -222,9 +222,9 @@ plonecli update
 This pulls the latest copier-templates and checks PyPI for plonecli updates.
 
 
-### AI Coding Agent Skill
+### AI Coding Agent Skills
 
-plonecli ships an [Agent Skill](https://www.anthropic.com/news/skills) that teaches AI coding agents how to use it. Because the skill follows the Agent Skills open standard, the same `SKILL.md` is loaded by Claude Code, Codex, Gemini CLI, Cursor and other compatible agents.
+plonecli ships [Agent Skills](https://www.anthropic.com/news/skills) that teach AI coding agents how to use it: `plonecli` (scaffolding and developing packages) and `plone-schema-fields` (hand-editing Dexterity schema fields and widgets). Because the skills follow the Agent Skills open standard, the same `SKILL.md` files are loaded by Claude Code, Codex, Gemini CLI, Cursor and other compatible agents.
 
 ```shell
 # install globally for your user (~/.agents/skills + ~/.claude/skills)
@@ -236,11 +236,11 @@ plonecli skill install --scope project
 # refresh after upgrading plonecli
 plonecli skill update
 
-# show where it is installed
+# show where they are installed
 plonecli skill status
 ```
 
-The skill is written to `~/.agents/skills/plonecli` (the open-standard discovery path) and linked from `~/.claude/skills/plonecli` for Claude Code. Use `--scope project` to install into the current project instead. Pass `--copy` if your environment cannot create symlinks, and `--force` to overwrite an existing install.
+Each skill is written to `~/.agents/skills/<name>` (the open-standard discovery path) and linked from `~/.claude/skills/<name>` for Claude Code. Use `--scope project` to install into the current project instead. Pass `--copy` if your environment cannot create symlinks, and `--force` to overwrite an existing install.
 
 
 ### Reconfiguring an Existing Project
