@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b13 (unreleased)
+## 7.0.0b13 (2026-07-24)
 
 
 - Split the schema-fields part of the plonecli skill into an own `plone-schema-fields` skill; shorten the plonecli skill description under 500 chars. `plonecli skill` now installs all bundled skills.
