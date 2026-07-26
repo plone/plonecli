@@ -13,6 +13,7 @@ import subprocess
 from pathlib import Path
 
 from plonecli.config import PlonecliConfig
+from plonecli.output import error
 
 
 def is_git_repo(path: Path) -> bool:
@@ -151,5 +152,9 @@ def commit_template_changes(
         )
         return message
     except (subprocess.CalledProcessError, FileNotFoundError) as exc:
-        print(f"Warning: skipped git auto-commit ({exc}).")
+        error(
+            f"ERROR: git auto-commit failed ({exc}).\n"
+            f"The generated files in {target} are uncommitted - commit them "
+            f"yourself."
+        )
         return None

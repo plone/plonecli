@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from click.exceptions import BadOptionUsage, NoSuchOption
+from click.exceptions import BadOptionUsage, ClickException, NoSuchOption
+
+
+class ConfigError(ClickException):
+    """Raised when the global config file cannot be read."""
 
 
 class NotInPackageError(BadOptionUsage):

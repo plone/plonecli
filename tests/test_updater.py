@@ -4,20 +4,58 @@ import json
 from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
+import pytest
+
 from plonecli.updater import (
+    _is_newer,
     _read_cache,
-    _version_tuple,
     _write_cache,
     check_for_updates,
 )
 
 
-def test_version_tuple():
-    assert _version_tuple("3.0.0") == (3, 0, 0)
-    assert _version_tuple("3.0.0a1") == (3, 0, 0)
-    assert _version_tuple("2.6") == (2, 6)
-    assert _version_tuple("3.0.0") > _version_tuple("2.6.0")
-    assert _version_tuple("3.1.0") > _version_tuple("3.0.0")
+@pytest.mark.parametrize(
+    ("latest", "current"),
+    [
+        ("3.1.0", "3.0.0"),
+        ("3.0.0", "2.6.0"),
+        # Pre-releases must be comparable, not truncated to their release
+        # segment: while plonecli itself ships betas, a newer beta is the only
+        # update a user can get.
+        ("7.0.0b14", "7.0.0b13"),
+        ("7.0.0", "7.0.0b13"),
+        ("7.0.0b1", "7.0.0a3"),
+        ("7.0.1", "7.0.0"),
+        ("7.0.0", "7.0.0.dev0"),
+    ],
+)
+def test_is_newer_true(latest, current):
+    assert _is_newer(latest, current) is True
+
+
+@pytest.mark.parametrize(
+    ("latest", "current"),
+    [
+        ("3.0.0", "3.0.0"),
+        ("3.0.0", "3.1.0"),
+        ("7.0.0b13", "7.0.0b14"),
+        # A final release must never be "updated" to an older pre-release.
+        ("7.0.0b13", "7.0.0"),
+        ("7.0.0a1", "7.0.0b1"),
+        ("7.0.0.dev0", "7.0.0"),
+    ],
+)
+def test_is_newer_false(latest, current):
+    assert _is_newer(latest, current) is False
+
+
+@pytest.mark.parametrize(
+    ("latest", "current"),
+    [("not-a-version", "3.0.0"), ("3.0.0", "not-a-version")],
+)
+def test_is_newer_unparseable_never_prompts(latest, current):
+    """An unparseable version is not an update; better silent than wrong."""
+    assert _is_newer(latest, current) is False
 
 
 def test_write_and_read_cache(tmp_path, monkeypatch):
@@ -61,6 +99,18 @@ def test_check_for_updates_new_available(
 
     result = check_for_updates(force=True)
     assert result == "3.1.0"
+
+
+@patch("plonecli.updater._fetch_latest_version", return_value="7.0.0b14")
+@patch("plonecli.updater._get_current_version", return_value="7.0.0b13")
+def test_check_for_updates_newer_beta_available(
+    mock_current, mock_fetch, tmp_path, monkeypatch
+):
+    """Beta users must be told about a newer beta."""
+    monkeypatch.setattr("plonecli.updater.UPDATE_CACHE_FILE", tmp_path / "cache.json")
+    monkeypatch.setattr("plonecli.updater.CONFIG_DIR", tmp_path)
+
+    assert check_for_updates(force=True) == "7.0.0b14"
 
 
 @patch("plonecli.updater._fetch_latest_version", return_value="3.0.0")

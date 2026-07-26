@@ -3,15 +3,9 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from click.testing import CliRunner
 
 from plonecli import skill_installer
 from plonecli.cli import cli
-
-
-@pytest.fixture
-def runner():
-    return CliRunner()
 
 
 def test_bundled_skills_present():

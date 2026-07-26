@@ -1,11 +1,14 @@
 """Tests for plonecli.config module."""
 
+import pytest
+
 from plonecli.config import (
     PlonecliConfig,
     load_config,
     migrate_from_mrbob,
     save_config,
 )
+from plonecli.exceptions import ConfigError
 
 
 def test_default_config():
@@ -153,6 +156,47 @@ def test_save_and_reload(tmp_path, monkeypatch):
     assert loaded.author_name == original.author_name
     assert loaded.author_email == original.author_email
     assert loaded.plone_version == original.plone_version
+
+
+@pytest.mark.parametrize(
+    "author_name",
+    [
+        'Ann "The Hammer" O\'Neill',
+        r"Back\slash Bob",
+        "Line\nBreak",
+        "Tab\there",
+        "Unicode ✓ Ünïcödé",
+        '"""triple quoted"""',
+    ],
+)
+def test_save_and_reload_hostile_characters(author_name, tmp_path, monkeypatch):
+    """Any string survives save/load.
+
+    Regression: the config was serialised with f-string interpolation, so a
+    quote or backslash in a value produced a config.toml that ``tomllib``
+    refused to parse, breaking every later plonecli invocation.
+    """
+    config_dir = tmp_path / ".plonecli"
+    config_file = config_dir / "config.toml"
+    monkeypatch.setattr("plonecli.config.CONFIG_DIR", config_dir)
+    monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+
+    save_config(PlonecliConfig(author_name=author_name))
+
+    assert load_config().author_name == author_name
+
+
+def test_load_config_broken_file_names_the_path(tmp_path, monkeypatch):
+    config_file = tmp_path / "config.toml"
+    config_file.write_text('[author]\nname = "unterminated\n')
+    monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+
+    with pytest.raises(ConfigError) as excinfo:
+        load_config()
+
+    message = str(excinfo.value)
+    assert str(config_file) in message
+    assert "delete" in message.lower()
 
 
 def test_migrate_from_mrbob(tmp_path, monkeypatch):
