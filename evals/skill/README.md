@@ -61,6 +61,7 @@ means a skill leaked into the baseline.
 | `restapi-implicit` | The skill *triggers* when the prompt never says "plonecli" |
 | `fields-manual` | Fields are hand-edited into the schema (`plone-schema-fields` skill) |
 | `upgrade-step` | Profile-XML edits for installed sites get `plonecli add upgrade_step` |
+| `uninstall-mirror` | Recreatable settings in `profiles/default` are mirrored for removal in `profiles/uninstall` |
 | `no-serve` | The agent never starts the dev server itself |
 | `legacy-adapt` | Legacy packages get minimal adaptation, not re-scaffolding |
 | `reconfigure` | Settings changes use `invoke reconfigure`, not `create` |
