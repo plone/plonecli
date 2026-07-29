@@ -260,6 +260,31 @@ CASES = [
         ),
     ),
     Case(
+        id="uninstall-mirror",
+        prompt=(
+            "Add a boolean catalog index is_featured to the GenericSetup "
+            "profile of the collective.demo add-on in this directory, and make "
+            "sure uninstalling the add-on cleans the index up again."
+        ),
+        fixture="addon",
+        checks=[
+            file_has(
+                "collective.demo/src/collective/demo/profiles/default/catalog.xml",
+                r"is_featured",
+                "default catalog.xml gains the index",
+            ),
+            file_has(
+                "collective.demo/src/collective/demo/profiles/uninstall/catalog.xml",
+                r'is_featured(?s).*remove="True"|remove="True"(?s).*is_featured',
+                "uninstall catalog.xml removes the index (remove=\"True\")",
+            ),
+        ],
+        notes=(
+            "Uninstall rule: a recreatable setting added to profiles/default "
+            "must be mirrored for removal in profiles/uninstall."
+        ),
+    ),
+    Case(
         id="no-serve",
         prompt=(
             "Start the Plone site of the collective.demo add-on in this "

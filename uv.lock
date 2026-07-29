@@ -579,14 +579,16 @@ wheels = [
 
 [[package]]
 name = "plonecli"
-version = "7.0.0b13.dev0"
+version = "7.0.0b14.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
     { name = "click-aliases" },
     { name = "copier" },
     { name = "copier-templates-extensions" },
+    { name = "packaging" },
     { name = "pyyaml" },
+    { name = "tomli-w" },
 ]
 
 [package.optional-dependencies]
@@ -611,11 +613,13 @@ requires-dist = [
     { name = "copier", specifier = ">=9.0.0" },
     { name = "copier-templates-extensions" },
     { name = "myst-parser", marker = "extra == 'docs'" },
+    { name = "packaging" },
     { name = "pytest", marker = "extra == 'test'" },
     { name = "pytest-cov", marker = "extra == 'test'" },
     { name = "pyyaml" },
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "sphinx", marker = "extra == 'docs'" },
+    { name = "tomli-w", specifier = ">=1.0" },
     { name = "tox", marker = "extra == 'dev'" },
 ]
 provides-extras = ["test", "docs", "dev"]

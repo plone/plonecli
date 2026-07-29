@@ -285,5 +285,7 @@ Common widgets (import from `plone.app.z3cform.widgets`; see
 - An upgrade step **is** needed only if the same change also edits profile XML —
   e.g. you add a catalog index/metadata for the field (`catalog.xml`) or change
   `types/*.xml`. Then follow the upgrade-step rule in the `plonecli` skill
-  (`plonecli add upgrade_step`).
+  (`plonecli add upgrade_step`), and mirror the index's removal into
+  `profiles/uninstall/catalog.xml` (`remove="True"`) so uninstalling leaves no
+  orphaned index — see that skill's uninstall-profile guidance.
 - Review `git status`/diff and preserve intentional local edits.

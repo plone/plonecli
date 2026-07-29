@@ -8,6 +8,10 @@ import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 
+import tomli_w
+
+from plonecli.exceptions import ConfigError
+
 CONFIG_DIR = Path.home() / ".plonecli"
 CONFIG_FILE = CONFIG_DIR / "config.toml"
 TEMPLATES_DIR = Path.home() / ".copier-templates" / "plone-copier-templates"
@@ -44,8 +48,15 @@ def load_config() -> PlonecliConfig:
     """
     config = PlonecliConfig()
     if CONFIG_FILE.exists():
-        with open(CONFIG_FILE, "rb") as f:
-            data = tomllib.load(f)
+        try:
+            with open(CONFIG_FILE, "rb") as f:
+                data = tomllib.load(f)
+        except (tomllib.TOMLDecodeError, OSError) as exc:
+            raise ConfigError(
+                f"Could not read the plonecli config at {CONFIG_FILE}: {exc}\n"
+                f"Fix the file, or delete it and run 'plonecli config' to recreate "
+                f"it: rm {CONFIG_FILE}"
+            ) from exc
 
         author = data.get("author", {})
         defaults = data.get("defaults", {})
@@ -93,27 +104,29 @@ def _portable_path(path_str: str) -> str:
 
 
 def save_config(config: PlonecliConfig) -> None:
-    """Save config to ~/.plonecli/config.toml."""
+    """Save config to ~/.plonecli/config.toml.
+
+    Serialised with a real TOML writer so that quotes, backslashes and newlines
+    in any value round-trip instead of producing an unparseable file.
+    """
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
-    content = f"""\
-[author]
-name = "{config.author_name}"
-email = "{config.author_email}"
-github_user = "{config.github_user}"
-
-[defaults]
-plone_version = "{config.plone_version}"
-
-[templates]
-repo_url = "{config.repo_url}"
-branch = "{config.repo_branch}"
-local_path = "{_portable_path(config.templates_dir)}"
-
-[git]
-auto_commit = {str(config.auto_commit).lower()}
-"""
-    CONFIG_FILE.write_text(content)
+    document = {
+        "author": {
+            "name": config.author_name,
+            "email": config.author_email,
+            "github_user": config.github_user,
+        },
+        "defaults": {"plone_version": config.plone_version},
+        "templates": {
+            "repo_url": config.repo_url,
+            "branch": config.repo_branch,
+            "local_path": _portable_path(config.templates_dir),
+        },
+        "git": {"auto_commit": config.auto_commit},
+    }
+    with open(CONFIG_FILE, "wb") as f:
+        tomli_w.dump(document, f)
 
 
 def migrate_from_mrbob() -> PlonecliConfig | None:

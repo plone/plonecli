@@ -3,14 +3,20 @@
 from __future__ import annotations
 
 import importlib.metadata
+import re
+import shutil
 import subprocess
 import sys
+import tomllib
+from pathlib import Path
 
 import click
 from click_aliases import ClickAliasedGroup
 
 from plonecli.config import load_config, save_config
 from plonecli.exceptions import NoSuchValue, NotInPackageError
+from plonecli.git import dirty_files
+from plonecli.output import echo
 from plonecli.project import find_project_root
 from plonecli.registry import TemplateRegistry
 from plonecli.templates import (
@@ -22,10 +28,6 @@ from plonecli.templates import (
 )
 
 
-def echo(msg, fg="green", reverse=False):
-    click.echo(click.style(msg, fg=fg, reverse=reverse))
-
-
 def ensure_templates(config):
     """Clone the copier-templates on first use.
 
@@ -34,8 +36,6 @@ def ensure_templates(config):
     a freshly installed plonecli works without a manual ``plonecli update``.
     Idempotent: a no-op once the clone is present.
     """
-    from pathlib import Path
-
     templates_dir = Path(config.templates_dir)
     if not (templates_dir / ".git").exists():
         echo("\nFetching copier-templates (first run)...", fg="green")
@@ -47,15 +47,13 @@ def _is_interactive():
     return sys.stdin.isatty()
 
 
-def confirm_clean_git(target_dir, defaults: bool) -> bool:
+def confirm_clean_git(target_dir, defaults: bool, allow_dirty: bool = False) -> bool:
     """Warn and ask to continue if the target repo has uncommitted changes.
 
-    Returns True to proceed, False if the user cancels. The prompt defaults to
-    *cancel* so an accidental Enter is safe. In non-interactive mode (``--defaults``
-    or no tty) the warning is printed but the run proceeds without prompting.
+    Returns True to proceed, False if the user cancels; the prompt defaults to
+    *cancel*. In non-interactive mode (``--defaults`` or no tty) there is nobody
+    to ask, so a dirty tree aborts. ``allow_dirty`` skips the check.
     """
-    from plonecli.git import dirty_files
-
     modified, untracked = dirty_files(target_dir)
     if not modified and not untracked:
         return True
@@ -67,8 +65,14 @@ def confirm_clean_git(target_dir, defaults: bool) -> bool:
         echo(f"  untracked: {f}", fg="yellow")
     echo("", fg="yellow")
 
-    if defaults or not _is_interactive():
+    if allow_dirty:
         return True
+    if defaults or not _is_interactive():
+        raise click.ClickException(
+            "Refusing to run on a git repository with uncommitted changes in "
+            "non-interactive mode.\n"
+            "Commit or stash them, or pass --allow-dirty to proceed anyway."
+        )
     return click.confirm("Continue anyway?", default=False)
 
 
@@ -111,6 +115,45 @@ def _collect_data(data_file, data):
     answers = _load_data_file(data_file) if data_file else {}
     answers.update(_parse_data(data))
     return answers
+
+
+def template_run_options(command):
+    """Add the answer, non-interactive and dirty-tree options.
+
+    Shared by ``create``, ``add`` and ``setup``; only ``--no-git`` differs.
+    """
+    for option in reversed(
+        [
+            click.option(
+                "-d",
+                "--data",
+                "data",
+                multiple=True,
+                metavar="KEY=VALUE",
+                help="Pre-fill a template answer (repeatable). Skips its prompt.",
+            ),
+            click.option(
+                "--data-file",
+                "data_file",
+                type=click.Path(exists=True, dir_okay=False),
+                help="Load answers from a YAML/JSON file. Overridden by -d.",
+            ),
+            click.option(
+                "--defaults",
+                is_flag=True,
+                help="Use template defaults for unanswered questions instead of "
+                "prompting (non-interactive).",
+            ),
+            click.option(
+                "--allow-dirty",
+                "allow_dirty",
+                is_flag=True,
+                help="Run even if the git repository has uncommitted changes.",
+            ),
+        ]
+    ):
+        command = option(command)
+    return command
 
 
 class InterspersedCommand(click.Command):
@@ -162,8 +205,20 @@ class ClickFilteredAliasedGroup(ClickAliasedGroup):
     context_settings={"help_option_names": ["-h", "--help"]},
     invoke_without_command=True,
 )
-@click.option("-l", "--list-templates", "list_templates", is_flag=True)
-@click.option("-V", "--versions", "versions", is_flag=True)
+@click.option(
+    "-l",
+    "--list-templates",
+    "list_templates",
+    is_flag=True,
+    help="List available templates.",
+)
+@click.option(
+    "-V",
+    "--versions",
+    "versions",
+    is_flag=True,
+    help="Show plonecli and copier-templates versions.",
+)
 @click.pass_context
 def cli(context, list_templates, versions):
     """Plone Command Line Interface (CLI)"""
@@ -239,26 +294,7 @@ class CreateCommand(InterspersedCommand):
 @cli.command(cls=CreateCommand)
 @click.argument("template", type=click.STRING, shell_complete=get_templates)
 @click.argument("name")
-@click.option(
-    "-d",
-    "--data",
-    "data",
-    multiple=True,
-    metavar="KEY=VALUE",
-    help="Pre-fill a template answer (repeatable). Skips its prompt.",
-)
-@click.option(
-    "--data-file",
-    "data_file",
-    type=click.Path(exists=True, dir_okay=False),
-    help="Load answers from a YAML/JSON file. Overridden by -d.",
-)
-@click.option(
-    "--defaults",
-    is_flag=True,
-    help="Use template defaults for unanswered questions instead of prompting "
-    "(non-interactive).",
-)
+@template_run_options
 @click.option(
     "--no-git",
     "no_git",
@@ -266,7 +302,7 @@ class CreateCommand(InterspersedCommand):
     help="Do not initialise git or auto-commit the generated package.",
 )
 @click.pass_context
-def create(context, template, name, data, data_file, defaults, no_git):
+def create(context, template, name, data, data_file, defaults, no_git, allow_dirty):
     """Create a new Plone package"""
     config = context.obj["config"]
     ensure_templates(config)
@@ -280,7 +316,7 @@ def create(context, template, name, data, data_file, defaults, no_git):
             possibilities=reg.get_main_templates(),
         )
 
-    if not confirm_clean_git(name, defaults):
+    if not confirm_clean_git(name, defaults, allow_dirty):
         echo("Aborted.", fg="yellow")
         return
 
@@ -319,26 +355,7 @@ def create(context, template, name, data, data_file, defaults, no_git):
 
 @cli.command(cls=InterspersedCommand)
 @click.argument("template", type=click.STRING, shell_complete=get_templates)
-@click.option(
-    "-d",
-    "--data",
-    "data",
-    multiple=True,
-    metavar="KEY=VALUE",
-    help="Pre-fill a template answer (repeatable). Skips its prompt.",
-)
-@click.option(
-    "--data-file",
-    "data_file",
-    type=click.Path(exists=True, dir_okay=False),
-    help="Load answers from a YAML/JSON file. Overridden by -d.",
-)
-@click.option(
-    "--defaults",
-    is_flag=True,
-    help="Use template defaults for unanswered questions instead of prompting "
-    "(non-interactive).",
-)
+@template_run_options
 @click.option(
     "--no-git",
     "no_git",
@@ -346,7 +363,7 @@ def create(context, template, name, data, data_file, defaults, no_git):
     help="Do not auto-commit the changes made by this subtemplate.",
 )
 @click.pass_context
-def add(context, template, data, data_file, defaults, no_git):
+def add(context, template, data, data_file, defaults, no_git, allow_dirty):
     """Add features to your existing Plone package"""
     project = context.obj.get("project")
     if project is None:
@@ -364,7 +381,7 @@ def add(context, template, data, data_file, defaults, no_git):
             possibilities=reg.get_subtemplates(),
         )
 
-    if not confirm_clean_git(project.root_folder, defaults):
+    if not confirm_clean_git(project.root_folder, defaults, allow_dirty):
         echo("Aborted.", fg="yellow")
         return
 
@@ -384,8 +401,9 @@ def add(context, template, data, data_file, defaults, no_git):
 
 
 @cli.command()
+@template_run_options
 @click.pass_context
-def setup(context):
+def setup(context, data, data_file, defaults, allow_dirty):
     """Run zope-setup inside an existing backend_addon"""
     project = context.obj.get("project")
     if project is None:
@@ -395,13 +413,120 @@ def setup(context):
             "The 'setup' command can only be run inside a backend_addon project."
         )
 
-    if not confirm_clean_git(project.root_folder, defaults=False):
+    if not confirm_clean_git(project.root_folder, defaults, allow_dirty):
         echo("Aborted.", fg="yellow")
         return
 
     config = context.obj["config"]
+    answers = _collect_data(data_file, data)
     echo("\nRunning zope-setup...", fg="green", reverse=True)
-    run_create("zope-setup", str(project.root_folder), config, overwrite=True)
+    run_create(
+        "zope-setup",
+        str(project.root_folder),
+        config,
+        data=answers,
+        defaults=defaults,
+        overwrite=True,
+    )
+
+
+TASKS_FILE = "tasks.py"
+
+# Where the zope-setup template declares each tool the tasks need, used to name
+# the fix when a project is missing one.
+_TASK_TOOLS = {
+    "invoke": "the 'dev' dependency group",
+    "pytest": "the 'test' extra",
+}
+
+
+def _declared_distributions(pyproject: Path) -> set[str] | None:
+    """Normalised names of every distribution the project declares.
+
+    Covers ``dependencies``, every optional-dependency extra and every
+    dependency group. Returns None if pyproject.toml cannot be read, leaving
+    callers no basis to complain.
+    """
+    try:
+        with open(pyproject, "rb") as f:
+            doc = tomllib.load(f)
+    except (tomllib.TOMLDecodeError, OSError):
+        return None
+
+    requirements = list(doc.get("project", {}).get("dependencies", []))
+    for group in doc.get("project", {}).get("optional-dependencies", {}).values():
+        requirements += group
+    for group in doc.get("dependency-groups", {}).values():
+        requirements += [r for r in group if isinstance(r, str)]
+
+    return {_distribution_name(r) for r in requirements}
+
+
+def _distribution_name(requirement: str) -> str:
+    """The bare distribution name of a PEP 508 requirement, normalised."""
+    name = re.split(r"[\s\[<>=!~;@]", requirement.strip(), maxsplit=1)[0]
+    return name.lower().replace("_", "-")
+
+
+def _require_task_runner(project, tools=("invoke",)) -> None:
+    """Fail with guidance if the project's invoke tasks cannot run.
+
+    Covers the three ways ``uv run invoke <task>`` dies with a raw error: no
+    ``uv`` on PATH, no generated ``tasks.py``, or a ``tools`` entry the project
+    never declared.
+    """
+    if shutil.which("uv") is None:
+        raise click.ClickException(
+            "uv was not found on PATH, but plonecli runs the project tasks with "
+            "'uv run invoke'.\n"
+            "Install uv: https://docs.astral.sh/uv/getting-started/installation/"
+        )
+
+    if not (project.root_folder / TASKS_FILE).exists():
+        raise click.ClickException(
+            f"No {TASKS_FILE} in {project.root_folder}, so this project has no "
+            "invoke tasks to run.\n"
+            f"{TASKS_FILE} comes from the zope-setup template. Add it with: "
+            "plonecli setup (inside a backend addon)"
+        )
+
+    declared = _declared_distributions(project.root_folder / "pyproject.toml")
+    if declared is None:
+        return
+    missing = [tool for tool in tools if tool not in declared]
+    if missing:
+        needed = ", ".join(f"{tool} in {_TASK_TOOLS[tool]}" for tool in missing)
+        raise click.ClickException(
+            f"{project.root_folder / 'pyproject.toml'} does not declare "
+            f"{', '.join(missing)}, so the invoke tasks cannot run.\n"
+            f"The zope-setup template declares {needed}; add it there, or "
+            "re-apply the template with: plonecli setup"
+        )
+
+
+_TEST_TASK_SIGNATURE = re.compile(r"^def test\((?P<params>[^)]*)\)", re.MULTILINE)
+
+
+def _unsupported_test_options(project, wanted: list[str]) -> list[str]:
+    """Which of ``wanted`` the project's generated ``test`` task does not accept.
+
+    An unreadable or unrecognised ``tasks.py`` yields an empty list: let invoke
+    have the final word rather than guess.
+    """
+    try:
+        source = (project.root_folder / TASKS_FILE).read_text(encoding="utf-8")
+    except OSError:
+        return []
+
+    match = _TEST_TASK_SIGNATURE.search(source)
+    if not match:
+        return []
+
+    accepted = {
+        param.split("=")[0].split(":")[0].strip()
+        for param in match.group("params").split(",")
+    }
+    return [name for name in wanted if name not in accepted]
 
 
 @cli.command("serve")
@@ -411,6 +536,7 @@ def run_serve(context):
     project = context.obj.get("project")
     if project is None:
         raise NotInPackageError(context.command.name)
+    _require_task_runner(project)
     params = ["uv", "run", "invoke", "start"]
     echo(f"\nRUN: {' '.join(params)}", fg="green", reverse=True)
     echo("\nINFO: Open this in a Web Browser: http://localhost:8080")
@@ -418,19 +544,49 @@ def run_serve(context):
     subprocess.call(params, cwd=str(project.root_folder))
 
 
-@cli.command("test")
+@cli.command("test", cls=InterspersedCommand)
 @click.option("-v", "--verbose", is_flag=True, help="Verbose test output")
+@click.option(
+    "-t",
+    "--test",
+    "test",
+    metavar="NAME",
+    help="Run only tests matching NAME (pytest -k).",
+)
+@click.option(
+    "-s",
+    "--package",
+    "package",
+    metavar="TARGET",
+    help="Restrict the run to one pytest target path, e.g. src/collective/todo.",
+)
 @click.pass_context
-def run_test(context, verbose):
+def run_test(context, verbose, test, package):
     """Run the tests in your package (delegates to invoke test)"""
     project = context.obj.get("project")
     if project is None:
         raise NotInPackageError(context.command.name)
+    _require_task_runner(project, tools=("invoke", "pytest"))
+
     params = ["uv", "run", "invoke", "test"]
+    filters = {"test": test, "package": package}
+    requested = [name for name, value in filters.items() if value]
+    unsupported = _unsupported_test_options(project, requested)
+    if unsupported:
+        flags = ", ".join(f"--{name}" for name in unsupported)
+        raise click.ClickException(
+            f"The invoke 'test' task in {project.root_folder / TASKS_FILE} does not "
+            f"accept {flags}.\n"
+            "Refresh the generated tasks.py: plonecli update && plonecli setup"
+        )
+    for name in requested:
+        params += [f"--{name}", filters[name]]
     if verbose:
         params.append("--verbose")
+
     echo(f"\nRUN: {' '.join(params)}", fg="green", reverse=True)
-    subprocess.call(params, cwd=str(project.root_folder))
+    # Propagate the result so a failing test run fails the command too.
+    context.exit(subprocess.call(params, cwd=str(project.root_folder)))
 
 
 @cli.command("debug")
@@ -440,6 +596,7 @@ def run_debug(context):
     project = context.obj.get("project")
     if project is None:
         raise NotInPackageError(context.command.name)
+    _require_task_runner(project)
     params = ["uv", "run", "invoke", "debug"]
     echo(f"\nRUN: {' '.join(params)}", fg="green", reverse=True)
     echo("INFO: You can stop it by pressing CTRL + c\n")
@@ -580,7 +737,7 @@ def skill(context, action, scope, copy_only, force):
             echo(f"  copied  {act.target}")
 
 
-@cli.command()
+@cli.command(cls=InterspersedCommand)
 @click.argument(
     "shell",
     required=False,
