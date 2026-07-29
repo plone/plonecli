@@ -1,0 +1,12 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 98bd98e
+_src_path: /home/maik/develop/src/copier-claude-code-devcontainer/
+enable_docker_in_docker: true
+enable_plone: true
+enable_pnpm: false
+enable_python_uv: true
+enable_terminal_recording: true
+extra_mounts:
+- source=${localEnv:HOME}/develop/plone/src/copier-templates,target=/home/node/develop/plone/src/copier-templates,type=bind,consistency=delegated
+node_version: '20'
+

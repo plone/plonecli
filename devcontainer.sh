@@ -7,7 +7,7 @@ usage() {
     echo "Usage: $0 {start|stop|rebuild|bash}"
     echo ""
     echo "  start    Start the devcontainer"
-    echo "  stop     Stop and remove the devcontainer"
+    echo "  stop     Stop the devcontainer (container preserved for fast restart)"
     echo "  rebuild  Rebuild (no cache) and start the devcontainer"
     echo "  bash     Open a bash shell inside the running devcontainer"
     exit 1
@@ -22,8 +22,8 @@ cmd_stop() {
     echo "Stopping devcontainer..."
     CONTAINER_IDS=$(docker ps -q --filter "label=devcontainer.local_folder=$WORKSPACE_FOLDER")
     if [ -n "$CONTAINER_IDS" ]; then
-        docker rm -f $CONTAINER_IDS
-        echo "Devcontainer stopped."
+        docker stop $CONTAINER_IDS
+        echo "Devcontainer stopped (container preserved; use 'rebuild' for a clean image)."
     else
         echo "No running devcontainer found."
     fi

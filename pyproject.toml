@@ -1,6 +1,6 @@
 [project]
 name = "plonecli"
-version = "7.0.0b3.dev0"
+version = "7.0.0b14.dev0"
 description = "A Plone CLI for creating Plone packages"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -29,7 +29,9 @@ dependencies = [
     "click-aliases",
     "copier>=9.0.0",
     "copier-templates-extensions",
+    "packaging",
     "pyyaml",
+    "tomli-w>=1.0",
 ]
 
 [project.optional-dependencies]
@@ -56,6 +58,7 @@ packages = ["plonecli"]
 testpaths = ["tests"]
 markers = [
     "integration: end-to-end tests that generate projects and run Plone (slow)",
+    "evals: behavioral skill evals running headless Claude Code; bill model usage, gated by RUN_SKILL_EVALS=1",
 ]
 
 [tool.ruff]

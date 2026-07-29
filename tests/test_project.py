@@ -1,7 +1,5 @@
 """Tests for plonecli.project module."""
 
-from pathlib import Path
-
 from plonecli.project import find_project_root
 
 
@@ -111,7 +109,7 @@ git_init = y
 
 
 def test_find_bobtemplate_cfg(tmp_path):
-    """A directory with bobtemplate.cfg template=plone_addon is detected as backend_addon."""
+    """bobtemplate.cfg with template=plone_addon is detected as backend_addon."""
     project_dir = tmp_path / "lmu.geozentrum"
     project_dir.mkdir()
     _make_bobtemplate_cfg(project_dir)

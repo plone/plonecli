@@ -25,14 +25,14 @@ from plonecli.config import PlonecliConfig
 from plonecli.project import find_project_root
 from plonecli.templates import run_add, run_create
 
-
 DEV_TEMPLATES_DIR = Path("/home/node/develop/plone/src/copier-templates")
-FALLBACK_TEMPLATES_DIR = Path(
-    "/home/node/.copier-templates/plone-copier-templates"
-)
+FALLBACK_TEMPLATES_DIR = Path("/home/node/.copier-templates/plone-copier-templates")
 
 
 def _templates_dir() -> Path:
+    env_dir = os.environ.get("PLONECLI_TEMPLATES_DIR")
+    if env_dir and Path(env_dir).exists():
+        return Path(env_dir)
     if DEV_TEMPLATES_DIR.exists():
         return DEV_TEMPLATES_DIR
     if FALLBACK_TEMPLATES_DIR.exists():
@@ -52,8 +52,9 @@ def test_theme_barceloneta_generates_and_tests_pass(tmp_path: Path) -> None:
     project_dir = tmp_path / package_name
     theme_name = "My Test Theme"
 
-    # 1. Generate the backend_addon — pre-fill every answer so copier runs
-    #    non-interactively.
+    # 1. Generate the backend_addon. ``defaults=True`` takes the template default
+    #    for anything not pre-filled here, so a newly added template question
+    #    cannot turn this into an interactive (and therefore failing) run.
     run_create(
         "backend_addon",
         str(project_dir),
@@ -67,6 +68,7 @@ def test_theme_barceloneta_generates_and_tests_pass(tmp_path: Path) -> None:
             "author_name": "Plone Developer",
             "author_email": "dev@plone.org",
         },
+        defaults=True,
     )
     assert (project_dir / "pyproject.toml").exists()
 
@@ -81,6 +83,7 @@ def test_theme_barceloneta_generates_and_tests_pass(tmp_path: Path) -> None:
             "theme_name": theme_name,
             "theme_description": "Integration test theme",
         },
+        defaults=True,
     )
 
     # The template ships a theme test keyed on theme_id.

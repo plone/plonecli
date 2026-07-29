@@ -1,0 +1,265 @@
+#!/usr/bin/env bash
+# Eval shim standing in for the real plonecli. Logs every invocation to
+# $PLONECLI_EVAL_LOG and fakes just enough behavior (files, errors) to keep
+# the agent moving. Grading happens on the log, not on real scaffolding.
+set -u
+LOG="${PLONECLI_EVAL_LOG:-/tmp/plonecli-eval.log}"
+printf '%s :: plonecli %s\n' "$PWD" "$*" >> "$LOG"
+
+cmd="${1:-}"
+[ $# -gt 0 ] && shift
+
+declare -A DATA
+NONINTERACTIVE=0
+ARGS=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --defaults) NONINTERACTIVE=1 ;;
+    --data-file) NONINTERACTIVE=1; shift ;;
+    -d|--data) kv="${2:-}"; DATA["${kv%%=*}"]="${kv#*=}"; shift ;;
+    -d=*|--data=*) kv="${1#*=}"; DATA["${kv%%=*}"]="${kv#*=}" ;;
+    --no-git|--force|--verbose|-v|--trust) ;;
+    *) ARGS+=("$1") ;;
+  esac
+  shift
+done
+
+snake() { # "IFeatured" -> featured, "@todos" -> todos, "Talk" -> talk
+  printf '%s' "$1" | sed -E 's/^@//; s/^I([A-Z])/\1/' | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_]/_/g'
+}
+
+have_settings() {
+  [ -f pyproject.toml ] && grep -q 'tool\.plone\.backend_addon\.settings' pyproject.toml
+}
+
+pkg_folder() {
+  local f
+  f="$(sed -n 's/^package_folder *= *"\(.*\)"/\1/p' pyproject.toml 2>/dev/null | head -1)"
+  [ -n "$f" ] && printf '%s' "$f"
+}
+
+commit_all() {
+  if [ -d .git ]; then git add -A >/dev/null 2>&1; git commit -qm "$1" >/dev/null 2>&1 || true; fi
+}
+
+scaffold_backend_addon() { # $1 = dotted name, cwd = parent dir
+  local name="$1" folder
+  folder="$(printf '%s' "$1" | tr '.' '/')"
+  mkdir -p "$name/src/$folder/profiles/default"
+  cat > "$name/pyproject.toml" <<EOF
+[project]
+name = "$name"
+version = "1.0a1"
+description = "${DATA[package_description]:-Plone add-on}"
+requires-python = ">=3.10"
+dependencies = ["Products.CMFPlone"]
+
+[tool.plone.backend_addon.settings]
+package_name = "$name"
+package_folder = "$folder"
+
+[tool.plone.backend_addon.settings.subtemplates]
+EOF
+  printf '_src_path: gh:plone/copier-templates\npackage_name: %s\n' "$name" > "$name/.copier-answers.yml"
+  local part path=""
+  for part in $(printf '%s' "$folder" | tr '/' ' '); do
+    path="$path$part/"
+    printf '__import__("pkg_resources").declare_namespace(__name__)\n' > "$name/src/${path}__init__.py" 2>/dev/null || true
+  done
+  printf '"""Init for %s."""\n' "$name" > "$name/src/$folder/__init__.py"
+  cat > "$name/src/$folder/configure.zcml" <<'EOF'
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="addon">
+
+  <genericsetup:registerProfile
+      name="default"
+      title="Default profile"
+      directory="profiles/default"
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      />
+
+</configure>
+EOF
+  printf '<?xml version="1.0"?>\n<metadata>\n  <version>1000</version>\n</metadata>\n' \
+    > "$name/src/$folder/profiles/default/metadata.xml"
+  printf '<?xml version="1.0"?>\n<object name="portal_catalog">\n</object>\n' \
+    > "$name/src/$folder/profiles/default/catalog.xml"
+  ( cd "$name" && git init -q 2>/dev/null; commit_all "Initial scaffold ($name)" )
+  echo "Generated backend_addon '$name' in ./$name"
+}
+
+add_zope_setup() { # cwd = project root
+  cat > tasks.py <<'EOF'
+"""Invoke tasks (zope-setup layer, eval shim)."""
+from invoke import task
+
+@task
+def start(c): ...
+@task
+def test(c): ...
+@task
+def debug(c): ...
+@task
+def reconfigure(c, target="addon", name=None): ...
+EOF
+  printf '_src_path: gh:plone/copier-templates\n' > .copier-answers.zope-setup.yml
+  echo "Applied zope-setup layer (tasks.py, instance config)."
+}
+
+append_include() { # $1 = zcml file, $2 = include line
+  [ -f "$1" ] || return 0
+  grep -qF "$2" "$1" && return 0
+  sed -i "s|</configure>|  $2\n\n</configure>|" "$1"
+}
+
+case "$cmd" in
+  -l|--list-templates)
+    if have_settings; then
+      printf 'Available subtemplates:\n  behavior\n  content_type\n  controlpanel\n  form\n  indexer\n  portlet\n  restapi_service\n  site_initialization\n  subscriber\n  theme\n  upgrade_step\n  view\n  viewlet\n  vocabulary\n'
+    else
+      printf 'Available templates:\n  backend_addon\n  addon (backend_addon + zope-setup)\n  zope-setup\n'
+    fi
+    ;;
+
+  create)
+    tmpl="${ARGS[0]:-}"; name="${ARGS[1]:-}"
+    if [ -z "$tmpl" ] || [ -z "$name" ]; then echo "Usage: plonecli create <template> <name>" >&2; exit 2; fi
+    if [ "$NONINTERACTIVE" -eq 0 ]; then
+      echo "Error: copier needs to prompt interactively but no TTY is attached." >&2
+      echo "Re-run with --defaults plus -d KEY=VALUE for specific answers." >&2
+      exit 1
+    fi
+    case "$tmpl" in
+      backend_addon) scaffold_backend_addon "$name" ;;
+      addon|add-on)
+        scaffold_backend_addon "$name"
+        ( cd "$name" && add_zope_setup && commit_all "Apply zope-setup" )
+        ;;
+      zope-setup|project)
+        mkdir -p "$name" && ( cd "$name" && git init -q 2>/dev/null && add_zope_setup && commit_all "zope-setup" )
+        echo "Generated zope-setup project '$name'."
+        ;;
+      *) echo "Unknown template: $tmpl" >&2; exit 2 ;;
+    esac
+    ;;
+
+  add)
+    sub="${ARGS[0]:-}"
+    if ! have_settings; then
+      echo "NotInPackageError: 'plonecli add' must be run inside a plonecli-generated package" >&2
+      echo "(no [tool.plone.backend_addon.settings] found in ./pyproject.toml)." >&2
+      exit 1
+    fi
+    if [ "$NONINTERACTIVE" -eq 0 ]; then
+      echo "Error: copier needs to prompt interactively but no TTY is attached." >&2
+      echo "Re-run with --defaults plus -d KEY=VALUE for specific answers." >&2
+      exit 1
+    fi
+    folder="src/$(pkg_folder)"
+    require() { # $1 = key
+      if [ -z "${DATA[$1]:-}" ]; then
+        echo "Error: required answer '$1' has no default — pass it with -d $1=..." >&2
+        exit 1
+      fi
+    }
+    case "$sub" in
+      behavior)
+        require behavior_name
+        mod="$(snake "${DATA[behavior_name]}")"
+        mkdir -p "$folder/behaviors"
+        touch "$folder/behaviors/__init__.py"
+        printf '<configure xmlns="http://namespaces.zope.org/zope" xmlns:plone="http://namespaces.plone.org/plone">\n\n</configure>\n' > "$folder/behaviors/configure.zcml" 2>/dev/null
+        printf 'from plone.autoform.interfaces import IFormFieldProvider\nfrom plone.supermodel import model\nfrom zope.interface import provider\n\n\n@provider(IFormFieldProvider)\nclass %s(model.Schema):\n    """%s behavior."""\n' "${DATA[behavior_name]}" "${DATA[behavior_name]}" > "$folder/behaviors/$mod.py"
+        append_include "$folder/configure.zcml" '<include package=".behaviors" />'
+        echo "Generated behavior: $folder/behaviors/$mod.py"
+        ;;
+      content_type)
+        require content_type_name
+        mod="$(snake "${DATA[content_type_name]}")"
+        mkdir -p "$folder/content"
+        touch "$folder/content/__init__.py"
+        printf 'from plone.dexterity.content import Container\nfrom plone.supermodel import model\nfrom zope.interface import implementer\n\n\nclass I%s(model.Schema):\n    """Schema for %s."""\n\n    # schema fields go here\n\n\n@implementer(I%s)\nclass %s(Container):\n    """%s content type."""\n' "${DATA[content_type_name]}" "${DATA[content_type_name]}" "${DATA[content_type_name]}" "${DATA[content_type_name]}" "${DATA[content_type_name]}" > "$folder/content/$mod.py"
+        append_include "$folder/configure.zcml" '<include package=".content" />'
+        echo "Generated content type: $folder/content/$mod.py"
+        ;;
+      restapi_service)
+        require service_name
+        mod="$(snake "${DATA[service_name]}")"
+        mkdir -p "$folder/api/services/$mod"
+        touch "$folder/api/services/__init__.py" "$folder/api/services/$mod/__init__.py"
+        printf 'from plone.restapi.services import Service\n\n\nclass Get(Service):\n    def reply(self):\n        return {}\n' > "$folder/api/services/$mod/get.py"
+        append_include "$folder/configure.zcml" '<include package=".api" />'
+        echo "Generated REST API service: $folder/api/services/$mod/"
+        ;;
+      view)
+        name="${DATA[view_name]:-my-view}"
+        mod="$(snake "$name")"
+        mkdir -p "$folder/views"
+        touch "$folder/views/__init__.py"
+        printf 'from Products.Five.browser import BrowserView\n\n\nclass %s(BrowserView):\n    """@@%s view."""\n' "${DATA[view_class_name]:-MyView}" "$name" > "$folder/views/$mod.py"
+        printf '<html><body>%s</body></html>\n' "$name" > "$folder/views/$mod.pt"
+        append_include "$folder/configure.zcml" '<include package=".views" />'
+        echo "Generated browser view @@$name: $folder/views/$mod.py"
+        ;;
+      vocabulary)
+        require vocabulary_name
+        mod="$(snake "${DATA[vocabulary_name]}")"
+        mkdir -p "$folder/vocabularies"
+        touch "$folder/vocabularies/__init__.py"
+        printf 'from zope.schema.vocabulary import SimpleVocabulary\n\n\ndef %s_vocabulary(context):\n    return SimpleVocabulary([])\n' "$mod" > "$folder/vocabularies/$mod.py"
+        append_include "$folder/configure.zcml" '<include package=".vocabularies" />'
+        echo "Generated vocabulary: $folder/vocabularies/$mod.py"
+        ;;
+      upgrade_step)
+        require upgrade_step_title
+        mkdir -p "$folder/upgrades"
+        touch "$folder/upgrades/__init__.py"
+        meta="$folder/profiles/default/metadata.xml"
+        old=1000
+        [ -f "$meta" ] && old="$(sed -n 's/.*<version>\([0-9]*\)<\/version>.*/\1/p' "$meta" | head -1)"
+        new=$((old + 1))
+        [ -f "$meta" ] && sed -i "s|<version>$old</version>|<version>$new</version>|" "$meta"
+        printf 'def upgrade(setup_tool=None):\n    """%s."""\n' "${DATA[upgrade_step_title]}" > "$folder/upgrades/v$new.py"
+        printf '<configure xmlns="http://namespaces.zope.org/zope" xmlns:genericsetup="http://namespaces.zope.org/genericsetup">\n  <genericsetup:upgradeStep\n      title="%s"\n      source="%s" destination="%s"\n      handler=".v%s.upgrade"\n      profile="default" />\n</configure>\n' "${DATA[upgrade_step_title]}" "$old" "$new" "$new" > "$folder/upgrades/configure.zcml"
+        append_include "$folder/configure.zcml" '<include package=".upgrades" />'
+        echo "Generated upgrade step $old -> $new: $folder/upgrades/v$new.py"
+        ;;
+      *)
+        mkdir -p "$folder"
+        touch "$folder/.generated_$sub"
+        echo "Generated subtemplate '$sub'."
+        ;;
+    esac
+    commit_all "Add $sub"
+    ;;
+
+  setup)
+    if ! have_settings; then
+      echo "NotInPackageError: run inside a plonecli-generated backend_addon." >&2
+      exit 1
+    fi
+    add_zope_setup
+    commit_all "Apply zope-setup"
+    ;;
+
+  test)
+    [ -f tasks.py ] || { echo "No tasks.py (zope-setup layer missing) — run 'plonecli setup' first." >&2; exit 1; }
+    echo "Running: uv run invoke test"
+    echo "Ran 12 tests in 0.42s"
+    echo "OK"
+    ;;
+
+  serve|debug)
+    echo "(eval shim) '$cmd' would start a long-running dev server."
+    ;;
+
+  update)  echo "Templates up to date; plonecli is current." ;;
+  config)  echo "(eval shim) interactive config skipped." ;;
+  skill)   echo "(eval shim) skill already installed." ;;
+  *)
+    echo "plonecli (eval shim): unknown command '$cmd'" >&2
+    exit 2
+    ;;
+esac

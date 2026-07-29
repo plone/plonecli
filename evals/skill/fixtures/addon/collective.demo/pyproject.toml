@@ -1,0 +1,13 @@
+[project]
+name = "collective.demo"
+version = "1.0a1"
+description = "Demo add-on"
+requires-python = ">=3.10"
+dependencies = ["Products.CMFPlone"]
+
+[tool.plone.backend_addon.settings]
+package_name = "collective.demo"
+package_folder = "collective/demo"
+
+[tool.plone.backend_addon.settings.subtemplates]
+content_types = ["talk"]

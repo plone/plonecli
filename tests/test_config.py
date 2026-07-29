@@ -1,6 +1,6 @@
 """Tests for plonecli.config module."""
 
-from pathlib import Path
+import pytest
 
 from plonecli.config import (
     PlonecliConfig,
@@ -8,6 +8,7 @@ from plonecli.config import (
     migrate_from_mrbob,
     save_config,
 )
+from plonecli.exceptions import ConfigError
 
 
 def test_default_config():
@@ -18,6 +19,18 @@ def test_default_config():
     assert config.plone_version == ""
     assert "plone/copier-templates" in config.repo_url
     assert config.repo_branch == "main"
+    assert config.auto_commit is True
+
+
+def test_auto_commit_load_save_roundtrip(tmp_path, monkeypatch):
+    config_dir = tmp_path / ".plonecli"
+    config_file = config_dir / "config.toml"
+    monkeypatch.setattr("plonecli.config.CONFIG_DIR", config_dir)
+    monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+
+    save_config(PlonecliConfig(auto_commit=False))
+    assert "auto_commit = false" in config_file.read_text()
+    assert load_config().auto_commit is False
 
 
 def test_load_config_missing_file(tmp_path, monkeypatch):
@@ -74,6 +87,58 @@ def test_save_config(tmp_path, monkeypatch):
     assert 'plone_version = "6.0.13"' in content
 
 
+def test_save_collapses_home_in_templates_path(tmp_path, monkeypatch):
+    """The default templates_dir is stored home-relative, not as an absolute path.
+
+    Regression: an absolute ``/home/<user>/...`` baked into config.toml broke
+    when the same config was read under a different ``$HOME`` (host vs.
+    devcontainer).
+    """
+    home = tmp_path / "home"
+    monkeypatch.setenv("HOME", str(home))
+    config_dir = home / ".plonecli"
+    config_file = config_dir / "config.toml"
+    monkeypatch.setattr("plonecli.config.CONFIG_DIR", config_dir)
+    monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+
+    save_config(PlonecliConfig(templates_dir=str(home / ".copier-templates" / "x")))
+
+    content = config_file.read_text()
+    assert 'local_path = "~/.copier-templates/x"' in content
+    assert str(home) not in content
+
+
+def test_save_keeps_paths_outside_home_absolute(tmp_path, monkeypatch):
+    home = tmp_path / "home"
+    monkeypatch.setenv("HOME", str(home))
+    config_dir = home / ".plonecli"
+    config_file = config_dir / "config.toml"
+    monkeypatch.setattr("plonecli.config.CONFIG_DIR", config_dir)
+    monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+
+    save_config(PlonecliConfig(templates_dir="/opt/templates"))
+
+    assert 'local_path = "/opt/templates"' in config_file.read_text()
+
+
+def test_templates_path_reloads_under_different_home(tmp_path, monkeypatch):
+    """A config saved under one $HOME expands correctly under another."""
+    config_dir = tmp_path / ".plonecli"
+    config_file = config_dir / "config.toml"
+    monkeypatch.setattr("plonecli.config.CONFIG_DIR", config_dir)
+    monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+    monkeypatch.delenv("PLONECLI_TEMPLATES_DIR", raising=False)
+
+    home_a = tmp_path / "home_a"
+    monkeypatch.setenv("HOME", str(home_a))
+    save_config(PlonecliConfig(templates_dir=str(home_a / ".copier-templates" / "x")))
+
+    home_b = tmp_path / "home_b"
+    monkeypatch.setenv("HOME", str(home_b))
+    loaded = load_config()
+    assert loaded.templates_dir == str(home_b / ".copier-templates" / "x")
+
+
 def test_save_and_reload(tmp_path, monkeypatch):
     config_dir = tmp_path / ".plonecli"
     config_file = config_dir / "config.toml"
@@ -91,6 +156,47 @@ def test_save_and_reload(tmp_path, monkeypatch):
     assert loaded.author_name == original.author_name
     assert loaded.author_email == original.author_email
     assert loaded.plone_version == original.plone_version
+
+
+@pytest.mark.parametrize(
+    "author_name",
+    [
+        'Ann "The Hammer" O\'Neill',
+        r"Back\slash Bob",
+        "Line\nBreak",
+        "Tab\there",
+        "Unicode ✓ Ünïcödé",
+        '"""triple quoted"""',
+    ],
+)
+def test_save_and_reload_hostile_characters(author_name, tmp_path, monkeypatch):
+    """Any string survives save/load.
+
+    Regression: the config was serialised with f-string interpolation, so a
+    quote or backslash in a value produced a config.toml that ``tomllib``
+    refused to parse, breaking every later plonecli invocation.
+    """
+    config_dir = tmp_path / ".plonecli"
+    config_file = config_dir / "config.toml"
+    monkeypatch.setattr("plonecli.config.CONFIG_DIR", config_dir)
+    monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+
+    save_config(PlonecliConfig(author_name=author_name))
+
+    assert load_config().author_name == author_name
+
+
+def test_load_config_broken_file_names_the_path(tmp_path, monkeypatch):
+    config_file = tmp_path / "config.toml"
+    config_file.write_text('[author]\nname = "unterminated\n')
+    monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
+
+    with pytest.raises(ConfigError) as excinfo:
+        load_config()
+
+    message = str(excinfo.value)
+    assert str(config_file) in message
+    assert "delete" in message.lower()
 
 
 def test_migrate_from_mrbob(tmp_path, monkeypatch):
@@ -133,7 +239,9 @@ branch = "main"
 local_path = "/original/path"
 """)
     monkeypatch.setattr("plonecli.config.CONFIG_FILE", config_file)
-    monkeypatch.setenv("PLONECLI_TEMPLATES_REPO_URL", "https://github.com/override/repo")
+    monkeypatch.setenv(
+        "PLONECLI_TEMPLATES_REPO_URL", "https://github.com/override/repo"
+    )
     monkeypatch.setenv("PLONECLI_TEMPLATES_BRANCH", "develop")
     monkeypatch.setenv("PLONECLI_TEMPLATES_DIR", "/override/path")
 

@@ -10,6 +10,18 @@
 The Plone CLI is meant for developing Plone packages. It uses [copier](https://copier.readthedocs.io/) templates to scaffold Plone backend addons, Zope project setups, and add features like content types, behaviors, and REST API services.
 
 
+
+
+## Compatibility
+
+Starting from version 7.x, we use copier templates instead of bobtemplates.plone or cookiecutter templates.
+This brings some UX advantages and flexibility to the templates and is future-proof.
+
+- Versions >= 7.x use the new copier templates (UV/pyproject.toml instead of buildout) and support Plone >= 6.x.
+- Versions == 3.x **(current stable version)** use bobtemplates.plone and some cookieplone templates and also support Plone >= 6.x.
+    - When using bobtemplates.plone for Plone 5.x and Python 3, you can use plonecli together with bobtemplates.plone == 6.x. They support Plone 5 and Plone 6, except for the theming templates, which are made for Plone 6. If you really need to create a theming package for Plone 5.x, use bobtemplates.plone < 6.x.
+
+
 ## Installation
 
 ### UV Tool (Recommended)
@@ -114,20 +126,48 @@ This creates `~/.plonecli/config.toml` with your settings.
 plonecli --help
 
 Commands:
-  add      Add features to your existing Plone package
-  config   Configure plonecli global settings
-  create   Create a new Plone package
-  debug    Start the Plone instance in debug mode
-  serve    Start the Plone instance
-  setup    Run zope-setup inside an existing backend_addon
-  test     Run the tests in your package
-  update   Update copier-templates and check for plonecli updates
+  add         Add features to your existing Plone package
+  completion  Show or install shell completion
+  config      Configure plonecli global settings
+  create      Create a new Plone package
+  debug       Start the Plone instance in debug mode
+  serve       Start the Plone instance
+  setup       Run zope-setup inside an existing backend_addon
+  skill       Install/update the bundled Agent Skills for AI coding agents
+  test        Run the tests in your package
+  update      Update copier-templates and check for plonecli updates
 
 Options:
   -l, --list-templates   List available templates
-  -V, --versions         Show version information
+  -V, --versions         Show plonecli and copier-templates versions
   -h, --help             Show this message and exit.
 ```
+
+The list is context-aware: outside a Plone project only the global commands
+(`completion`, `config`, `create`, `skill`, `update`) are shown; inside one,
+`create` is replaced by the project commands.
+
+`create`, `add` and `setup` share the non-interactive options, so a package can
+be bootstrapped from a script or CI:
+
+```shell
+plonecli create addon collective.todo --defaults -d description="Todo lists"
+plonecli add content_type --defaults --data-file answers.yml
+plonecli setup --defaults -d plone_version=6.1.1
+```
+
+| Option              | What it does                                                       |
+|---------------------|--------------------------------------------------------------------|
+| `-d KEY=VALUE`      | Pre-fill a template answer (repeatable), skipping its prompt        |
+| `--data-file FILE`  | Load answers from a YAML/JSON file (`-d` wins on conflicts)        |
+| `--defaults`        | Use template defaults for unanswered questions instead of prompting |
+| `--allow-dirty`     | Run even if the git repository has uncommitted changes              |
+| `--no-git`          | Skip the auto-commit (`create`, `add`)                              |
+
+On a repository with uncommitted changes, an interactive run asks whether to
+continue, and a non-interactive one (`--defaults`, or no terminal) aborts so
+generated files never silently mix into your work in progress. Pass
+`--allow-dirty` when that mixing is intended.
 
 
 ### Creating a Plone Add-on
@@ -187,6 +227,20 @@ With verbose output:
 plonecli test --verbose
 ```
 
+Run a single test, or restrict the run to one package:
+
+```shell
+plonecli test -t test_behavior_installed
+plonecli test -s src/collective/todo
+```
+
+Both are passed to the project's `invoke test` task: `-t/--test` becomes pytest's
+`-k`, and `-s/--package` becomes the pytest target path. `plonecli test` exits
+with the test run's exit code, so it can gate a script or a CI job.
+
+Projects generated before the task gained these parameters need their `tasks.py`
+refreshed with `plonecli update && plonecli setup`.
+
 
 ### Debug Mode
 
@@ -202,6 +256,27 @@ plonecli update
 ```
 
 This pulls the latest copier-templates and checks PyPI for plonecli updates.
+
+
+### AI Coding Agent Skills
+
+plonecli ships [Agent Skills](https://www.anthropic.com/news/skills) that teach AI coding agents how to use it: `plonecli` (scaffolding and developing packages) and `plone-schema-fields` (hand-editing Dexterity schema fields and widgets). Because the skills follow the Agent Skills open standard, the same `SKILL.md` files are loaded by Claude Code, Codex, Gemini CLI, Cursor and other compatible agents.
+
+```shell
+# install globally for your user (~/.agents/skills + ~/.claude/skills)
+plonecli skill install
+
+# install into the current project (.agents/skills + .claude/skills)
+plonecli skill install --scope project
+
+# refresh after upgrading plonecli
+plonecli skill update
+
+# show where they are installed
+plonecli skill status
+```
+
+Each skill is written to `~/.agents/skills/<name>` (the open-standard discovery path) and linked from `~/.claude/skills/<name>` for Claude Code. Use `--scope project` to install into the current project instead. Pass `--copy` if your environment cannot create symlinks, and `--force` to overwrite an existing install.
 
 
 ### Reconfiguring an Existing Project
@@ -274,6 +349,10 @@ local_path = "~/.copier-templates/plone-copier-templates"
 ```
 
 The default Plone version is fetched from `https://dist.plone.org/release/` and cached for 24 hours.
+
+Run `plonecli config` to (re)write the file interactively. If it ever becomes
+unreadable, plonecli says so and names the path — delete it and run
+`plonecli config` again to start fresh.
 
 ### Environment Variables
 

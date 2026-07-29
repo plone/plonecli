@@ -9,6 +9,7 @@ from plonecli.templates import (
     ensure_templates_cloned,
     get_template_path,
     get_templates_info,
+    run_create,
     update_templates_clone,
 )
 
@@ -41,7 +42,7 @@ def test_ensure_templates_cloned_new(mock_run, tmp_path):
         return MagicMock(returncode=0)
 
     mock_run.side_effect = side_effect
-    result = ensure_templates_cloned(config)
+    ensure_templates_cloned(config)
 
     mock_run.assert_called_once()
     call_args = mock_run.call_args[0][0]
@@ -52,22 +53,49 @@ def test_ensure_templates_cloned_new(mock_run, tmp_path):
 
 
 @patch("plonecli.templates.subprocess.run")
-def test_update_templates_clone(mock_run, tmp_path):
+def test_update_templates_clone_up_to_date(mock_run, tmp_path):
     templates_dir = tmp_path / "templates"
     templates_dir.mkdir()
     (templates_dir / ".git").mkdir()
 
-    mock_run.return_value = MagicMock(
-        returncode=0,
-        stdout="Already up to date.",
-        stderr="",
-    )
+    sha = "abc1234abc1234abc1234abc1234abc1234abc1"
+    mock_run.side_effect = [
+        MagicMock(returncode=0, stdout="", stderr=""),  # fetch
+        MagicMock(returncode=0, stdout=sha + "\n", stderr=""),  # rev-parse HEAD
+        MagicMock(returncode=0, stdout=sha + "\n", stderr=""),  # rev-parse origin
+    ]
 
     config = PlonecliConfig(templates_dir=str(templates_dir))
     msg = update_templates_clone(config)
 
     assert "up to date" in msg.lower()
-    mock_run.assert_called_once()
+    assert mock_run.call_count == 3
+
+
+@patch("plonecli.templates.subprocess.run")
+def test_update_templates_clone_resets_on_divergence(mock_run, tmp_path):
+    """When local and origin diverge, hard-reset to origin instead of failing."""
+    templates_dir = tmp_path / "templates"
+    templates_dir.mkdir()
+    (templates_dir / ".git").mkdir()
+
+    before = "951b15c951b15c951b15c951b15c951b15c951b1"
+    after = "9e89e5b9e89e5b9e89e5b9e89e5b9e89e5b9e89e"
+    mock_run.side_effect = [
+        MagicMock(returncode=0, stdout="", stderr=""),  # fetch
+        MagicMock(returncode=0, stdout=before + "\n", stderr=""),  # HEAD
+        MagicMock(returncode=0, stdout=after + "\n", stderr=""),  # origin/branch
+        MagicMock(returncode=0, stdout="", stderr=""),  # reset --hard
+    ]
+
+    config = PlonecliConfig(templates_dir=str(templates_dir), repo_branch="main")
+    msg = update_templates_clone(config)
+
+    assert "updated" in msg.lower()
+    assert "951b15c" in msg
+    assert "9e89e5b" in msg
+    reset_call = mock_run.call_args_list[3][0][0]
+    assert reset_call == ["git", "reset", "--hard", "origin/main"]
 
 
 def test_get_template_path(tmp_path):
@@ -103,3 +131,30 @@ def test_get_templates_info_not_cloned(tmp_path):
     config = PlonecliConfig(templates_dir=str(tmp_path / "nonexistent"))
     info = get_templates_info(config)
     assert info == "not cloned"
+
+
+@patch("plonecli.templates.run_copy")
+def test_run_create_overwrite_default_false(mock_run_copy, tmp_path):
+    """run_create does not overwrite by default."""
+    (tmp_path / ".git").mkdir()
+    (tmp_path / "backend_addon").mkdir()
+    config = PlonecliConfig(templates_dir=str(tmp_path))
+    run_create("backend_addon", "out", config, defaults=True, git_commit=False)
+    assert mock_run_copy.call_args.kwargs["overwrite"] is False
+
+
+@patch("plonecli.templates.run_copy")
+def test_run_create_overwrite_forwarded(mock_run_copy, tmp_path):
+    """overwrite=True is forwarded to copier (layering onto existing files)."""
+    (tmp_path / ".git").mkdir()
+    (tmp_path / "zope-setup").mkdir()
+    config = PlonecliConfig(templates_dir=str(tmp_path))
+    run_create(
+        "zope-setup",
+        "out",
+        config,
+        defaults=True,
+        git_commit=False,
+        overwrite=True,
+    )
+    assert mock_run_copy.call_args.kwargs["overwrite"] is True

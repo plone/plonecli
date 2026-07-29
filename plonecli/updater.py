@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import importlib.metadata
 import json
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
+from datetime import UTC, datetime, timedelta
 from urllib.error import URLError
 from urllib.request import urlopen
 
-from plonecli.config import CONFIG_DIR
+from packaging.version import InvalidVersion, Version
 
+from plonecli.config import CONFIG_DIR
 
 PYPI_URL = "https://pypi.org/pypi/plonecli/json"
 UPDATE_CACHE_FILE = CONFIG_DIR / ".update_cache.json"
@@ -40,7 +40,7 @@ def _read_cache() -> dict | None:
     try:
         data = json.loads(UPDATE_CACHE_FILE.read_text())
         last_check = datetime.fromisoformat(data["last_check"])
-        if datetime.now(timezone.utc) - last_check > CACHE_MAX_AGE:
+        if datetime.now(UTC) - last_check > CACHE_MAX_AGE:
             return None
         return data
     except (json.JSONDecodeError, KeyError, ValueError):
@@ -51,21 +51,22 @@ def _write_cache(latest_version: str) -> None:
     """Write the update cache."""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     data = {
-        "last_check": datetime.now(timezone.utc).isoformat(),
+        "last_check": datetime.now(UTC).isoformat(),
         "latest_version": latest_version,
     }
     UPDATE_CACHE_FILE.write_text(json.dumps(data))
 
 
-def _version_tuple(version: str) -> tuple[int, ...]:
-    """Parse version string to comparable tuple, ignoring pre-release suffixes."""
-    import re
+def _is_newer(latest: str, current: str) -> bool:
+    """Whether ``latest`` is a newer release than ``current`` (PEP 440).
 
-    # Extract just the numeric release segment (e.g. "3.0.0" from "3.0.0a1")
-    match = re.match(r"(\d+(?:\.\d+)*)", version)
-    if not match:
-        return (0,)
-    return tuple(int(x) for x in match.group(1).split("."))
+    Pre-releases take part in the comparison. An unparseable version on either
+    side means "no update".
+    """
+    try:
+        return Version(latest) > Version(current)
+    except InvalidVersion:
+        return False
 
 
 def check_for_updates(force: bool = False) -> str | None:
@@ -82,17 +83,14 @@ def check_for_updates(force: bool = False) -> str | None:
         cache = _read_cache()
         if cache:
             latest = cache.get("latest_version")
-            if latest:
-                current = _get_current_version()
-                if _version_tuple(latest) > _version_tuple(current):
-                    return latest
+            if latest and _is_newer(latest, _get_current_version()):
+                return latest
             return None
 
     latest = _fetch_latest_version()
     if latest:
         _write_cache(latest)
-        current = _get_current_version()
-        if _version_tuple(latest) > _version_tuple(current):
+        if _is_newer(latest, _get_current_version()):
             return latest
 
     return None

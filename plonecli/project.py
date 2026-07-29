@@ -11,7 +11,9 @@ from pathlib import Path
 @dataclass
 class ProjectContext:
     root_folder: Path
-    project_type: str  # canonical main template name, e.g. "backend_addon" or "zope-setup"
+    project_type: (
+        str  # canonical main template name, e.g. "backend_addon" or "zope-setup"
+    )
     settings: dict
     package_name: str | None = None
     package_folder: str | None = None
@@ -41,10 +43,7 @@ def _read_project_settings(pyproject_path: Path) -> dict | None:
         with open(pyproject_path, "rb") as f:
             doc = tomllib.load(f)
         settings = (
-            doc.get("tool", {})
-            .get("plone", {})
-            .get("project", {})
-            .get("settings", {})
+            doc.get("tool", {}).get("plone", {}).get("project", {}).get("settings", {})
         )
         if settings:
             result = dict(settings)

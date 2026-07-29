@@ -8,6 +8,9 @@ import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 
+import tomli_w
+
+from plonecli.exceptions import ConfigError
 
 CONFIG_DIR = Path.home() / ".plonecli"
 CONFIG_FILE = CONFIG_DIR / "config.toml"
@@ -30,6 +33,7 @@ class PlonecliConfig:
     repo_url: str = DEFAULT_REPO_URL
     repo_branch: str = DEFAULT_BRANCH
     templates_dir: str = str(TEMPLATES_DIR)
+    auto_commit: bool = True
 
 
 def load_config() -> PlonecliConfig:
@@ -44,12 +48,20 @@ def load_config() -> PlonecliConfig:
     """
     config = PlonecliConfig()
     if CONFIG_FILE.exists():
-        with open(CONFIG_FILE, "rb") as f:
-            data = tomllib.load(f)
+        try:
+            with open(CONFIG_FILE, "rb") as f:
+                data = tomllib.load(f)
+        except (tomllib.TOMLDecodeError, OSError) as exc:
+            raise ConfigError(
+                f"Could not read the plonecli config at {CONFIG_FILE}: {exc}\n"
+                f"Fix the file, or delete it and run 'plonecli config' to recreate "
+                f"it: rm {CONFIG_FILE}"
+            ) from exc
 
         author = data.get("author", {})
         defaults = data.get("defaults", {})
         templates = data.get("templates", {})
+        git = data.get("git", {})
 
         config.author_name = author.get("name", config.author_name)
         config.author_email = author.get("email", config.author_email)
@@ -58,6 +70,7 @@ def load_config() -> PlonecliConfig:
         config.repo_url = templates.get("repo_url", config.repo_url)
         config.repo_branch = templates.get("branch", config.repo_branch)
         config.templates_dir = templates.get("local_path", config.templates_dir)
+        config.auto_commit = git.get("auto_commit", config.auto_commit)
 
     # Environment variables override config file
     if os.environ.get(ENV_REPO_URL):
@@ -73,25 +86,47 @@ def load_config() -> PlonecliConfig:
     return config
 
 
+def _portable_path(path_str: str) -> str:
+    """Collapse a leading home directory to ``~`` for portability.
+
+    ``load_config`` expands ``~`` per-environment, so storing the home-relative
+    form keeps the config working across machines and containers with different
+    ``$HOME`` (e.g. host vs. devcontainer). Paths outside home are left absolute.
+    """
+    path = Path(path_str)
+    home = Path.home()
+    if path == home:
+        return "~"
+    try:
+        return "~/" + str(path.relative_to(home))
+    except ValueError:
+        return path_str
+
+
 def save_config(config: PlonecliConfig) -> None:
-    """Save config to ~/.plonecli/config.toml."""
+    """Save config to ~/.plonecli/config.toml.
+
+    Serialised with a real TOML writer so that quotes, backslashes and newlines
+    in any value round-trip instead of producing an unparseable file.
+    """
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
-    content = f"""\
-[author]
-name = "{config.author_name}"
-email = "{config.author_email}"
-github_user = "{config.github_user}"
-
-[defaults]
-plone_version = "{config.plone_version}"
-
-[templates]
-repo_url = "{config.repo_url}"
-branch = "{config.repo_branch}"
-local_path = "{config.templates_dir}"
-"""
-    CONFIG_FILE.write_text(content)
+    document = {
+        "author": {
+            "name": config.author_name,
+            "email": config.author_email,
+            "github_user": config.github_user,
+        },
+        "defaults": {"plone_version": config.plone_version},
+        "templates": {
+            "repo_url": config.repo_url,
+            "branch": config.repo_branch,
+            "local_path": _portable_path(config.templates_dir),
+        },
+        "git": {"auto_commit": config.auto_commit},
+    }
+    with open(CONFIG_FILE, "wb") as f:
+        tomli_w.dump(document, f)
 
 
 def migrate_from_mrbob() -> PlonecliConfig | None:
@@ -114,14 +149,10 @@ def migrate_from_mrbob() -> PlonecliConfig | None:
         variables = dict(parser.items("variables"))
         config.author_name = variables.get("author.name", config.author_name)
         config.author_email = variables.get("author.email", config.author_email)
-        config.github_user = variables.get(
-            "author.github.user", config.github_user
-        )
+        config.github_user = variables.get("author.github.user", config.github_user)
 
     if parser.has_section("defaults"):
         defaults = dict(parser.items("defaults"))
-        config.plone_version = defaults.get(
-            "plone.version", config.plone_version
-        )
+        config.plone_version = defaults.get("plone.version", config.plone_version)
 
     return config
