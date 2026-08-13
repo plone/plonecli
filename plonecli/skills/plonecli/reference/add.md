@@ -105,6 +105,27 @@ Usually don't:
 
 If unsure whether a given profile edit needs migrating to existing sites, add the upgrade step — it's cheap and safe; a missing one silently leaves installed sites stale.
 
+## Uninstall profile — mirror recreatable settings
+
+`profiles/default/` and `profiles/uninstall/` are a pair. Whatever the default profile creates that a reinstall would recreate — catalog indexes, metadata columns, `plone.registry` records — the uninstall profile must remove, so uninstalling leaves a clean site. plonecli scaffolds `profiles/uninstall/` with `browserlayer.xml` (removes the addon's layer) and `metadata.xml`; you extend it as you add recreatable settings to `profiles/default/`.
+
+Mirror the removal in the **same change** that adds the setting:
+
+| Added to `profiles/default/` | Add to `profiles/uninstall/` |
+|---|---|
+| Index / metadata column in `catalog.xml` | `catalog.xml` with `<index name="…" remove="True"/>` / `<column name="…" remove="True"/>` |
+| Record in `registry.xml` | `registry.xml` with `<record name="…" remove="True"/>` (or `<records interface="…" prefix="…" remove="true"/>` for a whole set) |
+
+```xml
+<!-- profiles/uninstall/catalog.xml -->
+<?xml version="1.0"?>
+<object name="portal_catalog" meta_type="Plone Catalog Tool">
+  <index name="my_index" remove="True"/>
+</object>
+```
+
+Only mirror configuration the addon **owns and can rebuild** — indexes, metadata columns, registry records, roles/permissions. Never remove user-created content or data on uninstall: reinstalling does not recreate it, and its loss is unrecoverable. For cleanup that XML can't express (e.g. deleting objects the addon created), use the `uninstall(context)` handler in `setuphandlers.py` instead of the profile.
+
 ## zope_instance
 
 Inside a `zope-setup` project, `plonecli add zope_instance` adds an additional named Zope instance. Each instance has its own `.copier-answers.zope-instance-<name>.yml` and can later be reconfigured by name ([maintain.md](maintain.md)).

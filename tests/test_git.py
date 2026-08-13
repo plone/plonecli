@@ -1,6 +1,7 @@
 """Tests for plonecli.git auto-commit support."""
 
 import subprocess
+from unittest.mock import patch
 
 from plonecli.config import PlonecliConfig
 from plonecli.git import commit_template_changes, dirty_files, is_git_repo
@@ -98,6 +99,30 @@ def test_commit_returns_none_for_missing_dir(tmp_path):
         )
         is None
     )
+
+
+def test_commit_failure_is_reported_as_an_error(tmp_path, capsys):
+    """A failed auto-commit must be visible, not a bare stdout print.
+
+    The generated files are still on disk but uncommitted, so the user has to
+    notice; the warning goes to stderr through the styled error channel.
+    """
+    (tmp_path / "a.py").write_text("a\n")
+    config = PlonecliConfig()
+
+    def boom(*args, **kwargs):
+        raise FileNotFoundError("git")
+
+    with patch("plonecli.git.subprocess.run", side_effect=boom):
+        msg = commit_template_changes(
+            tmp_path, "backend_addon", config, is_subtemplate=False
+        )
+
+    assert msg is None
+    captured = capsys.readouterr()
+    assert "auto-commit" in captured.err
+    assert "uncommitted" in captured.err
+    assert captured.out == ""
 
 
 def test_is_git_repo_false_for_plain_dir(tmp_path):

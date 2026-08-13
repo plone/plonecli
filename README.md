@@ -10,13 +10,7 @@
 The Plone CLI is meant for developing Plone packages. It uses [copier](https://copier.readthedocs.io/) templates to scaffold Plone backend addons, Zope project setups, and add features like content types, behaviors, and REST API services.
 
 
-## Demo
 
-Scaffolding a backend add-on, adding a content type and behavior, and wiring up a REST API service:
-
-<video src="https://github.com/plone/plonecli/raw/master/docs/demo-backend.webm" controls muted width="100%"></video>
-
-> ▶ If the video does not play inline, [watch `docs/demo-backend.webm`](https://github.com/plone/plonecli/raw/master/docs/demo-backend.webm).
 
 ## Compatibility
 
@@ -132,20 +126,48 @@ This creates `~/.plonecli/config.toml` with your settings.
 plonecli --help
 
 Commands:
-  add      Add features to your existing Plone package
-  config   Configure plonecli global settings
-  create   Create a new Plone package
-  debug    Start the Plone instance in debug mode
-  serve    Start the Plone instance
-  setup    Run zope-setup inside an existing backend_addon
-  test     Run the tests in your package
-  update   Update copier-templates and check for plonecli updates
+  add         Add features to your existing Plone package
+  completion  Show or install shell completion
+  config      Configure plonecli global settings
+  create      Create a new Plone package
+  debug       Start the Plone instance in debug mode
+  serve       Start the Plone instance
+  setup       Run zope-setup inside an existing backend_addon
+  skill       Install/update the bundled Agent Skills for AI coding agents
+  test        Run the tests in your package
+  update      Update copier-templates and check for plonecli updates
 
 Options:
   -l, --list-templates   List available templates
-  -V, --versions         Show version information
+  -V, --versions         Show plonecli and copier-templates versions
   -h, --help             Show this message and exit.
 ```
+
+The list is context-aware: outside a Plone project only the global commands
+(`completion`, `config`, `create`, `skill`, `update`) are shown; inside one,
+`create` is replaced by the project commands.
+
+`create`, `add` and `setup` share the non-interactive options, so a package can
+be bootstrapped from a script or CI:
+
+```shell
+plonecli create addon collective.todo --defaults -d description="Todo lists"
+plonecli add content_type --defaults --data-file answers.yml
+plonecli setup --defaults -d plone_version=6.1.1
+```
+
+| Option              | What it does                                                       |
+|---------------------|--------------------------------------------------------------------|
+| `-d KEY=VALUE`      | Pre-fill a template answer (repeatable), skipping its prompt        |
+| `--data-file FILE`  | Load answers from a YAML/JSON file (`-d` wins on conflicts)        |
+| `--defaults`        | Use template defaults for unanswered questions instead of prompting |
+| `--allow-dirty`     | Run even if the git repository has uncommitted changes              |
+| `--no-git`          | Skip the auto-commit (`create`, `add`)                              |
+
+On a repository with uncommitted changes, an interactive run asks whether to
+continue, and a non-interactive one (`--defaults`, or no terminal) aborts so
+generated files never silently mix into your work in progress. Pass
+`--allow-dirty` when that mixing is intended.
 
 
 ### Creating a Plone Add-on
@@ -204,6 +226,20 @@ With verbose output:
 ```shell
 plonecli test --verbose
 ```
+
+Run a single test, or restrict the run to one package:
+
+```shell
+plonecli test -t test_behavior_installed
+plonecli test -s src/collective/todo
+```
+
+Both are passed to the project's `invoke test` task: `-t/--test` becomes pytest's
+`-k`, and `-s/--package` becomes the pytest target path. `plonecli test` exits
+with the test run's exit code, so it can gate a script or a CI job.
+
+Projects generated before the task gained these parameters need their `tasks.py`
+refreshed with `plonecli update && plonecli setup`.
 
 
 ### Debug Mode
@@ -313,6 +349,10 @@ local_path = "~/.copier-templates/plone-copier-templates"
 ```
 
 The default Plone version is fetched from `https://dist.plone.org/release/` and cached for 24 hours.
+
+Run `plonecli config` to (re)write the file interactively. If it ever becomes
+unreadable, plonecli says so and names the path — delete it and run
+`plonecli config` again to start fresh.
 
 ### Environment Variables
 

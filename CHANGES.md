@@ -3,7 +3,54 @@
 ## 7.0.0b14 (unreleased)
 
 
-- Nothing changed yet.
+- Save `~/.plonecli/config.toml` with a real TOML writer, so quotes, backslashes
+  and newlines in any value round-trip instead of producing a file plonecli can
+  no longer read. An unreadable config now fails with a message naming the path.
+  [MrTango]
+
+- Compare versions with PEP 440 in the update check, so users on a beta are told
+  about newer betas and a final release is never "updated" to an older one.
+  [MrTango]
+
+- Abort instead of proceeding when a template runs on a git repository with
+  uncommitted changes in non-interactive mode (`--defaults` or no terminal). New
+  `--allow-dirty` flag on `create`, `add` and `setup` opts back in.
+  [MrTango]
+
+- Give `setup` the `--data`, `--data-file` and `--defaults` options of
+  `create`/`add`, so a backend addon can be bootstrapped from a script or CI.
+  [MrTango]
+
+- Restore test filtering: `plonecli test -t NAME` runs a single test and
+  `-s TARGET` restricts the run to one package. Both pass through to the
+  generated `invoke test` task; projects with an older `tasks.py` get a message
+  naming the fix instead of an unknown-flag error from invoke.
+  [MrTango]
+
+- `plonecli test` now exits with the test run's exit code, so a failing test run
+  fails the command.
+  [MrTango]
+
+- Report a failed git auto-commit as a coloured error on stderr naming the
+  uncommitted directory, instead of a bare stdout print.
+  [MrTango]
+
+- Explain what is missing when `serve`, `test` or `debug` cannot run the invoke
+  tasks - no `uv` on PATH, no generated `tasks.py`, or a project that does not
+  declare `invoke` (dev group) or `pytest` (`test` extra) - instead of failing
+  inside a subprocess.
+  [MrTango]
+
+- Fix `plonecli completion <shell> --install`, which failed with
+  "No such option: --install" because the chained top-level group disables
+  interspersed arguments.
+  [MrTango]
+
+- Add CLI-level tests for `config`, `update`, `setup` and `completion`, unit
+  tests for the Plone-version fetching module, and update-banner tests. Document
+  the full command set, the non-interactive options and the test filters in the
+  README.
+  [MrTango]
 
 
 ## 7.0.0b13 (2026-07-24)
