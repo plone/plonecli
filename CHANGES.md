@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b14 (unreleased)
+## 7.0.0b14 (2026-08-13)
 
 
 - Save `~/.plonecli/config.toml` with a real TOML writer, so quotes, backslashes
