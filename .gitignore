@@ -81,3 +81,5 @@ pyvenv.cfg
 /bak_pyproject.toml
 /docs/venv
 /.claude/settings.local.json
+develop/
+plans/
