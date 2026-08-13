@@ -11,7 +11,6 @@ import tomllib
 from pathlib import Path
 
 import click
-from click_aliases import ClickAliasedGroup
 
 from plonecli.config import load_config, save_config
 from plonecli.exceptions import NoSuchValue, NotInPackageError
@@ -186,7 +185,7 @@ def get_templates(ctx, args, incomplete):
     return [k for k in templates if incomplete in k]
 
 
-class ClickFilteredAliasedGroup(ClickAliasedGroup):
+class ClickFilteredGroup(click.Group):
     def list_commands(self, ctx):
         existing_cmds = super().list_commands(ctx)
         project = find_project_root()
@@ -200,7 +199,7 @@ class ClickFilteredAliasedGroup(ClickAliasedGroup):
 
 
 @click.group(
-    cls=ClickFilteredAliasedGroup,
+    cls=ClickFilteredGroup,
     chain=True,
     context_settings={"help_option_names": ["-h", "--help"]},
     invoke_without_command=True,
@@ -351,6 +350,11 @@ def create(context, template, name, data, data_file, defaults, no_git, allow_dir
         if committed:
             echo(f"  Committed: {committed}", fg="green")
     context.obj["target_dir"] = name
+    context.obj["chain_defaults"] = defaults
+    context.obj["chain_allow_dirty"] = allow_dirty
+    # Chained commands share the group context created before generation. Refresh
+    # it now so ``create ... setup`` and similar cross-context chains work.
+    context.obj["project"] = find_project_root(Path(name))
 
 
 @cli.command(cls=InterspersedCommand)
@@ -400,11 +404,15 @@ def add(context, template, data, data_file, defaults, no_git, allow_dirty):
         echo(f"  Committed: {committed}", fg="green")
 
 
-@cli.command()
+@cli.command(cls=InterspersedCommand)
 @template_run_options
 @click.pass_context
 def setup(context, data, data_file, defaults, allow_dirty):
     """Run zope-setup inside an existing backend_addon"""
+    # Click's chained parser may bind shared trailing flags to the preceding
+    # create command. Carry those execution flags across the chain.
+    defaults = defaults or context.obj.get("chain_defaults", False)
+    allow_dirty = allow_dirty or context.obj.get("chain_allow_dirty", False)
     project = context.obj.get("project")
     if project is None:
         raise NotInPackageError(context.command.name)

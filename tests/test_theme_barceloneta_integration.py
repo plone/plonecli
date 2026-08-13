@@ -87,7 +87,14 @@ def test_theme_barceloneta_generates_and_tests_pass(tmp_path: Path) -> None:
     )
 
     # The template ships a theme test keyed on theme_id.
-    theme_test = project_dir / "tests" / "test_theme_my_test_theme.py"
+    theme_test = (
+        project_dir
+        / "src"
+        / "collective"
+        / "mythemetest"
+        / "tests"
+        / "test_theme_my_test_theme.py"
+    )
     assert theme_test.exists(), f"theme test not generated: {theme_test}"
 
     # 3. Build the project with uv sync + run its pytest suite. This is the
@@ -103,7 +110,7 @@ def test_theme_barceloneta_generates_and_tests_pass(tmp_path: Path) -> None:
     )
 
     result = subprocess.run(
-        ["uv", "run", "--extra", "test", "pytest", "tests/", "-x", "-q"],
+        ["uv", "run", "--extra", "test", "pytest", "-x", "-q"],
         cwd=project_dir,
         env=env,
         capture_output=True,

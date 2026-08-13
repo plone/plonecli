@@ -153,18 +153,6 @@ wheels = [
 ]
 
 [[package]]
-name = "click-aliases"
-version = "1.0.5"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "click" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/40/d8/adbaeadc13c9686b9bda8b4c50e5a3983f504faae2ffbea5165d5beb1cdb/click_aliases-1.0.5.tar.gz", hash = "sha256:e37d4cabbaad68e1c48ec0f063a59dfa15f0e7450ec901bd1ce4f4b954bc881d", size = 3105, upload-time = "2024-10-17T15:44:19.056Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/3d/1a/d5e29a6f896293e32ab3e63201df5d396599e57a726575adaafbcd9d70a6/click_aliases-1.0.5-py3-none-any.whl", hash = "sha256:cbb83a348acc00809fe18b6da13a7f6307bc71b3c5f69cc730e012dfb4bbfdc3", size = 3524, upload-time = "2024-10-17T15:44:17.389Z" },
-]
-
-[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -579,11 +567,10 @@ wheels = [
 
 [[package]]
 name = "plonecli"
-version = "7.0.0b14.dev0"
+version = "7.0.0b15.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
-    { name = "click-aliases" },
     { name = "copier" },
     { name = "copier-templates-extensions" },
     { name = "packaging" },
@@ -609,7 +596,6 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = ">=8.0" },
-    { name = "click-aliases" },
     { name = "copier", specifier = ">=9.0.0" },
     { name = "copier-templates-extensions" },
     { name = "myst-parser", marker = "extra == 'docs'" },

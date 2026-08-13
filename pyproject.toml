@@ -26,7 +26,6 @@ classifiers = [
 
 dependencies = [
     "Click>=8.0",
-    "click-aliases",
     "copier>=9.0.0",
     "copier-templates-extensions",
     "packaging",
