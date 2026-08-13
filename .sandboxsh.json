@@ -1,0 +1,21 @@
+{
+  "name": "plonecli",
+  "workdir": "/workspaces/plonecli",
+  "dirs": [
+    "."
+  ],
+  "ports": [],
+  "tailscale": {
+    "enabled": true
+  },
+  "firewall": {
+    "enabled": true,
+    "allow": []
+  },
+  "resources": {
+    "cpus": 4,
+    "memory": "8GiB",
+    "disk": "40GiB"
+  },
+  "agent_credentials": true
+}
