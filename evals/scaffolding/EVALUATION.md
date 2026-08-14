@@ -1,7 +1,9 @@
 # Scaffolding evaluation findings
 
-> Historical baseline from before the fixes. The current full report passes
-> 245/245 cases; see the ignored `results/report.md` generated on 2026-08-13.
+> Historical baseline from before the fixes. A full verification run passed
+> 245/245 cases with no warnings on 2026-08-13. The ignored
+> `results/report.md` is mutable and may instead contain the latest quick or
+> CI-validation run.
 
 ## Scope
 
@@ -61,7 +63,24 @@ Update the assertion and pytest target to the generated `src/<package>/tests/` l
 - Feature generation inside these nested, `--no-git` workspaces reports the outer plonecli repository as dirty. Git cleanliness checks should be scoped to the detected generated project rather than walking into an unrelated parent repository.
 - Keep the generated TOML/XML/Python validators as CI checks. They found failures that successful Copier exit codes did not detect.
 
-## Test receipts
+## Resolution
+
+All findings above have been addressed:
+
+- free-text TOML values use serialization filters;
+- standalone Zope projects are detected correctly;
+- chained `create` → `setup` refreshes project context;
+- theme variants reject conflicting overlays;
+- the Barceloneta integration test uses the generated package test path;
+- context hooks use the current in-place API;
+- the deprecated command-alias dependency was removed;
+- Git checks are scoped to the generated project;
+- subtemplate validation tasks use Copier's `_copier_operation` value and no
+  longer report files generated earlier in the same copy as pre-existing
+  changes;
+- generated TOML/XML/Python validation runs in CI.
+
+## Baseline test receipts
 
 - Root unit suite: **209 passed, 16 skipped**.
 - Copier-template unit suite: **386 passed, 2 integration tests deselected**.

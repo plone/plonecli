@@ -3,7 +3,12 @@
 ## 7.0.0b15 (unreleased)
 
 
-- Nothing changed yet.
+- Allow the plonecli skill to start the development server when the user
+  explicitly requests it.
+  [MrTango]
+
+- Harden scaffolding evaluation and remove false template Git warnings.
+  [MrTango]
 
 
 ## 7.0.0b14 (2026-08-13)

@@ -948,20 +948,32 @@ def build_cases(quick: bool) -> tuple[list[Case], dict[str, int]]:
     return cases, planned
 
 
+def _subprocess_text(value: str | bytes | None) -> str:
+    """Normalize subprocess output, including TimeoutExpired byte payloads."""
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode(errors="replace")
+    return value
+
+
 def run_command(
     step: Step, env: dict[str, str], timeout_seconds: int
 ) -> dict[str, Any]:
-    command = (
-        ["uv", *step.args[1:]]
-        if step.args and step.args[0] == "__uv__"
-        else [*CLI, *step.args]
-    )
+    is_direct_uv = bool(step.args and step.args[0] == "__uv__")
+    command = ["uv", *step.args[1:]] if is_direct_uv else [*CLI, *step.args]
+    command_env = env
+    if is_direct_uv:
+        # The template checkout has its own uv project. Do not leak the root
+        # project's active environment into that nested invocation.
+        command_env = dict(env)
+        command_env.pop("VIRTUAL_ENV", None)
     started = time.monotonic()
     try:
         completed = subprocess.run(
             command,
             cwd=step.cwd,
-            env=env,
+            env=command_env,
             text=True,
             capture_output=True,
             stdin=subprocess.DEVNULL,
@@ -973,8 +985,10 @@ def run_command(
         timed_out = False
     except subprocess.TimeoutExpired as exc:
         exit_code = 124
-        stdout = exc.stdout or ""
-        stderr = (exc.stderr or "") + f"\nTimed out after {timeout_seconds}s\n"
+        stdout = _subprocess_text(exc.stdout)
+        stderr = (
+            _subprocess_text(exc.stderr) + f"\nTimed out after {timeout_seconds}s\n"
+        )
         timed_out = True
     return {
         "command": command,
@@ -985,6 +999,41 @@ def run_command(
         "stdout": stdout,
         "stderr": stderr,
     }
+
+
+def _checkpoint_project(project: Path, step_number: int) -> None:
+    """Commit an intermediate eval step so the next command starts clean."""
+    status = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=project,
+        check=True,
+        capture_output=True,
+        text=True,
+        stdin=subprocess.DEVNULL,
+    )
+    if not status.stdout.strip():
+        return
+    subprocess.run(
+        ["git", "add", "-A"],
+        cwd=project,
+        check=True,
+        stdin=subprocess.DEVNULL,
+    )
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.name=Evaluation Runner",
+            "-c",
+            "user.email=eval@example.invalid",
+            "commit",
+            "-qm",
+            f"Evaluation step {step_number}",
+        ],
+        cwd=project,
+        check=True,
+        stdin=subprocess.DEVNULL,
+    )
 
 
 def execute_case(
@@ -1048,7 +1097,7 @@ def execute_case(
     commands = []
     errors = []
     observations: list[str] = []
-    for step in case.steps:
+    for step_number, step in enumerate(case.steps, 1):
         step.cwd.mkdir(parents=True, exist_ok=True)
         result = run_command(step, env, timeout_seconds)
         commands.append(result)
@@ -1062,6 +1111,8 @@ def execute_case(
         if result["exit_code"] != 0:
             errors.append(f"command {len(commands)} exited {result['exit_code']}")
             break
+        if case.project and step_number < len(case.steps):
+            _checkpoint_project(case.project, step_number)
 
     validation: dict[str, list[str]] = {}
     if case.project and case.project.exists():

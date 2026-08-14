@@ -275,8 +275,8 @@ CASES = [
             ),
             file_has(
                 "collective.demo/src/collective/demo/profiles/uninstall/catalog.xml",
-                r'is_featured(?s).*remove="True"|remove="True"(?s).*is_featured',
-                "uninstall catalog.xml removes the index (remove=\"True\")",
+                r'(?s)<index(?=[^>]*\bname=["\']is_featured["\'])(?=[^>]*\bremove=["\']True["\'])[^>]*>',
+                'uninstall catalog.xml removes the index (remove="True")',
             ),
         ],
         notes=(
@@ -384,12 +384,21 @@ def prepare_sandbox(case, mode, root, skill_src):
     (sandbox / ".eval").mkdir()
     # Own git repo: pins the nested agent's project root to the sandbox
     # (no searching upward/sideways) and lets the shim's auto-commit work.
-    subprocess.run(["git", "init", "-q"], cwd=sandbox, check=False)
-    subprocess.run(["git", "add", "-A"], cwd=sandbox, check=False)
+    subprocess.run(["git", "init", "-q"], cwd=sandbox, check=True)
+    subprocess.run(["git", "add", "-A"], cwd=sandbox, check=True)
     subprocess.run(
-        ["git", "commit", "-qm", "fixture"],
+        [
+            "git",
+            "-c",
+            "user.name=Evaluation Runner",
+            "-c",
+            "user.email=eval@example.invalid",
+            "commit",
+            "-qm",
+            "fixture",
+        ],
         cwd=sandbox,
-        check=False,
+        check=True,
         capture_output=True,
     )
     return sandbox
@@ -440,8 +449,10 @@ def run_case(case, mode, root, model, skill_src, config_dir):
         )
         result.error = f"timeout after {RUN_TIMEOUT}s"
 
-    (sandbox / ".eval" / "transcript.jsonl").write_text(result.transcript)
-    result.log = log_file.read_text()
+    (sandbox / ".eval" / "transcript.jsonl").write_text(
+        result.transcript, encoding="utf-8"
+    )
+    result.log = log_file.read_text(encoding="utf-8")
     result.skills_fired = tuple(
         sorted(
             set(
@@ -471,6 +482,13 @@ def grade(case, result):
             continue
         rows.append((check.desc, ok, ""))
     return rows
+
+
+def run_passed(mode, result, rows):
+    """Require a clean process exit, passing checks, and an isolated baseline."""
+    checks_passed = all(ok for _, ok, _ in rows)
+    baseline_clean = mode != "noskill" or not result.skills_fired
+    return not result.error and checks_passed and baseline_clean
 
 
 def main():
@@ -518,6 +536,9 @@ def main():
         if args.runs_dir
         else Path(tempfile.gettempdir()) / "plonecli-skill-evals" / stamp
     )
+    root = root.resolve()
+    if root == REPO.resolve() or REPO.resolve() in root.parents:
+        ap.error("--runs-dir must be outside the plonecli repository")
     root.mkdir(parents=True, exist_ok=True)
 
     config_dir = make_eval_config(root)
@@ -538,7 +559,7 @@ def main():
                 case, mode, root, args.model or None, skill_src, config_dir
             )
             rows = grade(case, result)
-            passed = all(ok for _, ok, _ in rows)
+            passed = run_passed(mode, result, rows)
             for desc, ok, extra in rows:
                 mark = "PASS" if ok else "FAIL"
                 print(f"  [{mark}] {desc}{'  ' + extra if extra else ''}")
@@ -560,7 +581,9 @@ def main():
                 }
             )
 
-    (root / "results.json").write_text(json.dumps(summary, indent=2))
+    (root / "results.json").write_text(
+        json.dumps(summary, indent=2) + "\n", encoding="utf-8"
+    )
     print(f"\nResults: {root / 'results.json'}")
     n_skill = [s for s in summary if s["mode"] == "skill"]
     if n_skill:
@@ -571,7 +594,9 @@ def main():
         print(
             f"baseline  : {sum(s['passed'] for s in n_base)}/{len(n_base)} cases passed"
         )
-    return 0 if all(s["passed"] for s in n_skill) else 1
+    baseline_clean = all(not s["skills_fired"] for s in n_base)
+    evaluated = n_skill or n_base
+    return 0 if all(s["passed"] for s in evaluated) and baseline_clean else 1
 
 
 if __name__ == "__main__":

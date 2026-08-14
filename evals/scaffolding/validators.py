@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import os
 import tomllib
 import xml.etree.ElementTree as ET
 from collections import Counter
+from collections.abc import Iterable
 from pathlib import Path
 
 IGNORED_PARTS = {".git", ".venv", "node_modules", "__pycache__"}
@@ -12,14 +14,16 @@ XML_SUFFIXES = {".xml", ".zcml"}
 
 
 def _files(root: Path):
-    for path in root.rglob("*"):
-        if path.is_file() and not (set(path.parts) & IGNORED_PARTS):
-            yield path
+    """Yield project files while pruning generated dependency directories."""
+    for directory, dirnames, filenames in os.walk(root):
+        dirnames[:] = [name for name in dirnames if name not in IGNORED_PARTS]
+        base = Path(directory)
+        yield from (base / name for name in filenames)
 
 
-def validate_toml(root: Path) -> list[str]:
+def validate_toml(root: Path, files: Iterable[Path] | None = None) -> list[str]:
     errors: list[str] = []
-    for path in _files(root):
+    for path in files if files is not None else _files(root):
         if path.suffix != ".toml":
             continue
         try:
@@ -30,9 +34,9 @@ def validate_toml(root: Path) -> list[str]:
     return errors
 
 
-def validate_xml(root: Path) -> list[str]:
+def validate_xml(root: Path, files: Iterable[Path] | None = None) -> list[str]:
     errors: list[str] = []
-    for path in _files(root):
+    for path in files if files is not None else _files(root):
         if path.suffix not in XML_SUFFIXES:
             continue
         try:
@@ -42,9 +46,9 @@ def validate_xml(root: Path) -> list[str]:
     return errors
 
 
-def validate_python(root: Path) -> list[str]:
+def validate_python(root: Path, files: Iterable[Path] | None = None) -> list[str]:
     errors: list[str] = []
-    for path in _files(root):
+    for path in files if files is not None else _files(root):
         if path.suffix != ".py":
             continue
         try:
@@ -55,7 +59,22 @@ def validate_python(root: Path) -> list[str]:
     return errors
 
 
-def detect_duplicate_xml_registrations(root: Path) -> list[str]:
+def _element_identity(element: ET.Element, cache: dict[int, tuple]) -> tuple:
+    """Build a hashable subtree identity once, excluding formatting tails."""
+    key = id(element)
+    if key not in cache:
+        cache[key] = (
+            element.tag,
+            tuple(sorted(element.attrib.items())),
+            element.text,
+            tuple(_element_identity(child, cache) for child in element),
+        )
+    return cache[key]
+
+
+def detect_duplicate_xml_registrations(
+    root: Path, files: Iterable[Path] | None = None
+) -> list[str]:
     """Find exact repeated direct-child registrations in generated XML.
 
     Exact element identity is deliberately conservative: it catches hooks that
@@ -63,17 +82,24 @@ def detect_duplicate_xml_registrations(root: Path) -> list[str]:
     registrations as duplicates.
     """
     errors: list[str] = []
-    for path in _files(root):
+    for path in files if files is not None else _files(root):
         if path.suffix not in XML_SUFFIXES:
             continue
         try:
             tree = ET.parse(path)
         except (OSError, ET.ParseError):
             continue
+        cache: dict[int, tuple] = {}
         for parent in tree.iter():
-            serialized = [ET.tostring(child, encoding="unicode") for child in parent]
-            for element, count in Counter(serialized).items():
+            children_by_identity = {
+                _element_identity(child, cache): child for child in parent
+            }
+            counts = Counter(_element_identity(child, cache) for child in parent)
+            for identity, count in counts.items():
                 if count > 1:
+                    element = ET.tostring(
+                        children_by_identity[identity], encoding="unicode"
+                    )
                     preview = " ".join(element.split())[:160]
                     errors.append(
                         f"duplicate XML registration ({count}x) "
@@ -84,9 +110,10 @@ def detect_duplicate_xml_registrations(root: Path) -> list[str]:
 
 def validate_project(root: Path) -> dict[str, list[str]]:
     """Run all deterministic, install-free generated-project checks."""
+    files = tuple(_files(root))
     return {
-        "toml": validate_toml(root),
-        "xml": validate_xml(root),
-        "python": validate_python(root),
-        "duplicate_xml": detect_duplicate_xml_registrations(root),
+        "toml": validate_toml(root, files),
+        "xml": validate_xml(root, files),
+        "python": validate_python(root, files),
+        "duplicate_xml": detect_duplicate_xml_registrations(root, files),
     }

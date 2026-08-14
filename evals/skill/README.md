@@ -41,11 +41,11 @@ python evals/skill/run_evals.py --mode both --cases restapi-implicit,upgrade-ste
 python evals/skill/run_evals.py --model haiku          # cheaper smoke run
 ```
 
-Requires the `claude` CLI logged in. Runs bill real model usage — a full
-`--mode both` sweep is ~16 agent runs. Sandboxes and transcripts land in
+Requires the `claude` CLI logged in. Runs bill real model usage. Sandboxes and transcripts land in
 `<tmpdir>/plonecli-skill-evals/<timestamp>/` (outside the repo on purpose:
 a sandbox inside this repo lets the baseline agent *find* the skill by
-searching the project); `results.json` there summarizes. Each run prints
+searching the project); `results.json` there summarizes. A full `--mode both`
+sweep is 24 agent runs. Each run prints
 `skills fired: [...]` — in `noskill` mode it must be `none`, anything else
 means a skill leaked into the baseline.
 
