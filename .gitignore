@@ -83,3 +83,4 @@ pyvenv.cfg
 /.claude/settings.local.json
 develop/
 plans/
+.pi/subagents
