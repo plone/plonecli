@@ -78,8 +78,8 @@ name = "some-random-project"
     assert ctx is None
 
 
-def test_backend_addon_takes_priority(tmp_path):
-    """If both sections exist, backend_addon is detected first."""
+def test_substantive_backend_addon_takes_priority(tmp_path):
+    """A mixed add-on project keeps backend feature templates available."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text("""\
 [project]
@@ -94,6 +94,27 @@ plone_version = "6.1"
     ctx = find_project_root(tmp_path)
     assert ctx is not None
     assert ctx.project_type == "backend_addon"
+
+
+def test_project_settings_beat_marker_only_backend_settings(tmp_path):
+    """Standalone Zope projects ignore a stale zope_setup marker table."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text("""\
+[project]
+name = "zope-project"
+
+[tool.plone.backend_addon.settings]
+zope_setup = true
+
+[tool.plone.project.settings]
+plone_version = "6.1.1"
+""")
+
+    ctx = find_project_root(tmp_path)
+
+    assert ctx is not None
+    assert ctx.project_type == "zope-setup"
+    assert ctx.settings["project_name"] == "zope-project"
 
 
 def _make_bobtemplate_cfg(path, template="plone_addon"):

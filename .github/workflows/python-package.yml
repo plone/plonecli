@@ -23,7 +23,7 @@ jobs:
               uses: actions/checkout@v2
               with:
                   repository: plone/copier-templates
-                  path: copier-templates
+                  path: develop/plone/src/copier-templates
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v2
               with:
@@ -44,6 +44,31 @@ jobs:
                   flake8 . --exclude=copier-templates --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
             - name: Test with pytest
               env:
-                  PLONECLI_TEMPLATES_DIR: ${{ github.workspace }}/copier-templates
+                  PLONECLI_TEMPLATES_DIR: ${{ github.workspace }}/develop/plone/src/copier-templates
               run: |
                   pytest
+
+    scaffolding:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        steps:
+            - uses: actions/checkout@v4
+            - name: Checkout copier-templates
+              uses: actions/checkout@v4
+              with:
+                  repository: plone/copier-templates
+                  path: develop/plone/src/copier-templates
+            - name: Set up uv
+              uses: astral-sh/setup-uv@v6
+              with:
+                  python-version: "3.12"
+            - name: Install dependencies
+              run: uv sync --extra test
+            - name: Validate generated scaffolding
+              run: uv run python evals/scaffolding/run_evals.py --ci-validation
+            - name: Upload scaffolding report
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: scaffolding-evaluation
+                  path: evals/scaffolding/results/

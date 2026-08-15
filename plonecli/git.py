@@ -17,17 +17,18 @@ from plonecli.output import error
 
 
 def is_git_repo(path: Path) -> bool:
-    """Return True if ``path`` is inside a git working tree."""
+    """Return True if ``path`` is the root of a git working tree."""
     try:
-        subprocess.run(
-            ["git", "rev-parse", "--git-dir"],
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
             cwd=str(path),
             check=True,
             capture_output=True,
+            text=True,
         )
-        return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
+    return Path(result.stdout.strip()).resolve() == path.resolve()
 
 
 def dirty_files(path: str | Path) -> tuple[list[str], list[str]]:

@@ -113,9 +113,12 @@ def find_project_root(start_dir: Path | None = None) -> ProjectContext | None:
     """Walk up directories looking for a Plone project.
 
     Detection order (first match wins):
-    1. pyproject.toml with [tool.plone.backend_addon.settings] -> backend_addon
-    2. pyproject.toml with [tool.plone.project.settings] -> zope-setup
+    1. substantive backend-add-on settings -> backend_addon
+    2. project settings -> zope-setup
     3. bobtemplate.cfg with [main] template -> mapped project type (legacy)
+
+    A zope-setup project may contain a legacy marker-only backend settings
+    table. It is treated as zope-setup unless package identity is present.
 
     Returns the first match found walking upward, or None.
     """
@@ -124,9 +127,13 @@ def find_project_root(start_dir: Path | None = None) -> ProjectContext | None:
     while True:
         pyproject_path = current / "pyproject.toml"
         if pyproject_path.exists():
-            # Check for backend_addon first
             addon_settings = _read_backend_addon_settings(pyproject_path)
-            if addon_settings:
+            project_settings = _read_project_settings(pyproject_path)
+            is_addon = addon_settings and (
+                addon_settings.get("package_name")
+                or addon_settings.get("package_folder")
+            )
+            if is_addon:
                 return ProjectContext(
                     root_folder=current,
                     project_type="backend_addon",
@@ -135,13 +142,20 @@ def find_project_root(start_dir: Path | None = None) -> ProjectContext | None:
                     package_folder=addon_settings.get("package_folder"),
                 )
 
-            # Check for zope-setup project
-            project_settings = _read_project_settings(pyproject_path)
             if project_settings:
                 return ProjectContext(
                     root_folder=current,
                     project_type="zope-setup",
                     settings=project_settings,
+                )
+
+            if addon_settings:
+                return ProjectContext(
+                    root_folder=current,
+                    project_type="backend_addon",
+                    settings=addon_settings,
+                    package_name=addon_settings.get("package_name"),
+                    package_folder=addon_settings.get("package_folder"),
                 )
 
         # Check for legacy bobtemplate.cfg

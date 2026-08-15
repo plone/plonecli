@@ -129,6 +129,20 @@ def test_is_git_repo_false_for_plain_dir(tmp_path):
     assert is_git_repo(tmp_path) is False
 
 
+def test_parent_repository_is_not_used_for_generated_project(tmp_path):
+    """Git checks stay scoped to the generated project root."""
+    config = PlonecliConfig()
+    (tmp_path / "outer.py").write_text("outer\n")
+    commit_template_changes(tmp_path, "outer", config, is_subtemplate=False)
+    (tmp_path / "outer.py").write_text("dirty outer\n")
+    project = tmp_path / "generated"
+    project.mkdir()
+    (project / "pyproject.toml").write_text("[project]\nname = \"generated\"\n")
+
+    assert is_git_repo(project) is False
+    assert dirty_files(project) == ([], [])
+
+
 def test_dirty_files_clean_or_non_repo(tmp_path):
     # Not a repo at all.
     assert dirty_files(tmp_path) == ([], [])

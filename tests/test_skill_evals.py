@@ -70,8 +70,5 @@ def test_skill_case(case, eval_env):
         eval_env["config"],
     )
     failed = [desc for desc, ok, extra in run_evals.grade(case, result) if not ok]
-    assert not failed, (
-        f"failed checks: {failed}"
-        f"{'; run error: ' + result.error if result.error else ''}"
-        f"; sandbox: {result.sandbox}"
-    )
+    assert not result.error, f"run error: {result.error}; sandbox: {result.sandbox}"
+    assert not failed, f"failed checks: {failed}; sandbox: {result.sandbox}"
