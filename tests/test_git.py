@@ -4,7 +4,12 @@ import subprocess
 from unittest.mock import patch
 
 from plonecli.config import PlonecliConfig
-from plonecli.git import commit_template_changes, dirty_files, is_git_repo
+from plonecli.git import (
+    commit_paths,
+    commit_template_changes,
+    dirty_files,
+    is_git_repo,
+)
 
 
 def _log(path):
@@ -137,7 +142,7 @@ def test_parent_repository_is_not_used_for_generated_project(tmp_path):
     (tmp_path / "outer.py").write_text("dirty outer\n")
     project = tmp_path / "generated"
     project.mkdir()
-    (project / "pyproject.toml").write_text("[project]\nname = \"generated\"\n")
+    (project / "pyproject.toml").write_text('[project]\nname = "generated"\n')
 
     assert is_git_repo(project) is False
     assert dirty_files(project) == ([], [])
@@ -165,3 +170,38 @@ def test_dirty_files_reports_modified_and_untracked(tmp_path):
     modified, untracked = dirty_files(tmp_path)
     assert "a.py" in modified
     assert "new.py" in untracked
+
+
+def test_commit_paths_commits_only_the_given_paths(tmp_path):
+    config = PlonecliConfig()
+    (tmp_path / "a.py").write_text("a\n")
+    commit_template_changes(tmp_path, "backend_addon", config, is_subtemplate=False)
+
+    (tmp_path / "skills").mkdir()
+    (tmp_path / "skills" / "SKILL.md").write_text("skill\n")
+    (tmp_path / "unrelated.py").write_text("mine\n")
+
+    msg = commit_paths(tmp_path, "Add plonecli skills", config, ["skills"])
+
+    assert msg == "Add plonecli skills"
+    assert _log(tmp_path)[0] == "Add plonecli skills"
+    # The user's own work is left alone, not swept into the commit.
+    assert dirty_files(tmp_path) == ([], ["unrelated.py"])
+
+
+def test_commit_paths_noop_without_repo_or_changes(tmp_path):
+    config = PlonecliConfig()
+    (tmp_path / "skills").mkdir()
+
+    # Never initialises a repository of its own.
+    assert commit_paths(tmp_path, "Add plonecli skills", config, ["skills"]) is None
+    assert is_git_repo(tmp_path) is False
+
+    (tmp_path / "a.py").write_text("a\n")
+    commit_template_changes(tmp_path, "backend_addon", config, is_subtemplate=False)
+
+    # Nothing written under the paths, and nothing changed afterwards.
+    assert commit_paths(tmp_path, "Add plonecli skills", config, ["missing"]) is None
+    (tmp_path / "skills" / "SKILL.md").write_text("skill\n")
+    assert commit_paths(tmp_path, "Add plonecli skills", config, ["skills"]) is not None
+    assert commit_paths(tmp_path, "Add plonecli skills", config, ["skills"]) is None

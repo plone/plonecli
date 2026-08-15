@@ -17,7 +17,6 @@ marked ``integration`` and deselected by default. Run explicitly with::
 
 from __future__ import annotations
 
-import os
 import shutil
 from pathlib import Path
 from unittest.mock import patch
@@ -27,21 +26,7 @@ from click.testing import CliRunner
 
 from plonecli.cli import cli
 from plonecli.config import PlonecliConfig
-
-
-def _templates_dir() -> Path:
-    """Locate a usable copier-templates clone or skip."""
-    env_dir = os.environ.get("PLONECLI_TEMPLATES_DIR")
-    candidates = [env_dir] if env_dir else []
-    candidates += [
-        PlonecliConfig().templates_dir,
-        "/home/node/develop/plone/src/copier-templates",
-        "/home/node/.copier-templates/plone-copier-templates",
-    ]
-    for c in candidates:
-        if c and (Path(c) / "addon" / "copier.yml").exists():
-            return Path(c)
-    pytest.skip("No copier-templates clone with the addon composite available")
+from tests.helpers import templates_checkout
 
 
 @pytest.mark.integration
@@ -49,7 +34,7 @@ def test_create_addon_generates_initial_instance(tmp_path: Path) -> None:
     if shutil.which("uv") is None:
         pytest.skip("uv is required for the integration test")
 
-    templates_dir = _templates_dir()
+    templates_dir = templates_checkout("addon/copier.yml")
     config = PlonecliConfig(templates_dir=str(templates_dir))
     project_dir = tmp_path / "my.tool"
 

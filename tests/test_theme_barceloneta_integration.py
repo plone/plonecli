@@ -24,20 +24,7 @@ import pytest
 from plonecli.config import PlonecliConfig
 from plonecli.project import find_project_root
 from plonecli.templates import run_add, run_create
-
-DEV_TEMPLATES_DIR = Path("/home/node/develop/plone/src/copier-templates")
-FALLBACK_TEMPLATES_DIR = Path("/home/node/.copier-templates/plone-copier-templates")
-
-
-def _templates_dir() -> Path:
-    env_dir = os.environ.get("PLONECLI_TEMPLATES_DIR")
-    if env_dir and Path(env_dir).exists():
-        return Path(env_dir)
-    if DEV_TEMPLATES_DIR.exists():
-        return DEV_TEMPLATES_DIR
-    if FALLBACK_TEMPLATES_DIR.exists():
-        return FALLBACK_TEMPLATES_DIR
-    pytest.skip("No copier-templates checkout available")
+from tests.helpers import templates_checkout
 
 
 @pytest.mark.integration
@@ -45,7 +32,7 @@ def test_theme_barceloneta_generates_and_tests_pass(tmp_path: Path) -> None:
     if shutil.which("uv") is None:
         pytest.skip("uv is required for the integration test")
 
-    templates_dir = _templates_dir()
+    templates_dir = templates_checkout()
     config = PlonecliConfig(templates_dir=str(templates_dir))
 
     package_name = "collective.mythemetest"

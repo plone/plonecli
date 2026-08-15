@@ -155,3 +155,51 @@ def test_setup_allow_dirty_proceeds(
 
     assert result.exit_code == 0, result.output
     mock_run_create.assert_called_once()
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+def test_setup_commits_by_default(
+    mock_run_create, mock_config, mock_project, runner, tmp_path
+):
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path), auto_commit=True)
+    mock_project.return_value = project_at(tmp_path)
+    mock_run_create.return_value = "Add zope-setup template"
+
+    result = runner.invoke(cli, ["setup"])
+
+    assert result.exit_code == 0, result.output
+    assert mock_run_create.call_args.kwargs["git_commit"] is True
+    assert "Committed: Add zope-setup template" in result.output
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+def test_setup_no_git_skips_the_commit(
+    mock_run_create, mock_config, mock_project, runner, tmp_path
+):
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path), auto_commit=True)
+    mock_project.return_value = project_at(tmp_path)
+
+    result = runner.invoke(cli, ["setup", "--no-git"])
+
+    assert result.exit_code == 0, result.output
+    assert mock_run_create.call_args.kwargs["git_commit"] is False
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+def test_setup_respects_auto_commit_false(
+    mock_run_create, mock_config, mock_project, runner, tmp_path
+):
+    """``auto_commit = false`` must silence setup like it does create and add."""
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path), auto_commit=False)
+    mock_project.return_value = project_at(tmp_path)
+
+    result = runner.invoke(cli, ["setup"])
+
+    assert result.exit_code == 0, result.output
+    assert mock_run_create.call_args.kwargs["git_commit"] is False

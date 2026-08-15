@@ -204,6 +204,38 @@ def test_create_then_setup_chain_refreshes_project(
     assert mock_run_create.call_args_list[1].args[1] == str(target)
 
 
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_create_then_setup_chain_carries_no_git(
+    mock_ensure,
+    mock_run_create,
+    mock_config,
+    mock_project,
+    runner,
+    tmp_path,
+):
+    """Click binds a trailing ``--no-git`` to create; setup must honour it too."""
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    target = tmp_path / "my.addon"
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path), auto_commit=True)
+    mock_project.side_effect = lambda start=None: (
+        project_at(target) if start is not None else None
+    )
+
+    result = runner.invoke(
+        cli,
+        ["create", "backend_addon", str(target), "--defaults", "--no-git", "setup"],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert [c.kwargs["git_commit"] for c in mock_run_create.call_args_list] == [
+        False,
+        False,
+    ]
+
+
 @patch("plonecli.cli.find_project_root", return_value=None)
 @patch("plonecli.cli.load_config")
 def test_create_unknown_template(mock_config, mock_project, runner, tmp_path):

@@ -14,7 +14,7 @@ import click
 
 from plonecli.config import load_config, save_config
 from plonecli.exceptions import NoSuchValue, NotInPackageError
-from plonecli.git import dirty_files
+from plonecli.git import commit_paths, dirty_files
 from plonecli.output import echo
 from plonecli.project import find_project_root
 from plonecli.registry import TemplateRegistry
@@ -352,6 +352,7 @@ def create(context, template, name, data, data_file, defaults, no_git, allow_dir
     context.obj["target_dir"] = name
     context.obj["chain_defaults"] = defaults
     context.obj["chain_allow_dirty"] = allow_dirty
+    context.obj["chain_no_git"] = no_git
     # Chained commands share the group context created before generation. Refresh
     # it now so ``create ... setup`` and similar cross-context chains work.
     context.obj["project"] = find_project_root(Path(name))
@@ -406,13 +407,20 @@ def add(context, template, data, data_file, defaults, no_git, allow_dirty):
 
 @cli.command(cls=InterspersedCommand)
 @template_run_options
+@click.option(
+    "--no-git",
+    "no_git",
+    is_flag=True,
+    help="Do not auto-commit the changes made by zope-setup.",
+)
 @click.pass_context
-def setup(context, data, data_file, defaults, allow_dirty):
+def setup(context, data, data_file, defaults, no_git, allow_dirty):
     """Run zope-setup inside an existing backend_addon"""
     # Click's chained parser may bind shared trailing flags to the preceding
     # create command. Carry those execution flags across the chain.
     defaults = defaults or context.obj.get("chain_defaults", False)
     allow_dirty = allow_dirty or context.obj.get("chain_allow_dirty", False)
+    no_git = no_git or context.obj.get("chain_no_git", False)
     project = context.obj.get("project")
     if project is None:
         raise NotInPackageError(context.command.name)
@@ -428,14 +436,17 @@ def setup(context, data, data_file, defaults, allow_dirty):
     config = context.obj["config"]
     answers = _collect_data(data_file, data)
     echo("\nRunning zope-setup...", fg="green", reverse=True)
-    run_create(
+    committed = run_create(
         "zope-setup",
         str(project.root_folder),
         config,
         data=answers,
         defaults=defaults,
+        git_commit=config.auto_commit and not no_git,
         overwrite=True,
     )
+    if committed:
+        echo(f"  Committed: {committed}", fg="green")
 
 
 TASKS_FILE = "tasks.py"
@@ -697,8 +708,14 @@ def update(context):
     help="Copy files for the .claude alias instead of symlinking.",
 )
 @click.option("--force", is_flag=True, help="Overwrite an existing installation.")
+@click.option(
+    "--no-git",
+    "no_git",
+    is_flag=True,
+    help="Do not auto-commit the skills installed with --scope project.",
+)
 @click.pass_context
-def skill(context, action, scope, copy_only, force):
+def skill(context, action, scope, copy_only, force, no_git):
     """Install/update the bundled Agent Skills for AI coding agents.
 
     Drops each bundled skill (Agent Skills open standard) into
@@ -736,13 +753,29 @@ def skill(context, action, scope, copy_only, force):
     except FileNotFoundError as e:  # pragma: no cover - packaging guard
         raise click.ClickException(str(e)) from e
 
-    verb = "Updated" if action == "update" else "Installed"
+    verb, commit_verb = (
+        ("Updated", "Update") if action == "update" else ("Installed", "Add")
+    )
     echo(f"\n{verb} plonecli skills under {base}", fg="green", reverse=True)
     for act in actions:
         if act.kind == "symlink":
             echo(f"  symlink {act.target} -> {act.points_to}")
         else:
             echo(f"  copied  {act.target}")
+
+    # Project-scope installs write into the project tree, so they fall under the
+    # same auto-commit contract as create/add: leaving them untracked makes the
+    # next ``plonecli add`` refuse to run on a dirty repository.
+    config = context.obj["config"]
+    if scope == "project" and config.auto_commit and not no_git:
+        committed = commit_paths(
+            base,
+            f"{commit_verb} plonecli skills",
+            config,
+            [str(act.target.relative_to(base)) for act in actions],
+        )
+        if committed:
+            echo(f"  Committed: {committed}", fg="green")
 
 
 @cli.command(cls=InterspersedCommand)
