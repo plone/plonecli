@@ -1,4 +1,6 @@
 workspaces/
+workspaces-git/
 results/
+results-git/
 __pycache__/
 *.py[cod]
