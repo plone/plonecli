@@ -14,6 +14,11 @@
 ## 7.0.0b14 (2026-08-13)
 
 
+- Add PowerShell support to the `completion` command: auto-detect PowerShell on Windows,
+  add correct profile path, create directory if missing, and fix success message to use
+  `. $PROFILE` instead of `source`.
+  [Anu13lol]
+  
 - Save `~/.plonecli/config.toml` with a real TOML writer, so quotes, backslashes
   and newlines in any value round-trip instead of producing a file plonecli can
   no longer read. An unreadable config now fails with a message naming the path.
@@ -523,3 +528,4 @@ New features:
 
 - initital version with list templates support and bobtemplates.plone integration
   [MrTango, tmassman, Gomez]
+
