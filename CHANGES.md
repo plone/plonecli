@@ -1,6 +1,6 @@
 # History
 
-## 7.0.0b15 (unreleased)
+## 7.0.0b15 (2026-08-15)
 
 
 - Allow the plonecli skill to start the development server when the user
