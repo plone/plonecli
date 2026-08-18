@@ -3,7 +3,20 @@
 ## 7.0.0b16 (unreleased)
 
 
-- Nothing changed yet.
+- Honour `auto_commit` in `plonecli setup` and add its `--no-git` flag, so the
+  command no longer commits (or initialises) a repository the user opted out of.
+  It now reports the commit like `create` and `add`.
+  [MrTango]
+
+- Commit the skills installed by `plonecli skill install/update --scope project`,
+  so the project is not left dirty for the next `plonecli add`. Opt out with
+  `--no-git` or `auto_commit = false`.
+  [MrTango]
+
+- Locate the copier-templates checkout for the integration tests via the repo's
+  own `develop/plone/src/copier-templates` and the configured clone, so the
+  suite no longer silently skips 23 of its 24 cases.
+  [MrTango]
 
 
 ## 7.0.0b15 (2026-08-15)

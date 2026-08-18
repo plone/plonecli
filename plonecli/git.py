@@ -10,6 +10,7 @@ behaviour of the legacy ``bobtemplates.plone``. Users can opt out per run with
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Sequence
 from pathlib import Path
 
 from plonecli.config import PlonecliConfig
@@ -75,13 +76,78 @@ def _has_identity(path: Path) -> bool:
     return True
 
 
-def _nothing_staged(path: Path) -> bool:
-    """Return True if the index has no staged changes to commit."""
-    result = subprocess.run(
-        ["git", "diff", "--cached", "--quiet"],
-        cwd=str(path),
-    )
+def _nothing_staged(path: Path, paths: Sequence[str] = ()) -> bool:
+    """Return True if the index has no staged changes to commit.
+
+    ``paths`` narrows the check to those pathspecs.
+    """
+    cmd = ["git", "diff", "--cached", "--quiet"]
+    if paths:
+        cmd += ["--", *paths]
+    result = subprocess.run(cmd, cwd=str(path))
     return result.returncode == 0
+
+
+def _commit_command(path: Path, message: str, config: PlonecliConfig) -> list[str]:
+    """The ``git commit`` argv, with an identity fallback when git has none."""
+    cmd = ["git"]
+    if not _has_identity(path):
+        cmd += [
+            "-c",
+            f"user.name={config.author_name}",
+            "-c",
+            f"user.email={config.author_email}",
+        ]
+    return cmd + ["commit", "-m", message]
+
+
+def commit_paths(
+    target_dir: str | Path,
+    message: str,
+    config: PlonecliConfig,
+    paths: Sequence[str],
+) -> str | None:
+    """Commit only ``paths`` (relative to ``target_dir``) in an existing repo.
+
+    Unlike :func:`commit_template_changes` this never runs ``git init`` and
+    never stages anything outside ``paths``, so a command that writes a few
+    known files leaves the rest of the working tree untouched.
+
+    Returns:
+        The commit message if a commit was made, otherwise ``None`` (no
+        repository, nothing written, or nothing changed).
+    """
+    target = Path(target_dir)
+    if not is_git_repo(target):
+        return None
+
+    existing = [p for p in paths if (target / p).exists()]
+    if not existing:
+        return None
+
+    try:
+        subprocess.run(
+            ["git", "add", "--", *existing],
+            cwd=str(target),
+            check=True,
+            capture_output=True,
+        )
+        if _nothing_staged(target, existing):
+            return None
+        subprocess.run(
+            [*_commit_command(target, message, config), "--", *existing],
+            cwd=str(target),
+            check=True,
+            capture_output=True,
+        )
+        return message
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        error(
+            f"ERROR: git auto-commit failed ({exc}).\n"
+            f"The files written in {target} are uncommitted - commit them "
+            f"yourself."
+        )
+        return None
 
 
 def commit_template_changes(
@@ -136,17 +202,8 @@ def commit_template_changes(
         else:
             message = f"Add {template_name} template"
 
-        commit_cmd = ["git"]
-        if not _has_identity(target):
-            commit_cmd += [
-                "-c",
-                f"user.name={config.author_name}",
-                "-c",
-                f"user.email={config.author_email}",
-            ]
-        commit_cmd += ["commit", "-m", message]
         subprocess.run(
-            commit_cmd,
+            _commit_command(target, message, config),
             cwd=str(target),
             check=True,
             capture_output=True,

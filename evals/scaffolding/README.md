@@ -24,6 +24,22 @@ repository template inventory and fails when a new template has no lane. The run
 PLONECLI_TEMPLATES_DIR=/workspaces/plonecli/develop/plone/src/copier-templates
 ```
 
+`run_git_evals.py` is the complement. Because the matrix above passes
+`--no-git` everywhere, it never exercises auto-commit — the behaviour users get
+by default. This harness runs the same commands with git enabled and asserts,
+after each one, that the project is a git repository, that `git status
+--porcelain` is empty, and that the expected commit was created:
+
+```sh
+uv run python evals/scaffolding/run_git_evals.py --quick
+uv run python evals/scaffolding/run_git_evals.py
+```
+
+`--quick` runs only the project-level cases (`create` × 3, `skill install
+--scope project`, `setup`); the full run adds every subtemplate plus
+`zope_instance`. It writes to `workspaces-git/` and `results-git/`, so the two
+harnesses never share state.
+
 Generated trees are disposable and always live beneath `workspaces/`. Reports
 and per-case command logs are written beneath `results/`:
 

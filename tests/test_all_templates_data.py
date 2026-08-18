@@ -19,7 +19,6 @@ Two layers:
 
 from __future__ import annotations
 
-import os
 import shutil
 from pathlib import Path
 
@@ -29,9 +28,7 @@ import yaml
 from plonecli.config import PlonecliConfig
 from plonecli.project import find_project_root
 from plonecli.templates import run_add, run_create
-
-DEV_TEMPLATES_DIR = Path("/home/node/develop/plone/src/copier-templates")
-FALLBACK_TEMPLATES_DIR = Path("/home/node/.copier-templates/plone-copier-templates")
+from tests.helpers import find_templates_checkout, templates_checkout
 
 # Required-but-defaultless questions, plus anything whose default is a Jinja
 # expression we cannot render here, get a concrete, validator-passing value.
@@ -45,24 +42,6 @@ SPECIAL_VALUES = {
 }
 
 
-def _find_templates_dir() -> Path | None:
-    env_dir = os.environ.get("PLONECLI_TEMPLATES_DIR")
-    if env_dir and Path(env_dir).exists():
-        return Path(env_dir)
-    if DEV_TEMPLATES_DIR.exists():
-        return DEV_TEMPLATES_DIR
-    if FALLBACK_TEMPLATES_DIR.exists():
-        return FALLBACK_TEMPLATES_DIR
-    return None
-
-
-def _templates_dir() -> Path:
-    templates_dir = _find_templates_dir()
-    if templates_dir is None:
-        pytest.skip("No copier-templates checkout available")
-    return templates_dir
-
-
 def _all_templates():
     """Yield (name, copier.yml-dict) for every real (non-composite) template.
 
@@ -70,7 +49,7 @@ def _all_templates():
     only valid inside a test). When no templates checkout is available it yields
     nothing, leaving the parametrized tests with an empty parameter set.
     """
-    templates_dir = _find_templates_dir()
+    templates_dir = find_templates_checkout()
     if templates_dir is None:
         return
     for cfg in sorted(templates_dir.glob("*/copier.yml")):
@@ -198,10 +177,10 @@ def _generate_main(name, template_data, config, tmp_path) -> Path:
 @pytest.fixture(scope="module")
 def _parents(tmp_path_factory):
     """Generate one backend_addon and one zope-setup parent to add subs into."""
-    config = PlonecliConfig(templates_dir=str(_templates_dir()))
+    config = PlonecliConfig(templates_dir=str(templates_checkout()))
     parents = {}
     for main in ("backend_addon", "zope-setup"):
-        cfg = _templates_dir() / main / "copier.yml"
+        cfg = templates_checkout() / main / "copier.yml"
         if not cfg.exists():
             continue
         data = yaml.safe_load(cfg.read_text())
@@ -228,7 +207,7 @@ def test_template_generates_non_interactively(name, template_data, _parents, tmp
     if shutil.which("uv") is None:
         pytest.skip("uv is required to run template post-copy hooks")
 
-    config = PlonecliConfig(templates_dir=str(_templates_dir()))
+    config = PlonecliConfig(templates_dir=str(templates_checkout()))
     meta = template_data.get("_plonecli", {})
 
     if meta.get("type") == "main":
