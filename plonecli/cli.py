@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import importlib.metadata
+import keyword
 import re
 import shutil
 import subprocess
 import sys
 import tomllib
-from pathlib import Path
+from pathlib import Path, PurePath
 
 import click
 
@@ -89,6 +90,32 @@ def _parse_data(pairs):
             )
         data[key] = value
     return data
+
+
+def _validate_package_name(name):
+    """Reject names whose dotted parts are not valid Python identifiers.
+
+    Each part becomes a Python package directory, so a dash or a leading digit
+    produces a package that cannot be imported or installed. ``name`` may be a
+    path, in which case only its last component is the package name. Raises
+    ``click.BadParameter``.
+    """
+    name = PurePath(name).name
+    parts = name.split(".")
+    bad = [p for p in parts if not p.isidentifier() or keyword.iskeyword(p)]
+    if not bad:
+        return
+    suggestion = name.replace("-", "_")
+    hint = ""
+    if suggestion != name and all(
+        p.isidentifier() and not keyword.iskeyword(p) for p in suggestion.split(".")
+    ):
+        hint = f" Try {suggestion!r}."
+    raise click.BadParameter(
+        f"{name!r} is not a valid package name: "
+        f"{', '.join(repr(p) for p in bad)} is not a valid Python identifier.{hint}",
+        param_hint="NAME",
+    )
 
 
 def _load_data_file(path):
@@ -303,6 +330,7 @@ class CreateCommand(InterspersedCommand):
 @click.pass_context
 def create(context, template, name, data, data_file, defaults, no_git, allow_dirty):
     """Create a new Plone package"""
+    _validate_package_name(name)
     config = context.obj["config"]
     ensure_templates(config)
     reg = TemplateRegistry(config)
