@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import importlib.metadata
+import keyword
 import re
 import shutil
 import subprocess
 import sys
 import tomllib
-from pathlib import Path
+from pathlib import Path, PurePath
 
 import click
 
@@ -20,6 +21,7 @@ from plonecli.project import find_project_root
 from plonecli.registry import TemplateRegistry
 from plonecli.templates import (
     ensure_templates_cloned,
+    get_template_path,
     get_templates_info,
     run_add,
     run_create,
@@ -89,6 +91,69 @@ def _parse_data(pairs):
             )
         data[key] = value
     return data
+
+
+def _template_uses_package_name(reg, config, resolved):
+    """Whether this main template turns its answers into a Python package.
+
+    Only some ``create`` templates do. ``backend_addon`` -- and ``addon``, the
+    composite that includes it -- ask a ``package_name`` question whose default
+    is the destination directory name, so the directory name has to be a legal
+    Python package. ``zope-setup`` asks ``project_name`` instead, where a
+    hyphen is ordinary and documented (``plonecli create zope-setup
+    my-project``).
+
+    Read from the template rather than hardcoded, so a template added later is
+    classified by what it asks for instead of by a list someone has to
+    remember to update. A template that cannot be read is treated as not
+    asking, because refusing to scaffold on a failed lookup would be worse
+    than the bug this guards against.
+    """
+    import yaml
+
+    names = reg.get_composite_steps(resolved) or [resolved]
+    for step in names:
+        try:
+            questions = yaml.safe_load(
+                (get_template_path(step, config) / "copier.yml").read_text()
+            )
+        except (OSError, yaml.YAMLError):
+            continue
+        if isinstance(questions, dict) and "package_name" in questions:
+            return True
+    return False
+
+
+def _validate_package_name(name):
+    """Reject a package name whose dotted parts are not usable in Python.
+
+    Each part becomes a Python package directory, so a dash, a leading digit or
+    a reserved word produces a package that cannot be imported or installed --
+    see issue #72, where ``collective.new-testcase`` scaffolded a project that
+    ``pip install`` then rejected. ``name`` may be a path, in which case only
+    its last component is the package name. Raises ``click.BadParameter``.
+    """
+    name = PurePath(name).name
+    parts = name.split(".")
+    bad = [p for p in parts if not p.isidentifier() or keyword.iskeyword(p)]
+    if not bad:
+        return
+    suggestion = name.replace("-", "_")
+    hint = ""
+    if suggestion != name and all(
+        p.isidentifier() and not keyword.iskeyword(p) for p in suggestion.split(".")
+    ):
+        hint = f" Try {suggestion!r}."
+    reason = (
+        "is a Python keyword"
+        if all(keyword.iskeyword(p) for p in bad)
+        else "is not a valid Python identifier"
+    )
+    raise click.BadParameter(
+        f"{name!r} is not a valid package name: "
+        f"{', '.join(repr(p) for p in bad)} {reason}.{hint}",
+        param_hint="NAME",
+    )
 
 
 def _load_data_file(path):
@@ -321,6 +386,14 @@ def create(context, template, name, data, data_file, defaults, no_git, allow_dir
 
     git_commit = config.auto_commit and not no_git
     answers = _collect_data(data_file, data)
+    # NAME is the output directory (`run_create(target_name=...)`). For a
+    # template that scaffolds a Python package it also DEFAULTS the package
+    # name, which is the case issue #72 is about -- but an explicit
+    # `-d package_name=` overrides that default, and a project template such as
+    # zope-setup never uses NAME as a package at all. Validate whichever value
+    # is actually going to be the package name, and only when there is one.
+    if _template_uses_package_name(reg, config, resolved):
+        _validate_package_name(answers.get("package_name") or name)
     steps = reg.get_composite_steps(resolved)
     if steps:
         echo(f"\nCreating {resolved} project: {name}", fg="green", reverse=True)
