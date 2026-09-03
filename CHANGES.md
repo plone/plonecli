@@ -4,7 +4,10 @@
 
 
 - Reject package names whose dotted parts are not valid Python identifiers,
-  instead of generating a package that cannot be installed. [kunalKumar-13]
+  instead of generating a package that cannot be installed. Applies to
+  templates that scaffold a Python package, and to the package name that will
+  actually be used -- a project template such as `zope-setup`, whose NAME is a
+  directory, is unaffected. [kunalKumar-13]
 
 
 ## 7.0.0b15 (2026-08-15)
