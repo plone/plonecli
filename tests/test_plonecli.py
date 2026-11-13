@@ -1027,3 +1027,128 @@ def test_test_command_propagates_a_failing_exit_code(
     result = runner.invoke(cli, ["test"])
 
     assert result.exit_code == 1
+
+
+def _add_with_mocks(runner, tmp_path, mock_config, mock_project, args, dirty=False):
+    templates = tmp_path / "templates"
+    templates.mkdir()
+    _make_template(templates, "backend_addon", {"type": "main"})
+    _make_template(
+        templates, "upgrade_step", {"type": "sub", "parent": "backend_addon"}
+    )
+    project = tmp_path / "project"
+    project.mkdir(exist_ok=True)
+    if dirty:
+        _dirty_repo(project)
+    mock_config.return_value = MagicMock(templates_dir=str(templates), auto_commit=True)
+    mock_project.return_value = project_at(project)
+    return runner.invoke(cli, ["add", "upgrade_step", *args])
+
+
+@pytest.mark.parametrize(
+    ("tty", "args", "expected"),
+    [
+        (True, [], "ask"),
+        (True, ["--defaults"], "fail"),
+        (False, [], "fail"),
+        (False, ["--overwrite"], "overwrite"),
+        (True, ["--skip-existing"], "skip"),
+    ],
+)
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_conflict_mode(
+    mock_ensure,
+    mock_run_add,
+    mock_config,
+    mock_project,
+    runner,
+    tmp_path,
+    tty,
+    args,
+    expected,
+):
+    with patch("plonecli.cli._is_interactive", return_value=tty):
+        result = _add_with_mocks(runner, tmp_path, mock_config, mock_project, args)
+
+    assert result.exit_code == 0, result.output
+    assert mock_run_add.call_args.kwargs["on_conflict"] == expected
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_overwrite_and_skip_existing_are_exclusive(
+    mock_ensure, mock_run_add, mock_config, mock_project, runner, tmp_path
+):
+    result = _add_with_mocks(
+        runner, tmp_path, mock_config, mock_project, ["--overwrite", "--skip-existing"]
+    )
+
+    assert result.exit_code != 0
+    assert "mutually exclusive" in result.output
+    mock_run_add.assert_not_called()
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_to_dirty_tree_leaves_result_uncommitted(
+    mock_ensure, mock_run_add, mock_config, mock_project, runner, tmp_path
+):
+    result = _add_with_mocks(
+        runner,
+        tmp_path,
+        mock_config,
+        mock_project,
+        ["--defaults", "--allow-dirty"],
+        dirty=True,
+    )
+
+    assert result.exit_code == 0, result.output
+    assert mock_run_add.call_args.kwargs["git_commit"] is False
+    assert "left uncommitted" in result.output
+
+
+@patch("plonecli.cli.find_project_root")
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_add")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_add_to_clean_tree_with_allow_dirty_still_commits(
+    mock_ensure, mock_run_add, mock_config, mock_project, runner, tmp_path
+):
+    (tmp_path / "project").mkdir()
+    subprocess.run(
+        ["git", "init"], cwd=str(tmp_path / "project"), check=True, capture_output=True
+    )
+    result = _add_with_mocks(
+        runner, tmp_path, mock_config, mock_project, ["--defaults", "--allow-dirty"]
+    )
+
+    assert result.exit_code == 0, result.output
+    assert mock_run_add.call_args.kwargs["git_commit"] is True
+
+
+@patch("plonecli.cli.find_project_root", return_value=None)
+@patch("plonecli.cli.load_config")
+@patch("plonecli.cli.run_create")
+@patch("plonecli.cli.ensure_templates_cloned")
+def test_create_into_dirty_tree_leaves_result_uncommitted(
+    mock_ensure, mock_run_create, mock_config, mock_project, runner, tmp_path
+):
+    _make_template(tmp_path, "backend_addon", {"type": "main"})
+    target = tmp_path / "my.addon"
+    target.mkdir()
+    _dirty_repo(target)
+    mock_config.return_value = MagicMock(templates_dir=str(tmp_path), auto_commit=True)
+
+    result = runner.invoke(
+        cli, ["create", "backend_addon", str(target), "--defaults", "--allow-dirty"]
+    )
+
+    assert result.exit_code == 0, result.output
+    assert mock_run_create.call_args.kwargs["git_commit"] is False

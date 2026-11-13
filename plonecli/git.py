@@ -84,12 +84,21 @@ def _nothing_staged(path: Path) -> bool:
     return result.returncode == 0
 
 
+def _default_message(template_name, is_subtemplate, just_initialized) -> str:
+    if is_subtemplate:
+        return f"Add {template_name} subtemplate"
+    if just_initialized:
+        return f"Create package with {template_name} template"
+    return f"Add {template_name} template"
+
+
 def commit_template_changes(
     target_dir: str | Path,
     template_name: str,
     config: PlonecliConfig,
     *,
     is_subtemplate: bool,
+    message: str | None = None,
 ) -> str | None:
     """Initialise git (if needed) and commit the result of a template run.
 
@@ -98,6 +107,7 @@ def commit_template_changes(
         template_name: Canonical template name, used in the commit message.
         config: Global plonecli config (provides the identity fallback).
         is_subtemplate: Whether this was an ``add`` (subtemplate) run.
+        message: Commit message; derived from the template name if omitted.
 
     Returns:
         The commit message if a commit was made, otherwise ``None`` (nothing to
@@ -129,12 +139,9 @@ def commit_template_changes(
         if _nothing_staged(target):
             return None
 
-        if is_subtemplate:
-            message = f"Add {template_name} subtemplate"
-        elif just_initialized:
-            message = f"Create package with {template_name} template"
-        else:
-            message = f"Add {template_name} template"
+        message = message or _default_message(
+            template_name, is_subtemplate, just_initialized
+        )
 
         commit_cmd = ["git"]
         if not _has_identity(target):

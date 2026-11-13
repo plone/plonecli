@@ -163,11 +163,17 @@ plonecli setup --defaults -d plone_version=6.1.1
 | `--defaults`        | Use template defaults for unanswered questions instead of prompting |
 | `--allow-dirty`     | Run even if the git repository has uncommitted changes              |
 | `--no-git`          | Skip the auto-commit (`create`, `add`)                              |
+| `--overwrite`       | Overwrite existing files that differ from the template (`add`)      |
+| `--skip-existing`   | Keep existing files that differ from the template (`add`)           |
 
 On a repository with uncommitted changes, an interactive run asks whether to
 continue, and a non-interactive one (`--defaults`, or no terminal) aborts so
 generated files never silently mix into your work in progress. Pass
-`--allow-dirty` when that mixing is intended.
+`--allow-dirty` when that mixing is intended, e.g. to add an upgrade step for
+profile changes you are working on; the result is then left uncommitted.
+
+A non-interactive `add` that would change existing files stops before writing
+anything and lists them; choose `--overwrite` or `--skip-existing`.
 
 
 ### Creating a Plone Add-on

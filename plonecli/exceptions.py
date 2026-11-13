@@ -30,3 +30,7 @@ class NoSuchValue(NoSuchOption):
         super().__init__(option_name, message, possibilities, ctx)
         self.option_name = option_name
         self.possibilities = possibilities
+
+
+class TemplateRunError(ClickException):
+    """Raised when copier rejects answers or would overwrite files."""

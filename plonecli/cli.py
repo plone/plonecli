@@ -75,6 +75,32 @@ def confirm_clean_git(target_dir, defaults: bool, allow_dirty: bool = False) -> 
     return click.confirm("Continue anyway?", default=False)
 
 
+def auto_commit(config, no_git: bool, target_dir) -> bool:
+    """Commit the result only on a clean tree, so work in progress stays unmixed."""
+    if not config.auto_commit or no_git:
+        return False
+    modified, untracked = dirty_files(target_dir)
+    if modified or untracked:
+        echo(
+            "The repository had uncommitted changes; result left uncommitted.",
+            fg="yellow",
+        )
+        return False
+    return True
+
+
+def _conflict_mode(overwrite: bool, skip_existing: bool, defaults: bool) -> str:
+    if overwrite and skip_existing:
+        raise click.UsageError(
+            "--overwrite and --skip-existing are mutually exclusive."
+        )
+    if overwrite:
+        return "overwrite"
+    if skip_existing:
+        return "skip"
+    return "fail" if defaults or not _is_interactive() else "ask"
+
+
 def _parse_data(pairs):
     """Parse ``KEY=VALUE`` strings into a dict of copier answers.
 
@@ -147,7 +173,8 @@ def template_run_options(command):
                 "--allow-dirty",
                 "allow_dirty",
                 is_flag=True,
-                help="Run even if the git repository has uncommitted changes.",
+                help="Run even if the git repository has uncommitted changes. "
+                "The result is then left uncommitted.",
             ),
         ]
     ):
@@ -319,7 +346,7 @@ def create(context, template, name, data, data_file, defaults, no_git, allow_dir
         echo("Aborted.", fg="yellow")
         return
 
-    git_commit = config.auto_commit and not no_git
+    git_commit = auto_commit(config, no_git, name)
     answers = _collect_data(data_file, data)
     steps = reg.get_composite_steps(resolved)
     if steps:
@@ -366,9 +393,37 @@ def create(context, template, name, data, data_file, defaults, no_git, allow_dir
     is_flag=True,
     help="Do not auto-commit the changes made by this subtemplate.",
 )
+@click.option(
+    "--overwrite",
+    is_flag=True,
+    help="Overwrite existing files that differ from the template.",
+)
+@click.option(
+    "--skip-existing",
+    "skip_existing",
+    is_flag=True,
+    help="Keep existing files that differ from the template.",
+)
 @click.pass_context
-def add(context, template, data, data_file, defaults, no_git, allow_dirty):
-    """Add features to your existing Plone package"""
+def add(
+    context,
+    template,
+    data,
+    data_file,
+    defaults,
+    no_git,
+    allow_dirty,
+    overwrite,
+    skip_existing,
+):
+    """Add features to your existing Plone package
+
+    In non-interactive mode, files that would be changed abort the run before
+    anything is written, unless --overwrite or --skip-existing is given.
+
+    To add to work in progress, pass --allow-dirty: the result is then left
+    uncommitted, next to your own changes.
+    """
     project = context.obj.get("project")
     if project is None:
         raise NotInPackageError(context.command.name)
@@ -385,11 +440,12 @@ def add(context, template, data, data_file, defaults, no_git, allow_dirty):
             possibilities=reg.get_subtemplates(),
         )
 
+    on_conflict = _conflict_mode(overwrite, skip_existing, defaults)
     if not confirm_clean_git(project.root_folder, defaults, allow_dirty):
         echo("Aborted.", fg="yellow")
         return
 
-    git_commit = config.auto_commit and not no_git
+    git_commit = auto_commit(config, no_git, project.root_folder)
     answers = _collect_data(data_file, data)
     echo(f"\nAdding {resolved} to {project.root_folder.name}", fg="green", reverse=True)
     committed = run_add(
@@ -399,6 +455,7 @@ def add(context, template, data, data_file, defaults, no_git, allow_dirty):
         data=answers,
         defaults=defaults,
         git_commit=git_commit,
+        on_conflict=on_conflict,
     )
     if committed:
         echo(f"  Committed: {committed}", fg="green")

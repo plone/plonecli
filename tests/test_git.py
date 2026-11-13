@@ -50,6 +50,24 @@ def test_commit_subtemplate_message(tmp_path):
     ]
 
 
+def test_commit_uses_given_message(tmp_path):
+    config = PlonecliConfig()
+    (tmp_path / "a.py").write_text("a\n")
+    commit_template_changes(tmp_path, "backend_addon", config, is_subtemplate=False)
+
+    (tmp_path / "b.py").write_text("b\n")
+    msg = commit_template_changes(
+        tmp_path,
+        "upgrade_step",
+        config,
+        is_subtemplate=True,
+        message="Add upgrade step 1001: Add index",
+    )
+
+    assert msg == "Add upgrade step 1001: Add index"
+    assert _log(tmp_path)[0] == "Add upgrade step 1001: Add index"
+
+
 def test_commit_noop_when_nothing_changed(tmp_path):
     """A second run with no file changes makes no commit."""
     config = PlonecliConfig()
