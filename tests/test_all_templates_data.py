@@ -115,6 +115,10 @@ def _answer_for(name: str, spec: dict):
     if qtype == "bool":
         return bool(default) if isinstance(default, bool) else True
 
+    if spec.get("multiselect"):
+        options = list(choices.values()) if isinstance(choices, dict) else choices
+        return options[:1]
+
     # Literal choice lists: prefer a static default, else the first option.
     if isinstance(choices, list) and choices:
         if isinstance(default, str) and not _is_jinja(default) and default in choices:
@@ -173,7 +177,9 @@ def test_data_covers_all_questions(name, template_data):
     for qname, value in answers.items():
         assert value is not None, f"{name}: {qname} resolved to None"
         qtype = questions[qname].get("type", "str")
-        if qtype == "bool":
+        if questions[qname].get("multiselect"):
+            assert isinstance(value, list) and value, f"{name}: {qname} must be a list"
+        elif qtype == "bool":
             assert isinstance(value, bool), f"{name}: {qname} must be bool"
         elif qtype == "int":
             assert isinstance(value, int), f"{name}: {qname} must be int"

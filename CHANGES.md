@@ -3,7 +3,14 @@
 ## 7.0.0b16 (unreleased)
 
 
-- Nothing changed yet.
+- `plonecli add` fails before writing anything when non-interactive and files
+  would change; pass `--overwrite` or `--skip-existing`. Copier validation
+  errors print as one line.
+  [MrTango]
+
+- Templates can set `_plonecli.commit_message`, formatted with the answers.
+  Runs on a dirty tree (`--allow-dirty`) leave the result uncommitted.
+  [MrTango]
 
 
 ## 7.0.0b15 (2026-08-15)
